@@ -109,8 +109,8 @@ model SemanticCache {
   id          String   @id @default(cuid())
   promptHash  String   @unique @map("prompt_hash")
   model       String
-  // pgvector embedding — managed via raw SQL
-  // embedding Unsupported("vector(1536)")
+  // pgvector embedding
+  embedding   Unsupported("vector(1536)")?
   response    Json
   hitCount    Int      @default(0) @map("hit_count")
   createdAt   DateTime @default(now()) @map("created_at")
