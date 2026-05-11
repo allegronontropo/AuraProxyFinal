@@ -15,6 +15,7 @@
     "@aura/redis": "*",
     "@aura/shared": "*",
     "@fastify/cors": "^10.0.0",
+    "@google/generative-ai": "^0.24.1",
     "@mistralai/mistralai": "^2.1.2",
     "@nestjs/common": "^11.1.19",
     "@nestjs/config": "^4.0.4",
