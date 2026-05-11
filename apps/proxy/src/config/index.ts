@@ -35,6 +35,7 @@ const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   MISTRAL_API_KEY: z.string().optional(),
+  GOOGLE_API_KEY: z.string().optional(),
 
   // Semantic Cache
   EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
