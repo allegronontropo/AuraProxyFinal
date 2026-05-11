@@ -24,7 +24,7 @@ export class MessageDto {
   })
   @IsString()
   @IsIn(['system', 'user', 'assistant'])
-  role: 'system' | 'user' | 'assistant';
+  role!: 'system' | 'user' | 'assistant';
 
   @ApiProperty({
     description: 'Content of the message',
@@ -32,7 +32,7 @@ export class MessageDto {
   })
   @IsString()
   @IsNotEmpty()
-  content: string;
+  content!: string;
 }
 
 /**
@@ -50,7 +50,7 @@ export class ChatRequestDto {
   })
   @IsString()
   @IsNotEmpty()
-  model: string;
+  model!: string;
 
   @ApiProperty({
     description: 'List of messages in the conversation',
@@ -59,7 +59,7 @@ export class ChatRequestDto {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => MessageDto)
-  messages: MessageDto[];
+  messages!: MessageDto[];
 
   @ApiPropertyOptional({
     description: 'Enable Server-Sent Events streaming',
