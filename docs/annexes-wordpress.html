@@ -1,0 +1,166 @@
+<!-- wp:heading {"level":2} -->
+<h2>📄 Annexe A — Cahier de charge technique</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Le cahier de charge technique détaille l'ensemble des spécifications fonctionnelles et techniques du projet Aura Proxy : API unifiée, cache sémantique, contrôle budgétaire, dashboard multi-rôle et intégration Stripe.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:html -->
+<div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; margin: 20px 0;">
+  <iframe src="/annexes/cahier-de-charge.html" width="100%" height="800px" style="border: none;"></iframe>
+</div>
+<p style="text-align: center; color: #64748b; font-size: 0.9em; margin-top: 8px;">
+  <a href="/annexes/cahier-de-charge.html" target="_blank" style="color: #6c5ce7;">🔗 Ouvrir le cahier de charge en plein écran</a>
+</p>
+<!-- /wp:html -->
+
+<!-- wp:separator -->
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+<!-- /wp:separator -->
+
+<!-- wp:heading {"level":2} -->
+<h2>📊 Annexe B — Diagrammes UML</h2>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Les diagrammes suivants illustrent l'architecture et les interactions du système Aura Proxy.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:heading {"level":3} -->
+<h3>B.1 — Diagramme de cas d'utilisation</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Ce diagramme présente les interactions entre les trois acteurs principaux (Client API, Administrateur, Système) et les fonctionnalités offertes par la plateforme.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:html -->
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+  <p style="color: #64748b; font-style: italic;">Diagramme disponible dans le cahier de charge technique (Section 7.1)</p>
+</div>
+<!-- /wp:html -->
+
+<!-- wp:heading {"level":3} -->
+<h3>B.2 — Diagramme de classes</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Le diagramme de classes modélise les entités métier du système et leurs relations : Tenant, Project, ApiKey, RequestLog, SemanticCache, ainsi que les interfaces des providers LLM.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:html -->
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+  <p style="color: #64748b; font-style: italic;">Diagramme disponible dans le cahier de charge technique (Section 7.2)</p>
+</div>
+<!-- /wp:html -->
+
+<!-- wp:heading {"level":3} -->
+<h3>B.3 — Architecture globale</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Vue d'ensemble de l'architecture NestJS modulaire, du flux de requêtes à travers les Guards et Interceptors, jusqu'aux providers LLM et aux workers asynchrones.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:html -->
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+  <p style="color: #64748b; font-style: italic;">Diagramme disponible dans le cahier de charge technique (Section 8.1)</p>
+</div>
+<!-- /wp:html -->
+
+<!-- wp:heading {"level":3} -->
+<h3>B.4 — Flux de streaming SSE</h3>
+<!-- /wp:heading -->
+
+<!-- wp:paragraph -->
+<p>Diagramme de séquence illustrant le flux de données en streaming (Server-Sent Events) entre le client, le proxy et le fournisseur LLM.</p>
+<!-- /wp:paragraph -->
+
+<!-- wp:html -->
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+  <p style="color: #64748b; font-style: italic;">Diagramme disponible dans le cahier de charge technique (Section 8.3)</p>
+</div>
+<!-- /wp:html -->
+
+<!-- wp:separator -->
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+<!-- /wp:separator -->
+
+<!-- wp:heading {"level":2} -->
+<h2>🔗 Annexe C — Dépôt GitHub</h2>
+<!-- /wp:heading -->
+
+<!-- wp:html -->
+<div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 12px; padding: 30px; margin: 20px 0; color: white;">
+  <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+    <svg height="32" viewBox="0 0 16 16" width="32" fill="white"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+    <div>
+      <strong style="font-size: 1.2em;">allegronontropo/Aura-Proxy</strong><br>
+      <span style="opacity: 0.8; font-size: 0.9em;">Monorepo TypeScript — NestJS + Next.js</span>
+    </div>
+  </div>
+  <p style="opacity: 0.9; margin-bottom: 20px;">Le code source complet du projet est hébergé sur GitHub. Le dépôt suit la méthodologie <strong>GitHub Flow</strong> avec des branches par phase de développement.</p>
+  <a href="https://github.com/allegronontropo/Aura-Proxy" target="_blank" style="display: inline-block; background: #6c5ce7; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Voir le dépôt →</a>
+</div>
+<!-- /wp:html -->
+
+<!-- wp:html -->
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+  <thead>
+    <tr style="background: #f8fafc;">
+      <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">Répertoire</th>
+      <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code>apps/proxy/</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Backend NestJS — API Gateway, providers LLM, streaming</td></tr>
+    <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code>apps/dashboard/</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Frontend Next.js 15 — Dashboard admin/client</td></tr>
+    <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code>packages/db/</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Prisma ORM — Schéma, migrations, client singleton</td></tr>
+    <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code>packages/redis/</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Client Redis — Cache, rate limiting, sessions</td></tr>
+    <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code>packages/shared/</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Types et constantes partagés entre apps</td></tr>
+    <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code>docs/</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Documentation — Cahier de charge, rapports</td></tr>
+  </tbody>
+</table>
+<!-- /wp:html -->
+
+<!-- wp:separator -->
+<hr class="wp-block-separator has-alpha-channel-opacity"/>
+<!-- /wp:separator -->
+
+<!-- wp:heading {"level":2} -->
+<h2>📚 Annexe D — Documentation API (Swagger)</h2>
+<!-- /wp:heading -->
+
+<!-- wp:html -->
+<div style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 20px; margin: 20px 0;">
+  <p style="margin: 0; color: #92400e;">
+    <strong>⏳ À venir</strong> — La documentation Swagger sera générée automatiquement à partir de la semaine 2 via <code>@nestjs/swagger</code>. Elle sera accessible à l'adresse <code>/api/docs</code> du proxy et sera intégrée ici.
+  </p>
+</div>
+<!-- /wp:html -->
+
+<!-- wp:heading {"level":3} -->
+<h3>D.1 — Endpoints prévus</h3>
+<!-- /wp:heading -->
+
+<!-- wp:html -->
+<table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+  <thead>
+    <tr style="background: #f8fafc;">
+      <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">Méthode</th>
+      <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">Endpoint</th>
+      <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:4px;">POST</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code>/v1/chat/completions</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Proxy de requête LLM (compatible OpenAI)</td></tr>
+    <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code style="background:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:4px;">GET</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code>/health</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">État de santé du service</td></tr>
+    <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code style="background:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:4px;">GET</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code>/api/docs</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Documentation Swagger UI</td></tr>
+    <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code style="background:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:4px;">GET</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code>/api/keys</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Liste des clés API du projet</td></tr>
+    <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:4px;">POST</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code>/api/keys</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Création d'une clé API</td></tr>
+    <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code style="background:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:4px;">GET</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code>/api/usage</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Statistiques de consommation</td></tr>
+    <tr><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code style="background:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:4px;">GET</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;"><code>/api/logs</code></td><td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">Logs des requêtes</td></tr>
+  </tbody>
+</table>
+<!-- /wp:html -->
