@@ -11,6 +11,7 @@ import type { LLMProvider } from '@aura/shared';
 import { OpenAIProvider } from './openai.provider.js';
 import { AnthropicProvider } from './anthropic.provider.js';
 import { MistralProvider } from './mistral.provider.js';
+import { GeminiProvider } from './gemini.provider.js';
 import { config } from '../config/index.js';
 import { LoggingDecorator } from '../decorators/logging.decorator.js';
 import { CostTrackerDecorator } from '../decorators/cost-tracker.decorator.js';
@@ -120,6 +121,14 @@ export function initializeProviders(): void {
     providerFactory.register(
       new MistralProvider({
         apiKey: config.MISTRAL_API_KEY,
+      })
+    );
+  }
+
+  if (config.GOOGLE_API_KEY) {
+    providerFactory.register(
+      new GeminiProvider({
+        apiKey: config.GOOGLE_API_KEY,
       })
     );
   }
