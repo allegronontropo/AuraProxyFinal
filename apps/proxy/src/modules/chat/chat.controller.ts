@@ -7,11 +7,12 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiResponse } from '@nestjs/swagger';
 import { ChatService } from './chat.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { BudgetGuard } from '../../common/guards/budget.guard';
-import { ChatRequest, ProviderName } from '@aura/shared';
+import { ChatRequestDto } from './dto/chat-request.dto';
+import { ChatResponseDto } from './dto/chat-response.dto';
 import type { FastifyReply } from 'fastify';
 
 @ApiTags('Chat')
@@ -23,20 +24,21 @@ export class ChatController {
   @Post('completions')
   @UseGuards(AuthGuard, BudgetGuard)
   @ApiOperation({ summary: 'OpenAI-compatible chat completions proxy' })
+  @ApiResponse({ status: 200, type: ChatResponseDto, description: 'Chat completion response' })
   @ApiHeader({
     name: 'x-provider',
     description: 'Explicitly specify the LLM provider (optional)',
     required: false,
   })
   async completions(
-    @Body() body: any,
+    @Body() body: ChatRequestDto,
     @Headers('x-provider') providerHeader: string,
     @Req() req: any,
     @Res() res: FastifyReply,
   ) {
-    const chatRequest: ChatRequest = {
+    const chatRequest = {
       ...body,
-      provider: providerHeader as ProviderName,
+      provider: providerHeader,
       apiKeyId: req.apiKey.keyId,
     };
 
@@ -47,7 +49,7 @@ export class ChatController {
         Connection: 'keep-alive',
       });
 
-      for await (const chunk of this.chatService.stream(chatRequest, req.project)) {
+      for await (const chunk of this.chatService.stream(chatRequest as any, req.project)) {
         res.raw.write(`data: ${JSON.stringify(chunk)}\n\n`);
       }
 
@@ -56,7 +58,7 @@ export class ChatController {
       return;
     }
 
-    const response = await this.chatService.chat(chatRequest, req.project);
+    const response = await this.chatService.chat(chatRequest as any, req.project);
     return res.status(200).send(response);
   }
 }
