@@ -1,15 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { RedisService } from '../../redis/redis.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { REDIS_KEYS } from '@aura/shared';
 import type { BudgetStatus } from '@aura/shared';
+import { Granularity } from '@aura/db';
 
 @Injectable()
 export class BudgetService {
-  constructor(private readonly redis: RedisService) {}
+  constructor(
+    private readonly redis: RedisService,
+    private readonly prisma: PrismaService,
+  ) {}
 
-  /**
-   * Check whether a project has exceeded its budget.
-   */
   async checkBudget(
     projectId: string,
     budgetLimit: number,
@@ -30,10 +32,6 @@ export class BudgetService {
     };
   }
 
-  /**
-   * Record spend for a project. Uses INCRBYFLOAT for atomic increment.
-   * Sets a TTL on first spend so the counter auto-resets at the end of the period.
-   */
   async recordSpend(
     projectId: string,
     costUsd: number,
@@ -42,37 +40,56 @@ export class BudgetService {
     if (costUsd <= 0) return;
 
     const key = REDIS_KEYS.budget(projectId);
-
-    // Atomic increment
     await this.redis.client.incrbyfloat(key, costUsd);
 
-    // Set TTL if key doesn't have one yet (first spend in the period)
     const ttl = await this.redis.client.ttl(key);
     if (ttl === -1) {
       const expiry = this.getPeriodTTL(budgetPeriod);
       await this.redis.client.expire(key, expiry);
     }
+
+    await this.persistUsage(projectId, costUsd);
   }
 
-  /**
-   * Manually reset the budget counter for a project.
-   */
   async resetBudget(projectId: string): Promise<void> {
     const key = REDIS_KEYS.budget(projectId);
     await this.redis.client.del(key);
   }
 
-  /**
-   * Calculate TTL in seconds for a given budget period.
-   */
+  private async persistUsage(projectId: string, cost: number): Promise<void> {
+    const now = new Date();
+    const period = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
+
+    await this.prisma.client.usageRecord.upsert({
+      where: {
+        projectId_period_granularity: {
+          projectId,
+          period,
+          granularity: Granularity.HOURLY,
+        },
+      },
+      update: {
+        totalCostUsd: { increment: cost },
+        totalRequests: { increment: 1 },
+      },
+      create: {
+        projectId,
+        period,
+        granularity: Granularity.HOURLY,
+        totalCostUsd: cost,
+        totalRequests: 1,
+      },
+    });
+  }
+
   private getPeriodTTL(period: 'DAILY' | 'WEEKLY' | 'MONTHLY'): number {
     switch (period) {
       case 'DAILY':
-        return 86400; // 24 hours
+        return 86400;
       case 'WEEKLY':
-        return 604800; // 7 days
+        return 604800;
       case 'MONTHLY':
-        return 2592000; // 30 days
+        return 2592000;
       default:
         return 2592000;
     }
