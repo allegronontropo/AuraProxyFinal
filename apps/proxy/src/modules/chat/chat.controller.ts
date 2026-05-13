@@ -11,6 +11,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiResponse } from '@n
 import { ChatService } from './chat.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { BudgetGuard } from '../../common/guards/budget.guard';
+import { RateLimiterGuard } from '../../common/guards/rate-limiter.guard';
 import { ChatRequestDto } from './dto/chat-request.dto';
 import { ChatResponseDto } from './dto/chat-response.dto';
 import type { FastifyReply } from 'fastify';
@@ -22,7 +23,7 @@ export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @Post('completions')
-  @UseGuards(AuthGuard, BudgetGuard)
+  @UseGuards(AuthGuard, BudgetGuard, RateLimiterGuard)
   @ApiOperation({ summary: 'OpenAI-compatible chat completions proxy' })
   @ApiResponse({ status: 200, type: ChatResponseDto, description: 'Chat completion response' })
   @ApiHeader({

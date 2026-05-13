@@ -15,7 +15,7 @@ import type {
   TokenUsage,
   ProviderName,
 } from '@aura/shared';
-import type { ProviderConfig } from './provider.interface.js';
+import type { ProviderConfig } from './provider.interface';
 
 export class GeminiProvider implements LLMProvider {
   readonly name: ProviderName = 'google';
@@ -92,10 +92,17 @@ export class GeminiProvider implements LLMProvider {
 
     for await (const chunk of result.stream) {
       const chunkText = chunk.text();
+      const usage = chunk.usageMetadata ? {
+        promptTokens: chunk.usageMetadata.promptTokenCount,
+        completionTokens: chunk.usageMetadata.candidatesTokenCount,
+        totalTokens: chunk.usageMetadata.totalTokenCount,
+      } : undefined;
+
       yield {
         id: `gemini-${Date.now()}`,
         content: chunkText,
         done: false,
+        usage,
       };
     }
 
@@ -104,11 +111,6 @@ export class GeminiProvider implements LLMProvider {
       id: `gemini-${Date.now()}`,
       content: '',
       done: true,
-      usage: {
-        promptTokens: 0, // In streaming, usage might not be available per chunk
-        completionTokens: 0,
-        totalTokens: 0,
-      },
     };
   }
 

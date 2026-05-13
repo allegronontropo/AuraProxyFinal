@@ -8,14 +8,14 @@
  */
 
 import type { LLMProvider } from '@aura/shared';
-import { OpenAIProvider } from './openai.provider.js';
-import { AnthropicProvider } from './anthropic.provider.js';
-import { MistralProvider } from './mistral.provider.js';
-import { GeminiProvider } from './gemini.provider.js';
-import { config } from '../config/index.js';
-import { LoggingDecorator } from '../decorators/logging.decorator.js';
-import { CostTrackerDecorator } from '../decorators/cost-tracker.decorator.js';
-import { RetryDecorator } from '../decorators/retry.decorator.js';
+import { OpenAIProvider } from './openai.provider';
+import { AnthropicProvider } from './anthropic.provider';
+import { MistralProvider } from './mistral.provider';
+import { GeminiProvider } from './gemini.provider';
+import { config } from '../config/index';
+import { LoggingDecorator } from '../decorators/logging.decorator';
+import { CostTrackerDecorator } from '../decorators/cost-tracker.decorator';
+import { RetryDecorator } from '../decorators/retry.decorator';
 import { prisma } from '@aura/db';
 
 // Minimal console-based logger compatible with pino interface

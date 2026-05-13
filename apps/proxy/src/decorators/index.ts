@@ -2,8 +2,8 @@
  * Decorators — Barrel Export
  */
 
-export { BaseDecorator } from './base.decorator.js';
-export { LoggingDecorator } from './logging.decorator.js';
-export type { Logger } from './logging.decorator.js';
-export { CostTrackerDecorator } from './cost-tracker.decorator.js';
-export { RetryDecorator } from './retry.decorator.js';
+export { BaseDecorator } from './base.decorator';
+export { LoggingDecorator } from './logging.decorator';
+export type { Logger } from './logging.decorator';
+export { CostTrackerDecorator } from './cost-tracker.decorator';
+export { RetryDecorator } from './retry.decorator';

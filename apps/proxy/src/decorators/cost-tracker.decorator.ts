@@ -12,7 +12,7 @@ import type {
   ChatResponse,
   StreamChunk,
 } from '@aura/shared';
-import { BaseDecorator } from './base.decorator.js';
+import { BaseDecorator } from './base.decorator';
 
 export class CostTrackerDecorator extends BaseDecorator {
   private prisma: PrismaClient;

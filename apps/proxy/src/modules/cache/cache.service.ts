@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service.js';
-import { EmbeddingsService } from './embeddings.service.js';
+import { PrismaService } from '../../prisma/prisma.service';
+import { EmbeddingsService } from './embeddings.service';
 import { ConfigService } from '@nestjs/config';
 import type { ChatResponse } from '@aura/shared';
 import * as crypto from 'crypto';

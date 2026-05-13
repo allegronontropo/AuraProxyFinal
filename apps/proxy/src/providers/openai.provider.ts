@@ -15,7 +15,7 @@ import type {
   TokenUsage,
   ProviderName,
 } from '@aura/shared';
-import type { ProviderConfig } from './provider.interface.js';
+import type { ProviderConfig } from './provider.interface';
 
 export class OpenAIProvider implements LLMProvider {
   readonly name: ProviderName = 'openai';
@@ -76,24 +76,22 @@ export class OpenAIProvider implements LLMProvider {
       temperature: request.temperature ?? 0.7,
       max_tokens: request.maxTokens,
       stream: true,
+      stream_options: { include_usage: true },
     });
-
-    let totalContent = '';
 
     for await (const chunk of stream) {
       const delta = chunk.choices[0]?.delta?.content ?? '';
-      totalContent += delta;
-      const done = chunk.choices[0]?.finish_reason !== null;
+      const done = chunk.choices[0]?.finish_reason !== null && chunk.choices[0]?.finish_reason !== undefined;
 
       yield {
         id: chunk.id,
         content: delta,
         done,
-        ...(done && {
+        ...(chunk.usage && {
           usage: {
-            promptTokens: 0,   // OpenAI doesn't provide usage in stream chunks by default
-            completionTokens: 0,
-            totalTokens: 0,
+            promptTokens: chunk.usage.prompt_tokens,
+            completionTokens: chunk.usage.completion_tokens,
+            totalTokens: chunk.usage.total_tokens,
           },
         }),
       };

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { CacheService } from './cache.service.js';
-import { EmbeddingsService } from './embeddings.service.js';
-import { PrismaModule } from '../../prisma/prisma.module.js';
+import { CacheService } from './cache.service';
+import { EmbeddingsService } from './embeddings.service';
+import { PrismaModule } from '../../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],

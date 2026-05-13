@@ -2,12 +2,13 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { LLMProvider, ProviderName } from '@aura/shared';
-import { OpenAIProvider } from '../../providers/openai.provider.js';
-import { AnthropicProvider } from '../../providers/anthropic.provider.js';
-import { MistralProvider } from '../../providers/mistral.provider.js';
-import { LoggingDecorator } from '../../decorators/logging.decorator.js';
-import { CostTrackerDecorator } from '../../decorators/cost-tracker.decorator.js';
-import { RetryDecorator } from '../../decorators/retry.decorator.js';
+import { OpenAIProvider } from '../../providers/openai.provider';
+import { AnthropicProvider } from '../../providers/anthropic.provider';
+import { MistralProvider } from '../../providers/mistral.provider';
+import { GeminiProvider } from '../../providers/gemini.provider';
+import { LoggingDecorator } from '../../decorators/logging.decorator';
+import { CostTrackerDecorator } from '../../decorators/cost-tracker.decorator';
+import { RetryDecorator } from '../../decorators/retry.decorator';
 
 @Injectable()
 export class ProvidersService implements OnModuleInit {
@@ -27,6 +28,7 @@ export class ProvidersService implements OnModuleInit {
     const openaiKey = this.config.get<string>('OPENAI_API_KEY');
     const anthropicKey = this.config.get<string>('ANTHROPIC_API_KEY');
     const mistralKey = this.config.get<string>('MISTRAL_API_KEY');
+    const googleKey = this.config.get<string>('GOOGLE_API_KEY');
 
     if (openaiKey) {
       this.register(new OpenAIProvider({ apiKey: openaiKey }));
@@ -38,6 +40,10 @@ export class ProvidersService implements OnModuleInit {
 
     if (mistralKey) {
       this.register(new MistralProvider({ apiKey: mistralKey }));
+    }
+
+    if (googleKey) {
+      this.register(new GeminiProvider({ apiKey: googleKey }));
     }
 
     if (this.providers.size === 0) {

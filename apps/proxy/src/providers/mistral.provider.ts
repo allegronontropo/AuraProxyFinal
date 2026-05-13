@@ -15,7 +15,7 @@ import type {
   TokenUsage,
   ProviderName,
 } from '@aura/shared';
-import type { ProviderConfig } from './provider.interface.js';
+import type { ProviderConfig } from './provider.interface';
 
 export class MistralProvider implements LLMProvider {
   readonly name: ProviderName = 'mistral';

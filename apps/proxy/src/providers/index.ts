@@ -2,9 +2,9 @@
  * Providers — Barrel Export
  */
 
-export { OpenAIProvider } from './openai.provider.js';
-export { AnthropicProvider } from './anthropic.provider.js';
-export { MistralProvider } from './mistral.provider.js';
-export { GeminiProvider } from './gemini.provider.js';
-export { providerFactory, initializeProviders } from './provider.factory.js';
-export type { LLMProvider, ProviderConfig } from './provider.interface.js';
+export { OpenAIProvider } from './openai.provider';
+export { AnthropicProvider } from './anthropic.provider';
+export { MistralProvider } from './mistral.provider';
+export { GeminiProvider } from './gemini.provider';
+export { providerFactory, initializeProviders } from './provider.factory';
+export type { LLMProvider, ProviderConfig } from './provider.interface';
