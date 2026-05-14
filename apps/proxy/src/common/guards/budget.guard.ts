@@ -4,11 +4,15 @@ import {
   ExecutionContext,
   ForbiddenException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BudgetService } from '../../modules/budget/budget.service';
 
 @Injectable()
 export class BudgetGuard implements CanActivate {
-  constructor(private readonly budget: BudgetService) {}
+  constructor(
+    private readonly budget: BudgetService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -26,6 +30,13 @@ export class BudgetGuard implements CanActivate {
     );
 
     if (status.exceeded) {
+      this.eventEmitter.emit('budget.exceeded', {
+        projectId: project.id,
+        tenantId: project.tenantId,
+        limit: project.budgetLimit,
+        used: status.used,
+      });
+
       throw new ForbiddenException({
         code: 'BUDGET_EXCEEDED',
         message: `Project budget exceeded ($${status.used.toFixed(2)} / $${status.limit.toFixed(2)}).`,
