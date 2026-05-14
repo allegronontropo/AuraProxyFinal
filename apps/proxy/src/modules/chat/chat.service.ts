@@ -55,32 +55,6 @@ export class ChatService {
     }
   }
 
-  async *stream(request: ChatRequest, project: any): AsyncIterable<StreamChunk> {
-    const provider = this.resolveProvider(request);
-
-    try {
-      for await (const chunk of provider.stream(request)) {
-        yield chunk;
-
-        if (chunk.done && chunk.usage) {
-          const cost = provider.estimateCost(chunk.usage);
-          if (cost > 0) {
-            this.budget
-              .recordSpend(project.id, cost, project.budgetPeriod)
-              .catch((err) => this.logger.error(`Failed to record streaming spend: ${err.message}`));
-          }
-        }
-      }
-    } catch (err: any) {
-      this.logger.error(`Streaming error: ${err.message}`);
-      yield {
-        id: 'error',
-        content: `Stream error: ${err.message}`,
-        done: true,
-      };
-    }
-  }
-
   private resolveProvider(request: ChatRequest) {
     try {
       if (request.provider && this.providers.has(request.provider)) {
