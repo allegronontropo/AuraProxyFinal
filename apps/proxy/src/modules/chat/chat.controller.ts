@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiResponse } from '@nestjs/swagger';
 import { ChatService } from './chat.service';
+import { StreamingService } from './streaming.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { BudgetGuard } from '../../common/guards/budget.guard';
 import { RateLimiterGuard } from '../../common/guards/rate-limiter.guard';
@@ -20,7 +21,10 @@ import type { FastifyReply } from 'fastify';
 @ApiBearerAuth()
 @Controller('v1/chat')
 export class ChatController {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly streamingService: StreamingService,
+  ) {}
 
   @Post('completions')
   @UseGuards(AuthGuard, BudgetGuard, RateLimiterGuard)
@@ -50,7 +54,7 @@ export class ChatController {
         Connection: 'keep-alive',
       });
 
-      for await (const chunk of this.chatService.stream(chatRequest as any, req.project)) {
+      for await (const chunk of this.streamingService.stream(chatRequest as any, req.project)) {
         res.raw.write(`data: ${JSON.stringify(chunk)}\n\n`);
       }
 
