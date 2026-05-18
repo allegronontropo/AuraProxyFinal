@@ -20,6 +20,7 @@
     "setup": "docker compose up -d && npm install && npm run db:generate && npm run db:migrate -- --name init"
   },
   "devDependencies": {
+    "shadcn": "^4.7.0",
     "turbo": "^2.4.0"
   },
   "engines": {
