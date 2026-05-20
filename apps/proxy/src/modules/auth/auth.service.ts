@@ -20,8 +20,7 @@ export class AuthService {
 
   async validateApiKey(rawKey: string): Promise<{ apiKey: ApiKeyPayload; project: any }> {
     const keyHash = createHash('sha256').update(rawKey).digest('hex');
-    const keyPrefix = rawKey.substring(0, 12);
-    const cacheKey = REDIS_KEYS.apiKeyCache(keyPrefix);
+    const cacheKey = REDIS_KEYS.apiKeyCache(keyHash);
 
     const cachedResult = await this.redis.get(cacheKey);
     if (cachedResult) {
@@ -74,6 +73,7 @@ export class AuthService {
 
     const projectPayload = {
       id: apiKeyRecord.project.id,
+      tenantId: apiKeyRecord.project.tenantId,
       budgetLimit: apiKeyRecord.project.budgetLimit,
       budgetPeriod: apiKeyRecord.project.budgetPeriod as 'DAILY' | 'WEEKLY' | 'MONTHLY',
       isActive: apiKeyRecord.project.isActive,
