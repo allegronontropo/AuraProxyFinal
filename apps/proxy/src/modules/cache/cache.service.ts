@@ -5,6 +5,14 @@ import { ConfigService } from '@nestjs/config';
 import type { ChatResponse } from '@aura/shared';
 import * as crypto from 'crypto';
 
+export interface CacheLookupInput {
+  projectId: string;
+  provider: string;
+  model: string;
+  prompt: string;
+  parametersHash: string;
+}
+
 @Injectable()
 export class CacheService {
   private threshold: number;
@@ -21,11 +29,22 @@ export class CacheService {
     return crypto.createHash('sha256').update(prompt).digest('hex');
   }
 
+  hashParameters(parameters: Record<string, unknown>): string {
+    const stable = Object.keys(parameters)
+      .sort()
+      .reduce<Record<string, unknown>>((acc, key) => {
+        acc[key] = parameters[key];
+        return acc;
+      }, {});
+
+    return crypto.createHash('sha256').update(JSON.stringify(stable)).digest('hex');
+  }
+
   /**
    * Find a cached response using semantic similarity.
    */
-  async find(prompt: string, model: string): Promise<ChatResponse | null> {
-    const embedding = await this.embeddings.generate(prompt);
+  async find(input: CacheLookupInput): Promise<ChatResponse | null> {
+    const embedding = await this.embeddings.generate(input.prompt);
     const vectorString = `[${embedding.join(',')}]`;
 
     // Semantic search using cosine similarity via pgvector
@@ -38,7 +57,10 @@ export class CacheService {
         1 - (embedding <=> ${vectorString}::vector) as similarity
       FROM semantic_cache
       WHERE 1 - (embedding <=> ${vectorString}::vector) > ${this.threshold}
-        AND model = ${model}
+        AND project_id = ${input.projectId}
+        AND provider = ${input.provider}
+        AND model = ${input.model}
+        AND parameters_hash = ${input.parametersHash}
         AND expires_at > NOW()
       ORDER BY similarity DESC
       LIMIT 1
@@ -62,9 +84,9 @@ export class CacheService {
   /**
    * Store a response in the semantic cache.
    */
-  async set(prompt: string, model: string, response: ChatResponse, ttlDays = 7): Promise<void> {
-    const embedding = await this.embeddings.generate(prompt);
-    const promptHash = this.hashPrompt(prompt);
+  async set(input: CacheLookupInput, response: ChatResponse, ttlDays = 7): Promise<void> {
+    const embedding = await this.embeddings.generate(input.prompt);
+    const promptHash = this.hashPrompt(input.prompt);
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + ttlDays);
     const id = `cache_${crypto.randomUUID()}`;
@@ -73,17 +95,20 @@ export class CacheService {
 
     // Insert or update using raw SQL to handle the vector column
     await this.prisma.client.$executeRaw`
-      INSERT INTO semantic_cache (id, prompt_hash, model, embedding, response, expires_at, created_at)
+      INSERT INTO semantic_cache (id, project_id, provider, prompt_hash, parameters_hash, model, embedding, response, expires_at, created_at)
       VALUES (
         ${id}, 
+        ${input.projectId},
+        ${input.provider},
         ${promptHash}, 
-        ${model}, 
+        ${input.parametersHash},
+        ${input.model}, 
         ${vectorString}::vector, 
         ${JSON.stringify(response)}::jsonb, 
         ${expiresAt},
         NOW()
       )
-      ON CONFLICT (prompt_hash) DO UPDATE SET
+      ON CONFLICT (project_id, provider, model, prompt_hash, parameters_hash) DO UPDATE SET
         embedding = EXCLUDED.embedding,
         response = EXCLUDED.response,
         expires_at = EXCLUDED.expires_at,

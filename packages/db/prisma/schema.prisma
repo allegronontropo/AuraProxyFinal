@@ -47,6 +47,7 @@ model Project {
   apiKeys  ApiKey[]
   logs     RequestLog[]
   usage    UsageRecord[]
+  cache    SemanticCache[]
 
   @@map("projects")
 }
@@ -106,16 +107,23 @@ model RequestLog {
 // ============================================
 
 model SemanticCache {
-  id          String   @id @default(cuid())
-  promptHash  String   @unique @map("prompt_hash")
-  model       String
+  id             String   @id @default(cuid())
+  projectId      String   @map("project_id")
+  provider       String
+  promptHash     String   @map("prompt_hash")
+  parametersHash String   @map("parameters_hash")
+  model          String
   // pgvector embedding
-  embedding   Unsupported("vector(1536)")?
-  response    Json
-  hitCount    Int      @default(0) @map("hit_count")
-  createdAt   DateTime @default(now()) @map("created_at")
-  expiresAt   DateTime @map("expires_at")
+  embedding      Unsupported("vector(1536)")?
+  response       Json
+  hitCount       Int      @default(0) @map("hit_count")
+  createdAt      DateTime @default(now()) @map("created_at")
+  expiresAt      DateTime @map("expires_at")
 
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, provider, model, promptHash, parametersHash])
+  @@index([projectId, provider, model, expiresAt])
   @@index([promptHash])
   @@index([createdAt])
   @@map("semantic_cache")
