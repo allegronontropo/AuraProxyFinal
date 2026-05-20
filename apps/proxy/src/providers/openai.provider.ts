@@ -42,6 +42,7 @@ export class OpenAIProvider implements LLMProvider {
       })),
       temperature: request.temperature ?? 0.7,
       max_tokens: request.maxTokens,
+      top_p: request.topP,
     });
 
     const latencyMs = Math.round(performance.now() - start);
@@ -75,6 +76,7 @@ export class OpenAIProvider implements LLMProvider {
       })),
       temperature: request.temperature ?? 0.7,
       max_tokens: request.maxTokens,
+      top_p: request.topP,
       stream: true,
       stream_options: { include_usage: true },
     });

@@ -1,7 +1,7 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { ProvidersService } from '../providers/providers.service';
 import { BudgetService } from '../budget/budget.service';
-import { ChatRequest, StreamChunk } from '@aura/shared';
+import { ChatRequest, ProjectContext, StreamChunk } from '@aura/shared';
 
 @Injectable()
 export class StreamingService {
@@ -12,7 +12,7 @@ export class StreamingService {
     private readonly budget: BudgetService,
   ) {}
 
-  async *stream(request: ChatRequest, project: any): AsyncIterable<StreamChunk> {
+  async *stream(request: ChatRequest, project: ProjectContext): AsyncIterable<StreamChunk> {
     const provider = this.resolveProvider(request);
 
     try {

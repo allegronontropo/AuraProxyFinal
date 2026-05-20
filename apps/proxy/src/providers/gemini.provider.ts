@@ -45,6 +45,7 @@ export class GeminiProvider implements LLMProvider {
       generationConfig: {
         temperature: request.temperature ?? 0.7,
         maxOutputTokens: request.maxTokens,
+        topP: request.topP,
       },
     });
 
@@ -85,6 +86,7 @@ export class GeminiProvider implements LLMProvider {
       generationConfig: {
         temperature: request.temperature ?? 0.7,
         maxOutputTokens: request.maxTokens,
+        topP: request.topP,
       },
     });
 

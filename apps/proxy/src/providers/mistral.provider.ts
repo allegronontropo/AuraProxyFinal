@@ -42,6 +42,7 @@ export class MistralProvider implements LLMProvider {
       })),
       temperature: request.temperature ?? 0.7,
       maxTokens: request.maxTokens,
+      topP: request.topP,
     });
 
     const latencyMs = Math.round(performance.now() - start);
@@ -82,6 +83,7 @@ export class MistralProvider implements LLMProvider {
       })),
       temperature: request.temperature ?? 0.7,
       maxTokens: request.maxTokens,
+      topP: request.topP,
     });
 
     let promptTokens = 0;

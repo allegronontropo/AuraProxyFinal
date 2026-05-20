@@ -6,6 +6,8 @@ import {
   Req,
   Res,
   UseGuards,
+  BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiResponse } from '@nestjs/swagger';
 import { ChatService } from './chat.service';
@@ -16,6 +18,9 @@ import { RateLimiterGuard } from '../../common/guards/rate-limiter.guard';
 import { ChatRequestDto } from './dto/chat-request.dto';
 import { ChatResponseDto } from './dto/chat-response.dto';
 import type { FastifyReply } from 'fastify';
+import type { ChatRequest, ChatResponse, ProviderName, StreamChunk } from '@aura/shared';
+
+const PROVIDERS: ProviderName[] = ['openai', 'anthropic', 'mistral', 'google'];
 
 @ApiTags('Chat')
 @ApiBearerAuth()
@@ -41,9 +46,16 @@ export class ChatController {
     @Req() req: any,
     @Res() res: FastifyReply,
   ) {
-    const chatRequest = {
-      ...body,
-      provider: providerHeader,
+    this.assertCanCreateCompletion(req.apiKey?.permissions ?? []);
+
+    const chatRequest: ChatRequest = {
+      model: body.model,
+      messages: body.messages,
+      stream: body.stream,
+      temperature: body.temperature,
+      maxTokens: body.max_tokens,
+      topP: body.top_p,
+      provider: this.parseProvider(providerHeader),
       apiKeyId: req.apiKey.keyId,
     };
 
@@ -54,8 +66,8 @@ export class ChatController {
         Connection: 'keep-alive',
       });
 
-      for await (const chunk of this.streamingService.stream(chatRequest as any, req.project)) {
-        res.raw.write(`data: ${JSON.stringify(chunk)}\n\n`);
+      for await (const chunk of this.streamingService.stream(chatRequest, req.project)) {
+        res.raw.write(`data: ${JSON.stringify(this.toOpenAIStreamChunk(chunk, body.model))}\n\n`);
       }
 
       res.raw.write('data: [DONE]\n\n');
@@ -63,7 +75,83 @@ export class ChatController {
       return;
     }
 
-    const response = await this.chatService.chat(chatRequest as any, req.project);
-    return res.status(200).send(response);
+    const response = await this.chatService.chat(chatRequest, req.project);
+    return res.status(200).send(this.toOpenAIResponse(response));
+  }
+
+  private parseProvider(providerHeader?: string): ProviderName | undefined {
+    if (!providerHeader) return undefined;
+
+    const provider = providerHeader.toLowerCase() as ProviderName;
+    if (!PROVIDERS.includes(provider)) {
+      throw new BadRequestException({
+        code: 'INVALID_PROVIDER',
+        message: `Unsupported provider "${providerHeader}".`,
+        details: { supportedProviders: PROVIDERS },
+      });
+    }
+
+    return provider;
+  }
+
+  private assertCanCreateCompletion(permissions: string[]): void {
+    const allowed = ['chat', 'completions', 'chat:write'];
+    if (!permissions.some((permission) => allowed.includes(permission))) {
+      throw new ForbiddenException({
+        code: 'INSUFFICIENT_API_KEY_SCOPE',
+        message: 'API key does not allow chat completions.',
+        details: { requiredAnyOf: allowed },
+      });
+    }
+  }
+
+  private toOpenAIResponse(response: ChatResponse) {
+    return {
+      id: response.id,
+      object: 'chat.completion',
+      created: Math.floor(Date.now() / 1000),
+      model: response.model,
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: 'assistant',
+            content: response.content,
+          },
+          finish_reason: 'stop',
+        },
+      ],
+      usage: {
+        prompt_tokens: response.usage.promptTokens,
+        completion_tokens: response.usage.completionTokens,
+        total_tokens: response.usage.totalTokens,
+      },
+      cached: response.cached,
+      provider: response.provider,
+      latency_ms: response.latencyMs,
+    };
+  }
+
+  private toOpenAIStreamChunk(chunk: StreamChunk, model: string) {
+    return {
+      id: chunk.id,
+      object: 'chat.completion.chunk',
+      created: Math.floor(Date.now() / 1000),
+      model,
+      choices: [
+        {
+          index: 0,
+          delta: chunk.done ? {} : { content: chunk.content },
+          finish_reason: chunk.done ? 'stop' : null,
+        },
+      ],
+      ...(chunk.usage && {
+        usage: {
+          prompt_tokens: chunk.usage.promptTokens,
+          completion_tokens: chunk.usage.completionTokens,
+          total_tokens: chunk.usage.totalTokens,
+        },
+      }),
+    };
   }
 }

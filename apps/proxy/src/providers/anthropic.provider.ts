@@ -54,6 +54,7 @@ export class AnthropicProvider implements LLMProvider {
       ...(systemMessage && { system: systemMessage }),
       messages,
       temperature: request.temperature ?? 0.7,
+      top_p: request.topP,
     });
 
     const latencyMs = Math.round(performance.now() - start);
@@ -103,6 +104,7 @@ export class AnthropicProvider implements LLMProvider {
       ...(systemMessage && { system: systemMessage }),
       messages,
       temperature: request.temperature ?? 0.7,
+      top_p: request.topP,
     });
 
     let inputTokens = 0;
