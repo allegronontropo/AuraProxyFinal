@@ -21,6 +21,28 @@ import { REDIS_KEYS } from '@aura/shared';
  */
 
 const WINDOW_MS = 60_000; // 60 seconds
+const RATE_LIMIT_SCRIPT = `
+redis.call('ZREMRANGEBYSCORE', KEYS[1], 0, ARGV[2])
+
+local count = tonumber(redis.call('ZCARD', KEYS[1]))
+local limit = tonumber(ARGV[4])
+
+if count >= limit then
+  local oldest = redis.call('ZRANGE', KEYS[1], 0, 0, 'WITHSCORES')
+  local retry_after = 60
+  if oldest[2] then
+    retry_after = math.ceil((tonumber(oldest[2]) + tonumber(ARGV[6]) - tonumber(ARGV[1])) / 1000)
+    if retry_after < 1 then retry_after = 1 end
+    if retry_after > 60 then retry_after = 60 end
+  end
+  return {0, retry_after, 0}
+end
+
+redis.call('ZADD', KEYS[1], ARGV[1], ARGV[3])
+redis.call('EXPIRE', KEYS[1], ARGV[5])
+
+return {1, limit - count - 1, math.ceil((tonumber(ARGV[1]) + tonumber(ARGV[6])) / 1000)}
+`;
 
 @Injectable()
 export class RateLimiterGuard implements CanActivate {
@@ -41,42 +63,22 @@ export class RateLimiterGuard implements CanActivate {
     const windowStart = now - WINDOW_MS;
     const member = `${now}:${Math.random().toString(36).slice(2, 8)}`;
 
-    // Pipeline: remove stale, count, add current, set TTL
-    const pipeline = this.redis.client.pipeline();
-    pipeline.zremrangebyscore(key, 0, windowStart);
-    pipeline.zcard(key);
-    pipeline.zadd(key, now, member);
-    pipeline.expire(key, 120); // 2-minute TTL safety net
+    const result = (await this.redis.client.eval(
+      RATE_LIMIT_SCRIPT,
+      1,
+      key,
+      now.toString(),
+      windowStart.toString(),
+      member,
+      apiKey.rateLimit.toString(),
+      '120',
+      WINDOW_MS.toString(),
+    )) as [number, number, number];
 
-    const results = await pipeline.exec();
+    const [allowed, value, resetAt] = result.map(Number) as [number, number, number];
 
-    if (!results) {
-      // Redis unavailable — fail open
-      return true;
-    }
-
-    // zcard result is index 1 (before we added the current request)
-    const countBeforeAdd = results[1]?.[1] as number;
-
-    if (countBeforeAdd >= apiKey.rateLimit) {
-      // Remove the entry we just added since we're rejecting
-      await this.redis.client.zrem(key, member);
-
-      // Compute Retry-After from oldest entry in the window
-      const oldest = await this.redis.client.zrangebyscore(
-        key,
-        windowStart,
-        '+inf',
-        'LIMIT',
-        0,
-        1,
-      );
-      let retryAfter = 60;
-      if (oldest.length > 0) {
-        const oldestTs = parseInt(oldest[0].split(':')[0], 10);
-        retryAfter = Math.ceil((oldestTs + WINDOW_MS - now) / 1000);
-        retryAfter = Math.max(1, Math.min(retryAfter, 60));
-      }
+    if (allowed !== 1) {
+      const retryAfter = value;
 
       // Set rate limit headers
       response.header('Retry-After', retryAfter.toString());
@@ -104,13 +106,10 @@ export class RateLimiterGuard implements CanActivate {
     }
 
     // Set success rate limit headers
-    const remaining = Math.max(0, apiKey.rateLimit - countBeforeAdd - 1);
+    const remaining = Math.max(0, value);
     response.header('X-RateLimit-Limit', apiKey.rateLimit.toString());
     response.header('X-RateLimit-Remaining', remaining.toString());
-    response.header(
-      'X-RateLimit-Reset',
-      Math.ceil((now + WINDOW_MS) / 1000).toString(),
-    );
+    response.header('X-RateLimit-Reset', resetAt.toString());
 
     return true;
   }
