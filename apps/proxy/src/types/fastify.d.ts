@@ -14,6 +14,7 @@ declare module 'fastify' {
     /** The raw project record from the database (attached by auth middleware) */
     project: {
       id: string;
+      tenantId: string;
       budgetLimit: number;
       budgetPeriod: 'DAILY' | 'WEEKLY' | 'MONTHLY';
       isActive: boolean;

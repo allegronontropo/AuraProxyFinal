@@ -21,6 +21,7 @@ export interface ChatRequest {
   messages: ChatMessage[];
   temperature?: number;
   maxTokens?: number;
+  topP?: number;
   stream?: boolean;
   apiKeyId?: string; // Internal tracking
 }
@@ -70,6 +71,14 @@ export interface ApiKeyPayload {
   tenantId: string;
   permissions: string[];
   rateLimit: number;
+}
+
+export interface ProjectContext {
+  id: string;
+  tenantId: string;
+  budgetLimit: number;
+  budgetPeriod: 'DAILY' | 'WEEKLY' | 'MONTHLY';
+  isActive: boolean;
 }
 
 // ============================================

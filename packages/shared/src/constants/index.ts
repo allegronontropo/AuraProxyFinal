@@ -75,6 +75,6 @@ export const CACHE_DEFAULTS = {
 export const REDIS_KEYS = {
   budget: (projectId: string) => `aura:budget:${projectId}`,
   rateLimit: (apiKeyId: string) => `aura:rate:${apiKeyId}`,
-  apiKeyCache: (keyPrefix: string) => `aura:key:${keyPrefix}`,
+  apiKeyCache: (keyHash: string) => `aura:key:${keyHash}`,
   health: 'aura:health',
 } as const;
