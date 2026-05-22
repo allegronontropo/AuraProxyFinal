@@ -2,7 +2,10 @@ import { Controller, Get } from '@nestjs/common';
 import { HealthCheckService, HealthCheck, PrismaHealthIndicator, HealthCheckResult } from '@nestjs/terminus';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
+import { CacheMetricsService } from '../modules/cache/cache-metrics.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+
+const startTime = Date.now();
 
 @ApiTags('Health')
 @Controller('health')
@@ -12,13 +15,14 @@ export class HealthController {
     private prismaIndicator: PrismaHealthIndicator,
     private prismaService: PrismaService,
     private redisService: RedisService,
+    private cacheMetrics: CacheMetricsService,
   ) {}
 
   @Get()
   @HealthCheck()
   @ApiOperation({ summary: 'Check service health' })
   async check(): Promise<HealthCheckResult> {
-    return this.health.check([
+    const result = await this.health.check([
       () => this.prismaIndicator.pingCheck('database', this.prismaService.client),
       async () => {
         try {
@@ -28,6 +32,65 @@ export class HealthController {
           return { redis: { status: 'down', message: err.message } };
         }
       },
+      async () => ({
+        uptime: { status: 'up', uptimeSeconds: Math.floor((Date.now() - startTime) / 1000) },
+      }),
     ]);
+
+    return result;
+  }
+
+  @Get('live')
+  @ApiOperation({ summary: 'Simple liveness probe' })
+  getLiveness() {
+    return { status: 'ok' };
+  }
+
+  @Get('ready')
+  @ApiOperation({ summary: 'Simple readiness probe' })
+  async getReadiness() {
+    const dbOk = await this.prismaService.client.$queryRaw`SELECT 1`.then(() => true).catch(() => false);
+    const redisOk = await this.redisService.client.ping().then((r) => r === 'PONG').catch(() => false);
+    return {
+      status: dbOk && redisOk ? 'ok' : 'degraded',
+      database: dbOk ? 'connected' : 'disconnected',
+      redis: redisOk ? 'connected' : 'disconnected',
+    };
+  }
+
+  @Get('metrics')
+  @ApiOperation({ summary: 'Prometheus metrics' })
+  async getMetrics(): Promise<string> {
+    const metrics = await this.cacheMetrics.getMetrics();
+    const uptimeSeconds = Math.floor((Date.now() - startTime) / 1000);
+
+    return [
+      '# HELP aura_cache_hits_total Total cache hits',
+      '# TYPE aura_cache_hits_total counter',
+      `aura_cache_hits_total ${metrics.hits}`,
+      '# HELP aura_cache_misses_total Total cache misses',
+      '# TYPE aura_cache_misses_total counter',
+      `aura_cache_misses_total ${metrics.misses}`,
+      '# HELP aura_uptime_seconds Service uptime in seconds',
+      '# TYPE aura_uptime_seconds gauge',
+      `aura_uptime_seconds ${uptimeSeconds}`,
+    ].join('\n') + '\n';
+  }
+
+@Get('stats')
+  @ApiOperation({ summary: 'JSON stats for dashboard' })
+  async getStats() {
+    const metrics = await this.cacheMetrics.getMetrics();
+    const uptimeSeconds = Math.floor((Date.now() - startTime) / 1000);
+
+    return {
+      cache: {
+        hits: metrics.hits,
+        misses: metrics.misses,
+        hitRate: metrics.hitRate,
+        totalRequests: metrics.totalRequests,
+      },
+      uptime: uptimeSeconds,
+    };
   }
 }

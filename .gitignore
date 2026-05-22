@@ -43,15 +43,13 @@ coverage/
 # ------------------------------------------
 # The following directories and files must NEVER be committed to the repository:
 # - .agents/ (Agent workflows and configurations)
-# - docs/ (Internal project documentation and cahier des charges)
-# - wordpress.md
-# - README.md
-# These are locally stored for the developer's use only. No exceptions.
+# - docs/ (Internal project documentation)
 .agents/
 docs/
-wordpress.md
-README.md
 
 # MCP & AI Agent config (local only)
 .mcp.json
 skills-lock.json
+# Scratch and temp work
+scratch/
+mcp-servers/
