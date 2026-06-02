@@ -140,3 +140,22 @@ export interface ApiError {
   statusCode: number;
   details?: Record<string, unknown>;
 }
+
+export interface CacheMetrics {
+  hits: number;
+  exactHits: number;
+  semanticHits: number;
+  misses: number;
+  hitRate: number;
+  totalRequests: number;
+  llmCallsAvoided: number;
+  embeddingCacheHits: number;
+  embeddingCacheMisses: number;
+  byModel: Record<string, {
+    exactHits: number;
+    semanticHits: number;
+    misses: number;
+    embeddingCacheHits: number;
+    embeddingCacheMisses: number;
+  }>;
+}

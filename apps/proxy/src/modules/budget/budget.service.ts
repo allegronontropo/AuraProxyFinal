@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { RedisService } from '../../redis/redis.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { REDIS_KEYS } from '@aura/shared';
@@ -8,8 +8,8 @@ import { Granularity } from '@aura/db';
 @Injectable()
 export class BudgetService {
   constructor(
-    private readonly redis: RedisService,
-    private readonly prisma: PrismaService,
+    @Inject(RedisService) private readonly redis: RedisService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
   ) {}
 
   async checkBudget(

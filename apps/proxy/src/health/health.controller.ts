@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Inject } from '@nestjs/common';
 import { HealthCheckService, HealthCheck, PrismaHealthIndicator, HealthCheckResult } from '@nestjs/terminus';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
@@ -11,11 +11,11 @@ const startTime = Date.now();
 @Controller('health')
 export class HealthController {
   constructor(
-    private health: HealthCheckService,
-    private prismaIndicator: PrismaHealthIndicator,
-    private prismaService: PrismaService,
-    private redisService: RedisService,
-    private cacheMetrics: CacheMetricsService,
+    @Inject(HealthCheckService) private health: HealthCheckService,
+    @Inject(PrismaHealthIndicator) private prismaIndicator: PrismaHealthIndicator,
+    @Inject(PrismaService) private prismaService: PrismaService,
+    @Inject(RedisService) private redisService: RedisService,
+    @Inject(CacheMetricsService) private cacheMetrics: CacheMetricsService,
   ) {}
 
   @Get()
@@ -68,9 +68,21 @@ export class HealthController {
       '# HELP aura_cache_hits_total Total cache hits',
       '# TYPE aura_cache_hits_total counter',
       `aura_cache_hits_total ${metrics.hits}`,
+      '# HELP aura_cache_exact_hits_total Total exact cache hits',
+      '# TYPE aura_cache_exact_hits_total counter',
+      `aura_cache_exact_hits_total ${metrics.exactHits}`,
+      '# HELP aura_cache_semantic_hits_total Total semantic cache hits',
+      '# TYPE aura_cache_semantic_hits_total counter',
+      `aura_cache_semantic_hits_total ${metrics.semanticHits}`,
       '# HELP aura_cache_misses_total Total cache misses',
       '# TYPE aura_cache_misses_total counter',
       `aura_cache_misses_total ${metrics.misses}`,
+      '# HELP aura_embedding_cache_hits_total Total embedding cache hits',
+      '# TYPE aura_embedding_cache_hits_total counter',
+      `aura_embedding_cache_hits_total ${metrics.embeddingCacheHits}`,
+      '# HELP aura_embedding_cache_misses_total Total embedding cache misses',
+      '# TYPE aura_embedding_cache_misses_total counter',
+      `aura_embedding_cache_misses_total ${metrics.embeddingCacheMisses}`,
       '# HELP aura_uptime_seconds Service uptime in seconds',
       '# TYPE aura_uptime_seconds gauge',
       `aura_uptime_seconds ${uptimeSeconds}`,
@@ -86,9 +98,15 @@ export class HealthController {
     return {
       cache: {
         hits: metrics.hits,
+        exactHits: metrics.exactHits,
+        semanticHits: metrics.semanticHits,
         misses: metrics.misses,
         hitRate: metrics.hitRate,
         totalRequests: metrics.totalRequests,
+        llmCallsAvoided: metrics.llmCallsAvoided,
+        embeddingCacheHits: metrics.embeddingCacheHits,
+        embeddingCacheMisses: metrics.embeddingCacheMisses,
+        byModel: metrics.byModel,
       },
       uptime: uptimeSeconds,
     };

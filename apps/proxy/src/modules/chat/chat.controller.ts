@@ -8,6 +8,7 @@ import {
   UseGuards,
   BadRequestException,
   ForbiddenException,
+  Inject,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader, ApiResponse } from '@nestjs/swagger';
 import { ChatService } from './chat.service';
@@ -27,14 +28,14 @@ const PROVIDERS: ProviderName[] = ['openai', 'anthropic', 'mistral', 'google'];
 @Controller('v1/chat')
 export class ChatController {
   constructor(
-    private readonly chatService: ChatService,
-    private readonly streamingService: StreamingService,
+    @Inject(ChatService) private readonly chatService: ChatService,
+    @Inject(StreamingService) private readonly streamingService: StreamingService,
   ) {}
 
   @Post('completions')
   @UseGuards(AuthGuard, BudgetGuard, RateLimiterGuard)
   @ApiOperation({ summary: 'OpenAI-compatible chat completions proxy' })
-  @ApiResponse({ status: 200, type: ChatResponseDto, description: 'Chat completion response' })
+  @ApiResponse({ status: 200, type: () => ChatResponseDto, description: 'Chat completion response' })
   @ApiHeader({
     name: 'x-provider',
     description: 'Explicitly specify the LLM provider (optional)',

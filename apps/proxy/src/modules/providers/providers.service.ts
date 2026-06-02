@@ -1,6 +1,7 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
+// ... rest of imports unchanged
 import { LLMProvider, ProviderName } from '@aura/shared';
 import { OpenAIProvider } from '../../providers/openai.provider';
 import { AnthropicProvider } from '../../providers/anthropic.provider';
@@ -16,7 +17,7 @@ export class ProvidersService implements OnModuleInit {
   private readonly logger = new Logger(ProvidersService.name);
 
   constructor(
-    private readonly config: ConfigService,
+    @Inject(ConfigService) private readonly config: ConfigService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -25,6 +26,10 @@ export class ProvidersService implements OnModuleInit {
   }
 
   private initializeProviders() {
+    if (!this.config) {
+      this.logger.error('ConfigService is not defined. Check ProvidersModule imports.');
+      return;
+    }
     const openaiKey = this.config.get<string>('OPENAI_API_KEY');
     const anthropicKey = this.config.get<string>('ANTHROPIC_API_KEY');
     const mistralKey = this.config.get<string>('MISTRAL_API_KEY');

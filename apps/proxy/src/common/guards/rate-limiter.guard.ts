@@ -4,6 +4,7 @@ import {
   ExecutionContext,
   HttpException,
   HttpStatus,
+  Inject,
 } from '@nestjs/common';
 import { RedisService } from '../../redis/redis.service';
 import { REDIS_KEYS } from '@aura/shared';
@@ -46,7 +47,7 @@ return {1, limit - count - 1, math.ceil((tonumber(ARGV[1]) + tonumber(ARGV[6])) 
 
 @Injectable()
 export class RateLimiterGuard implements CanActivate {
-  constructor(private readonly redis: RedisService) {}
+  constructor(@Inject(RedisService) private readonly redis: RedisService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();

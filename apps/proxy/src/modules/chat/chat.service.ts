@@ -1,4 +1,4 @@
-import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, Logger, HttpException, HttpStatus, Inject } from '@nestjs/common';
 import { ProvidersService } from '../providers/providers.service';
 import { BudgetService } from '../budget/budget.service';
 import { CacheService } from '../cache/cache.service';
@@ -9,22 +9,23 @@ export class ChatService {
   private readonly logger = new Logger(ChatService.name);
 
   constructor(
-    private readonly providers: ProvidersService,
-    private readonly budget: BudgetService,
-    private readonly cache: CacheService,
+    @Inject(ProvidersService) private readonly providers: ProvidersService,
+    @Inject(BudgetService) private readonly budget: BudgetService,
+    @Inject(CacheService) private readonly cache: CacheService,
   ) {}
 
   async chat(request: ChatRequest, project: ProjectContext): Promise<ChatResponse> {
-    const provider = this.resolveProvider(request);
+    const providerName = this.getProviderName(request);
     const prompt = this.formatPrompt(request.messages);
     const parametersHash = this.cache.hashParameters({
       temperature: request.temperature ?? null,
       maxTokens: request.maxTokens ?? null,
       topP: request.topP ?? null,
     });
+
     const cacheInput = {
       projectId: project.id,
-      provider: provider.name,
+      provider: providerName,
       model: request.model,
       prompt,
       parametersHash,
@@ -42,6 +43,9 @@ export class ChatService {
         cached: true,
       };
     }
+
+    // Only resolve the full provider implementation if we have a cache miss
+    const provider = this.resolveProvider(request);
 
     try {
       const response = await provider.chat(request);
@@ -66,6 +70,18 @@ export class ChatService {
         HttpStatus.BAD_GATEWAY,
       );
     }
+  }
+
+  private getProviderName(request: ChatRequest): string {
+    if (request.provider) return request.provider;
+    
+    const model = request.model.toLowerCase();
+    if (model.startsWith('gpt-') || model.startsWith('o1') || model.startsWith('o3')) return 'openai';
+    if (model.startsWith('claude-')) return 'anthropic';
+    if (model.startsWith('mistral-') || model.startsWith('codestral')) return 'mistral';
+    if (model.startsWith('gemini-')) return 'google';
+    
+    return 'openai'; // Default fallback
   }
 
   private resolveProvider(request: ChatRequest) {

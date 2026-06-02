@@ -6,8 +6,18 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import { RedisModule } from '../../redis/redis.module';
 
 @Module({
-  imports: [PrismaModule, RedisModule],
-  providers: [CacheService, EmbeddingsService, CacheMetricsService],
-  exports: [CacheService, CacheMetricsService],
+  imports: [
+    PrismaModule,
+    RedisModule,
+  ],
+  providers: [
+    CacheService,
+    EmbeddingsService,
+    CacheMetricsService,
+  ],
+  exports: [
+    CacheService,
+    CacheMetricsService,
+  ],
 })
 export class CacheModule {}

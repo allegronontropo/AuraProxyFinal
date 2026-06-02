@@ -3,6 +3,7 @@ import {
   CanActivate,
   ExecutionContext,
   ForbiddenException,
+  Inject,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { BudgetService } from '../../modules/budget/budget.service';
@@ -10,7 +11,7 @@ import { BudgetService } from '../../modules/budget/budget.service';
 @Injectable()
 export class BudgetGuard implements CanActivate {
   constructor(
-    private readonly budget: BudgetService,
+    @Inject(BudgetService) private readonly budget: BudgetService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 

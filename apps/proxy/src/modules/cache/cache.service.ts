@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit, Inject, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EmbeddingsService } from './embeddings.service';
 import { ConfigService } from '@nestjs/config';
@@ -14,14 +14,17 @@ export interface CacheLookupInput {
 }
 
 @Injectable()
-export class CacheService {
-  private threshold: number;
+export class CacheService implements OnModuleInit {
+  private readonly logger = new Logger(CacheService.name);
+  private threshold!: number;
 
   constructor(
-    private prisma: PrismaService,
-    private embeddings: EmbeddingsService,
-    private configService: ConfigService,
-  ) {
+    @Inject(PrismaService) private prisma: PrismaService,
+    @Inject(EmbeddingsService) private embeddings: EmbeddingsService,
+    @Inject(ConfigService) private configService: ConfigService,
+  ) {}
+
+  onModuleInit() {
     this.threshold = this.configService.get<number>('CACHE_SIMILARITY_THRESHOLD', 0.95);
   }
 
@@ -41,78 +44,111 @@ export class CacheService {
   }
 
   /**
-   * Find a cached response using semantic similarity.
+   * Find a cached response using two levels:
+   * 1. Exact Match (Fast path)
+   * 2. Semantic Similarity using pgvector (AI path)
    */
   async find(input: CacheLookupInput): Promise<ChatResponse | null> {
-    const embedding = await this.embeddings.generate(input.prompt);
-    const vectorString = `[${embedding.join(',')}]`;
+    const promptHash = this.hashPrompt(input.prompt);
 
-    // Semantic search using cosine similarity via pgvector
-    // <=> is the cosine distance operator. 1 - distance = similarity.
-    const results = await this.prisma.client.$queryRaw<any[]>`
-      SELECT 
-        id,
-        response,
-        hit_count,
-        1 - (embedding <=> ${vectorString}::vector) as similarity
-      FROM semantic_cache
-      WHERE 1 - (embedding <=> ${vectorString}::vector) > ${this.threshold}
-        AND project_id = ${input.projectId}
-        AND provider = ${input.provider}
-        AND model = ${input.model}
-        AND parameters_hash = ${input.parametersHash}
-        AND expires_at > NOW()
-      ORDER BY similarity DESC
-      LIMIT 1
-    `;
+    // 1. FAST PATH: Exact Match (No embedding needed)
+    const exactMatch = await this.prisma.client.semanticCache.findUnique({
+      where: {
+        projectId_model_provider_promptHash_parametersHash: {
+          projectId: input.projectId,
+          model: input.model,
+          provider: input.provider,
+          promptHash,
+          parametersHash: input.parametersHash,
+        }
+      }
+    });
 
-    if (results.length > 0) {
-      const hit = results[0];
-      
-      // Update hit count asynchronously
-      this.prisma.client.semanticCache.update({
-        where: { id: hit.id },
-        data: { hitCount: { increment: 1 } },
-      }).catch((err: Error) => console.error('[CacheService] Failed to update cache hit count', err));
-
-      return hit.response as unknown as ChatResponse;
+    if (exactMatch && exactMatch.expiresAt > new Date()) {
+      this.logger.log(`CACHE HIT (Exact Match) for model ${input.model} in project ${input.projectId}`);
+      this.updateHitCount(exactMatch.id);
+      return exactMatch.response as unknown as ChatResponse;
     }
 
+    // 2. AI PATH: Semantic Similarity (Needs embedding generation)
+    try {
+      const queryVector = await this.embeddings.generate(input.prompt);
+      const vectorString = `[${queryVector.join(',')}]`;
+
+      // Semantic search using cosine similarity via pgvector
+      // <=> is the cosine distance operator. 1 - distance = similarity.
+      const results = await this.prisma.client.$queryRaw<any[]>`
+        SELECT 
+          id,
+          response,
+          1 - (embedding <=> ${vectorString}::vector) as similarity
+        FROM semantic_cache
+        WHERE project_id = ${input.projectId}
+          AND provider = ${input.provider}
+          AND model = ${input.model}
+          AND expires_at > NOW()
+          AND 1 - (embedding <=> ${vectorString}::vector) > ${this.threshold}
+        ORDER BY similarity DESC
+        LIMIT 1
+      `;
+
+      if (results.length > 0) {
+        const semanticHit = results[0];
+        this.logger.log(`CACHE HIT (Semantic: ${semanticHit.similarity.toFixed(4)}) for model ${input.model}`);
+        this.updateHitCount(semanticHit.id);
+        return semanticHit.response as unknown as ChatResponse;
+      }
+    } catch (err: any) {
+      this.logger.warn(`Semantic cache lookup failed: ${err.message}`);
+    }
+
+    this.logger.log(`CACHE MISS for model ${input.model} in project ${input.projectId}`);
     return null;
   }
 
   /**
-   * Store a response in the semantic cache.
+   * Store a response in the semantic cache with its embedding vector.
    */
   async set(input: CacheLookupInput, response: ChatResponse, ttlDays = 7): Promise<void> {
-    const embedding = await this.embeddings.generate(input.prompt);
-    const promptHash = this.hashPrompt(input.prompt);
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + ttlDays);
-    const id = `cache_${crypto.randomUUID()}`;
+    try {
+      const vector = await this.embeddings.generate(input.prompt);
+      const promptHash = this.hashPrompt(input.prompt);
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + ttlDays);
+      const id = `cache_${crypto.randomUUID()}`;
 
-    const vectorString = `[${embedding.join(',')}]`;
+      const vectorString = `[${vector.join(',')}]`;
 
-    // Insert or update using raw SQL to handle the vector column
-    await this.prisma.client.$executeRaw`
-      INSERT INTO semantic_cache (id, project_id, provider, prompt_hash, parameters_hash, model, embedding, response, expires_at, created_at)
-      VALUES (
-        ${id}, 
-        ${input.projectId},
-        ${input.provider},
-        ${promptHash}, 
-        ${input.parametersHash},
-        ${input.model}, 
-        ${vectorString}::vector, 
-        ${JSON.stringify(response)}::jsonb, 
-        ${expiresAt},
-        NOW()
-      )
-      ON CONFLICT (project_id, provider, model, prompt_hash, parameters_hash) DO UPDATE SET
-        embedding = EXCLUDED.embedding,
-        response = EXCLUDED.response,
-        expires_at = EXCLUDED.expires_at,
-        hit_count = semantic_cache.hit_count + 1
-    `;
+      // Insert or update using raw SQL to handle the vector column
+      await this.prisma.client.$executeRaw`
+        INSERT INTO semantic_cache (id, project_id, provider, prompt_hash, parameters_hash, model, embedding, response, expires_at, created_at)
+        VALUES (
+          ${id}, 
+          ${input.projectId},
+          ${input.provider},
+          ${promptHash}, 
+          ${input.parametersHash},
+          ${input.model}, 
+          ${vectorString}::vector, 
+          ${JSON.stringify(response)}::jsonb, 
+          ${expiresAt},
+          NOW()
+        )
+        ON CONFLICT (project_id, provider, model, prompt_hash, parameters_hash) DO UPDATE SET
+          embedding = EXCLUDED.embedding,
+          response = EXCLUDED.response,
+          expires_at = EXCLUDED.expires_at
+      `;
+      this.logger.log(`Stored cache entry for prompt hash: ${promptHash}`);
+    } catch (err: any) {
+      this.logger.error(`Failed to store cache entry: ${err.message}`);
+    }
+  }
+
+  private updateHitCount(id: string) {
+    this.prisma.client.semanticCache.update({
+      where: { id },
+      data: { hitCount: { increment: 1 } },
+    }).catch((err: Error) => this.logger.error(`Failed to update cache hit count: ${err.message}`));
   }
 }

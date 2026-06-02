@@ -1,6 +1,3 @@
-// Prisma Schema for Aura-Proxy
-// PostgreSQL 16 with pgvector extension
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
@@ -9,80 +6,54 @@ generator client {
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  extensions = [vector, pg_trgm]
-}
-
-// ============================================
-// Multi-Tenant Core
-// ============================================
-
-model Tenant {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  plan      Plan     @default(FREE)
-  stripeId  String?  @unique @map("stripe_id")
-  role      Role     @default(CLIENT)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  projects Project[]
-
-  @@map("tenants")
+  extensions = [pg_trgm, vector]
 }
 
 model Project {
-  id           String   @id @default(cuid())
-  tenantId     String   @map("tenant_id")
+  id           String          @id @default(cuid())
+  tenantId     String          @map("tenant_id")
   name         String
   description  String?
-  budgetLimit  Float    @default(100.0) @map("budget_limit")
-  budgetPeriod Period   @default(MONTHLY) @map("budget_period")
-  isActive     Boolean  @default(true) @map("is_active")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  tenant   Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  apiKeys  ApiKey[]
-  logs     RequestLog[]
-  usage    UsageRecord[]
-  cache    SemanticCache[]
+  budgetLimit  Float           @default(100.0) @map("budget_limit")
+  budgetPeriod Period          @default(MONTHLY) @map("budget_period")
+  isActive     Boolean         @default(true) @map("is_active")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+  apiKeys      ApiKey[]
+  tenant       users           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  logs         RequestLog[]
+  cache        SemanticCache[]
+  usage        UsageRecord[]
 
   @@map("projects")
 }
 
 model ApiKey {
-  id          String    @id @default(cuid())
-  projectId   String    @map("project_id")
-  keyHash     String    @unique @map("key_hash")
-  keyPrefix   String    @map("key_prefix") // e.g. "aura_sk_abc"
-  name        String    @default("Default Key")
-  permissions String[]  @default(["chat", "completions"])
-  rateLimit   Int       @default(60) @map("rate_limit") // requests per minute
-  isActive    Boolean   @default(true) @map("is_active")
-  lastUsedAt  DateTime? @map("last_used_at")
-  expiresAt   DateTime? @map("expires_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-
-  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  logs    RequestLog[]
+  id          String       @id @default(cuid())
+  projectId   String       @map("project_id")
+  keyHash     String       @unique @map("key_hash")
+  keyPrefix   String       @map("key_prefix")
+  name        String       @default("Default Key")
+  permissions String[]     @default(["chat:write", "models:read"])
+  rateLimit   Int          @default(60) @map("rate_limit")
+  isActive    Boolean      @default(true) @map("is_active")
+  lastUsedAt  DateTime?    @map("last_used_at")
+  expiresAt   DateTime?    @map("expires_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  logs        RequestLog[]
 
   @@index([keyHash])
   @@index([keyPrefix])
   @@map("api_keys")
 }
 
-// ============================================
-// Request Tracking
-// ============================================
-
 model RequestLog {
   id         String   @id @default(cuid())
   apiKeyId   String   @map("api_key_id")
   projectId  String   @map("project_id")
-  provider   String   // "openai" | "anthropic" | "mistral"
-  model      String   // "gpt-4o" | "claude-3.5-sonnet" etc.
+  provider   String
+  model      String
   tokensIn   Int      @map("tokens_in")
   tokensOut  Int      @map("tokens_out")
   costUsd    Float    @map("cost_usd")
@@ -92,9 +63,8 @@ model RequestLog {
   error      String?
   metadata   Json?
   createdAt  DateTime @default(now()) @map("created_at")
-
-  apiKey  ApiKey  @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  apiKey     ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId, createdAt])
   @@index([apiKeyId, createdAt])
@@ -102,61 +72,96 @@ model RequestLog {
   @@map("request_logs")
 }
 
-// ============================================
-// Semantic Cache
-// ============================================
-
 model SemanticCache {
   id             String   @id @default(cuid())
   projectId      String   @map("project_id")
-  provider       String
   promptHash     String   @map("prompt_hash")
   parametersHash String   @map("parameters_hash")
   model          String
-  // pgvector embedding
+  provider       String   @default("openai")
   embedding      Unsupported("vector(1536)")?
   response       Json
   hitCount       Int      @default(0) @map("hit_count")
   createdAt      DateTime @default(now()) @map("created_at")
   expiresAt      DateTime @map("expires_at")
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@unique([projectId, provider, model, promptHash, parametersHash])
-  @@index([projectId, provider, model, expiresAt])
+  @@unique([projectId, model, provider, promptHash, parametersHash])
   @@index([promptHash])
   @@index([createdAt])
   @@map("semantic_cache")
 }
 
-// ============================================
-// Usage Aggregation (hourly/daily snapshots)
-// ============================================
-
 model UsageRecord {
-  id         String   @id @default(cuid())
-  projectId  String   @map("project_id")
-  period     DateTime // Start of the hour/day
-  granularity Granularity @default(HOURLY)
-  totalRequests Int   @default(0) @map("total_requests")
-  totalTokensIn  Int  @default(0) @map("total_tokens_in")
-  totalTokensOut Int  @default(0) @map("total_tokens_out")
-  totalCostUsd   Float @default(0) @map("total_cost_usd")
-  cacheHits      Int  @default(0) @map("cache_hits")
-  cacheMisses    Int  @default(0) @map("cache_misses")
-  avgLatencyMs   Float @default(0) @map("avg_latency_ms")
-  createdAt      DateTime @default(now()) @map("created_at")
-
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id             String      @id @default(cuid())
+  projectId      String      @map("project_id")
+  period         DateTime
+  granularity    Granularity @default(HOURLY)
+  totalRequests  Int         @default(0) @map("total_requests")
+  totalTokensIn  Int         @default(0) @map("total_tokens_in")
+  totalTokensOut Int         @default(0) @map("total_tokens_out")
+  totalCostUsd   Float       @default(0) @map("total_cost_usd")
+  cacheHits      Int         @default(0) @map("cache_hits")
+  cacheMisses    Int         @default(0) @map("cache_misses")
+  avgLatencyMs   Float       @default(0) @map("avg_latency_ms")
+  createdAt      DateTime    @default(now()) @map("created_at")
+  project        Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, period, granularity])
   @@index([projectId, period])
   @@map("usage_records")
 }
 
-// ============================================
-// Enums
-// ============================================
+model accounts {
+  id                  String  @id
+  user_id             String
+  type                String
+  provider            String
+  provider_account_id String
+  refresh_token       String?
+  access_token        String?
+  expires_at          Int?
+  token_type          String?
+  scope               String?
+  id_token            String?
+  session_state       String?
+  users               users   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([provider, provider_account_id])
+}
+
+model sessions {
+  id            String   @id
+  session_token String   @unique
+  user_id       String
+  expires       DateTime
+  users         users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model users {
+  id             String     @id
+  name           String?
+  email          String?    @unique
+  email_verified DateTime?
+  image          String?
+  password_hash  String?
+  plan           Plan       @default(FREE)
+  role           Role       @default(CLIENT)
+  stripe_id      String?    @unique
+  created_at     DateTime   @default(now())
+  updated_at     DateTime
+  accounts       accounts[]
+  projects       Project[]
+  sessions       sessions[]
+}
+
+model verification_tokens {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
 
 enum Plan {
   FREE
