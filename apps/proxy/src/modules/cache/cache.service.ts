@@ -87,7 +87,7 @@ export class CacheService implements OnModuleInit {
           AND provider = ${input.provider}
           AND model = ${input.model}
           AND expires_at > NOW()
-          AND 1 - (embedding <=> ${vectorString}::vector) > ${this.threshold}
+          AND 1 - (embedding <=> ${vectorString}::vector) > ${this.threshold}::float
         ORDER BY similarity DESC
         LIMIT 1
       `;
