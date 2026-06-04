@@ -18,7 +18,7 @@ export class ProvidersService implements OnModuleInit {
 
   constructor(
     @Inject(ConfigService) private readonly config: ConfigService,
-    private readonly prisma: PrismaService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
   ) {}
 
   onModuleInit() {
@@ -34,6 +34,7 @@ export class ProvidersService implements OnModuleInit {
     const anthropicKey = this.config.get<string>('ANTHROPIC_API_KEY');
     const mistralKey = this.config.get<string>('MISTRAL_API_KEY');
     const googleKey = this.config.get<string>('GOOGLE_API_KEY');
+    this.logger.debug(`DEBUG: googleKey is: ${googleKey ? 'PRESENT' : 'MISSING'}`);
 
     if (openaiKey) {
       this.register(new OpenAIProvider({ apiKey: openaiKey }));

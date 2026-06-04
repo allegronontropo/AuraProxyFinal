@@ -6,18 +6,6 @@
  */
 
 import { z } from 'zod';
-import { config as dotenvConfig } from 'dotenv';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { existsSync } from 'fs';
-
-// Resolve .env from monorepo root (walk up until we find it)
-const __dirname = dirname(fileURLToPath(import.meta.url));
-let envDir = resolve(__dirname, '..');
-while (!existsSync(resolve(envDir, '.env')) && envDir !== resolve(envDir, '..')) {
-  envDir = resolve(envDir, '..');
-}
-dotenvConfig({ path: resolve(envDir, '.env') });
 
 const envSchema = z.object({
   // Server
