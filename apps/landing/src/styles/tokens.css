@@ -1,0 +1,149 @@
+/* ============================================================
+   AURA PROXY — Design Token System
+   Source of truth for all CSS variables
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Self-hosted Geist fonts (place woff2 files in /public/fonts/) */
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/GeistMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+:root {
+  /* ─── Surfaces ─────────────────────────────────────────── */
+  --aura-bg:             #050507;
+  --aura-surface:        #0d0d10;
+  --aura-surface-raised: #141418;
+  --aura-border:         rgba(255, 255, 255, 0.07);
+  --aura-border-subtle:  rgba(255, 255, 255, 0.04);
+
+  /* ─── Text ─────────────────────────────────────────────── */
+  --aura-text-primary:   #f0f0f4;
+  --aura-text-secondary: #8b8b96;
+  --aura-text-muted:     #4a4a55;
+
+  /* ─── Accent — Violet ───────────────────────────────────── */
+  --aura-accent:         #7c5cfc;
+  --aura-accent-hover:   #8f72fd;
+  --aura-accent-glow:    rgba(124, 92, 252, 0.18);
+  --aura-accent-subtle:  rgba(124, 92, 252, 0.08);
+
+  /* ─── Semantic ──────────────────────────────────────────── */
+  --aura-success:        #22c55e;
+  --aura-warning:        #f59e0b;
+  --aura-error:          #ef4444;
+  --aura-info:           #3b82f6;
+
+  /* ─── Gradients ─────────────────────────────────────────── */
+  --aura-hero-glow: radial-gradient(
+    ellipse 80% 60% at 50% -10%,
+    rgba(124, 92, 252, 0.15) 0%,
+    transparent 70%
+  );
+  --aura-card-shimmer: linear-gradient(
+    135deg,
+    rgba(124, 92, 252, 0.06) 0%,
+    transparent 50%,
+    rgba(124, 92, 252, 0.03) 100%
+  );
+  --aura-btn-gradient: linear-gradient(135deg, #7c5cfc 0%, #5b3fd8 100%);
+  --aura-divider: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+  --aura-text-gradient: linear-gradient(135deg, #a78bfa 0%, #7c5cfc 50%, #4f46e5 100%);
+
+  /* ─── Typography ────────────────────────────────────────── */
+  --font-display: 'Geist', 'Inter', system-ui, sans-serif;
+  --font-body:    'Inter', 'SF Pro Text', -apple-system, sans-serif;
+  --font-mono:    'Geist Mono', 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ─── Type Scale ────────────────────────────────────────── */
+  --text-hero: clamp(44px, 6vw, 80px);
+  --text-h1:   clamp(32px, 4vw, 56px);
+  --text-h2:   clamp(22px, 3vw, 36px);
+  --text-h3:   20px;
+  --text-xl:   18px;
+  --text-base: 15px;
+  --text-sm:   13px;
+  --text-xs:   11px;
+
+  /* ─── Letter Spacing ────────────────────────────────────── */
+  --tracking-tight:  -0.03em;
+  --tracking-snug:   -0.02em;
+  --tracking-normal:  0em;
+  --tracking-wide:    0.06em;
+  --tracking-wider:   0.1em;
+
+  /* ─── Spacing (4px base) ────────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* ─── Border Radius ─────────────────────────────────────── */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
+  --radius-2xl:  28px;
+  --radius-full: 9999px;
+
+  /* ─── Shadows ───────────────────────────────────────────── */
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+  --shadow-md:   0 4px 16px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+  --shadow-lg:   0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08);
+  --shadow-glow: 0 0 24px rgba(124, 92, 252, 0.4), 0 4px 16px rgba(0,0,0,0.5);
+  --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.08);
+
+  /* ─── Containers ────────────────────────────────────────── */
+  --container-sm:      640px;
+  --container-md:      768px;
+  --container-lg:      1024px;
+  --container-xl:      1280px;
+  --container-2xl:     1440px;
+  --container-content: 68ch;
+
+  /* ─── Motion (CSS only) ─────────────────────────────────── */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-hover:  cubic-bezier(0.25, 0, 0.25, 1);
+  --ease-exit:   cubic-bezier(0.4, 0, 1, 1);
+
+  --duration-micro:    0.12s;
+  --duration-fast:     0.22s;
+  --duration-standard: 0.40s;
+}
