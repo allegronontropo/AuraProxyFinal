@@ -1,0 +1,285 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+/* =============================================
+   AURA PROXY — Design System v1
+   ============================================= */
+
+:root {
+  /* ─── Surfaces ─────────────────────────────── */
+  --aura-bg:             #050507;
+  --aura-surface:        #0d0d10;
+  --aura-surface-raised: #141418;
+  --aura-border:         rgba(255, 255, 255, 0.07);
+  --aura-border-subtle:  rgba(255, 255, 255, 0.04);
+
+  /* ─── Text ─────────────────────────────────── */
+  --aura-text-primary:   #f0f0f4;
+  --aura-text-secondary: #8b8b96;
+  --aura-text-muted:     #4a4a55;
+
+  /* ─── Accent — Violet ───────────────────────── */
+  --aura-accent:         #7c5cfc;
+  --aura-accent-hover:   #8f72fd;
+  --aura-accent-glow:    rgba(124, 92, 252, 0.18);
+  --aura-accent-subtle:  rgba(124, 92, 252, 0.08);
+
+  /* ─── Semantic ──────────────────────────────── */
+  --aura-success:        #22c55e;
+  --aura-warning:        #f59e0b;
+  --aura-error:          #ef4444;
+  --aura-info:           #3b82f6;
+
+  /* ─── Gradients ─────────────────────────────── */
+  --aura-hero-glow: radial-gradient(
+    ellipse 80% 60% at 50% -10%,
+    rgba(124, 92, 252, 0.15) 0%,
+    transparent 70%
+  );
+  --aura-card-shimmer: linear-gradient(
+    135deg,
+    rgba(124, 92, 252, 0.06) 0%,
+    transparent 50%,
+    rgba(124, 92, 252, 0.03) 100%
+  );
+  --aura-btn-gradient: linear-gradient(135deg, #7c5cfc 0%, #5b3fd8 100%);
+  --aura-divider: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+  --aura-text-gradient: linear-gradient(135deg, #a78bfa 0%, #7c5cfc 50%, #4f46e5 100%);
+
+  /* ─── Typography ────────────────────────────── */
+  --font-display: 'Geist', 'Inter', system-ui, sans-serif;
+  --font-body:    'Inter', 'SF Pro Text', -apple-system, sans-serif;
+  --font-mono:    'Geist Mono', 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ─── Type Scale ────────────────────────────── */
+  --text-hero: clamp(44px, 6vw, 80px);
+  --text-h1:   clamp(32px, 4vw, 56px);
+  --text-h2:   clamp(22px, 3vw, 36px);
+  --text-h3:   20px;
+  --text-xl:   18px;
+  --text-base: 15px;
+  --text-sm:   13px;
+  --text-xs:   11px;
+
+  /* ─── Letter Spacing ────────────────────────── */
+  --tracking-tight:  -0.03em;
+  --tracking-snug:   -0.02em;
+  --tracking-wide:    0.06em;
+  --tracking-wider:   0.1em;
+
+  /* ─── Spacing (4px base) ────────────────────── */
+  --space-1:  4px;   --space-2:  8px;   --space-3:  12px;
+  --space-4:  16px;  --space-5:  20px;  --space-6:  24px;
+  --space-8:  32px;  --space-10: 40px;  --space-12: 48px;
+  --space-16: 64px;  --space-20: 80px;  --space-24: 96px;
+  --space-32: 128px;
+
+  /* ─── Border Radius ─────────────────────────── */
+  --radius-sm:   6px;   --radius-md:  10px;
+  --radius-lg:   14px;  --radius-xl:  20px;
+  --radius-2xl:  28px;  --radius-full: 9999px;
+
+  /* ─── Shadows ───────────────────────────────── */
+  --shadow-sm:    0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+  --shadow-md:    0 4px 16px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+  --shadow-lg:    0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08);
+  --shadow-glow:  0 0 24px rgba(124, 92, 252, 0.4), 0 4px 16px rgba(0,0,0,0.5);
+  --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.08);
+
+  /* ─── Motion ────────────────────────────────── */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-hover:  cubic-bezier(0.25, 0, 0.25, 1);
+  --ease-exit:   cubic-bezier(0.4, 0, 1, 1);
+  --duration-micro:    0.12s;
+  --duration-fast:     0.22s;
+  --duration-standard: 0.40s;
+
+  /* ─── Containers ────────────────────────────── */
+  --container-xl:      1280px;
+  --container-content: 68ch;
+}
+
+@theme inline {
+  --color-background: var(--aura-bg);
+  --color-foreground: var(--aura-text-primary);
+}
+
+/* =============================================
+   RESET & BASE
+   ============================================= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--aura-bg);
+  color: var(--aura-text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Hero ambient glow on body */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 100vh;
+  background: var(--aura-hero-glow);
+  pointer-events: none;
+  z-index: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--aura-text-primary);
+  line-height: 1.1;
+  letter-spacing: var(--tracking-tight);
+}
+
+a { color: inherit; text-decoration: none; }
+code, pre, kbd { font-family: var(--font-mono); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--aura-bg); }
+::-webkit-scrollbar-thumb { background: var(--aura-border); border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.12); }
+
+/* Selection */
+::selection { background: var(--aura-accent-subtle); color: var(--aura-text-primary); }
+
+/* Focus */
+:focus-visible {
+  outline: 2px solid var(--aura-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* =============================================
+   UTILITY CLASSES
+   ============================================= */
+.gradient-text {
+  background: var(--aura-text-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.overline {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--aura-accent);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.overline::before {
+  content: '';
+  display: block;
+  width: 16px; height: 1px;
+  background: var(--aura-accent);
+  opacity: 0.6;
+}
+
+.container {
+  width: 100%;
+  max-width: var(--container-xl);
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+}
+@media (min-width: 768px) { .container { padding: 0 var(--space-8); } }
+@media (min-width: 1280px) { .container { padding: 0 var(--space-12); } }
+
+.section-divider {
+  height: 1px;
+  background: var(--aura-divider);
+  margin: 0 auto;
+  max-width: var(--container-xl);
+}
+
+/* =============================================
+   GLOW ANIMATION KEYFRAMES (for AuraProxyHeroVisual)
+   ============================================= */
+@keyframes drawGlow {
+  to { stroke-dashoffset: 0; }
+}
+.glow-line-fast    { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawGlow 1s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.glow-line-active  { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawGlow 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+.glow-line-instant { stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: drawGlow 0.7s cubic-bezier(0.1, 1, 0.1, 1) forwards; }
+
+@keyframes breathe {
+  0%   { box-shadow: 0 0 15px rgba(124, 92, 252, 0.1); border-color: rgba(124, 92, 252, 0.3); }
+  100% { box-shadow: 0 0 35px rgba(124, 92, 252, 0.3); border-color: rgba(124, 92, 252, 0.7); }
+}
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* =============================================
+   TERMINAL
+   ============================================= */
+.terminal-wrap {
+  background: var(--aura-surface);
+  border: 1px solid var(--aura-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg), var(--shadow-inset);
+}
+.terminal-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  background: var(--aura-surface-raised);
+  border-bottom: 1px solid var(--aura-border);
+}
+.terminal-title {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--aura-text-muted);
+  margin-left: auto;
+  margin-right: auto;
+}
+.terminal-body {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: #98c379;
+  line-height: 1.7;
+  padding: var(--space-6);
+  min-height: 220px;
+  white-space: pre;
+  overflow-x: auto;
+}
+.typewriter-cursor {
+  display: inline-block;
+  color: var(--aura-accent);
+  animation: blink-cursor 1s steps(1) infinite;
+}
+
+/* =============================================
+   ACCESSIBILITY
+   ============================================= */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
