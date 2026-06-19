@@ -17,42 +17,42 @@ import {
 // --- HOISTED SVG LOGOS ---
 const OpenAILogo = () => (
   <svg viewBox="0 0 100 100" className="w-5 h-5" aria-hidden="true">
-    <rect width="100" height="100" rx="22" fill="#000000" />
+    <rect width="100" height="100" rx="22" style={{ fill: "#000000" }} />
     <path
       d="M75.2,52.1c0.4-1.2,0.6-2.5,0.6-3.8c0-5.8-4-10.9-9.5-12.2c0.4-1.5,0.4-3.1,0-4.6c-0.9-3.7-3.4-6.8-6.9-8.4 c-1.2-0.5-2.5-0.9-3.8-1c-2.4-3.8-6.6-6.1-11.1-6.1c-1.3,0-2.6,0.2-3.8,0.6c-1.5-0.4-3.1-0.4-4.6,0C32.4,17.4,29.3,20,27.7,23.5 c-0.5,1.2-0.9,2.5-1,3.8c-3.8,2.4-6.1,6.6-6.1,11.1c0,1.3,0.2,2.6,0.6,3.8c-0.4,1.5-0.4,3.1,0,4.6c0.9,3.7,3.4,6.8,6.9,8.4 c1.2,0.5,2.5,0.9,3.8,1c2.4,3.8,6.6,6.1,11.1,6.1c1.3,0,2.6-0.2,3.8-0.6c1.5,0.4,3.1,0.4,4.6,0c3.7,0.9,6.8,3.4,8.4,6.9 c0.5,1.2,0.9,2.5,1,3.8c3.8-2.4,6.1-6.6,6.1-11.1c0-1.3-0.2-2.6-0.6-3.8C75,55.3,75,53.7,75.2,52.1z"
-      fill="#FFFFFF"
+      style={{ fill: "#FFFFFF" }}
     />
   </svg>
 );
 
 const AnthropicLogo = () => (
-  <svg viewBox="0 0 100 100" className="w-5 h-5" aria-hidden="true" fill="none">
-    <rect width="100" height="100" rx="22" fill="#000000" />
-    <path d="M24 82 L38 22 H54 L68 82 H53 L49 66 H33 L29 82 Z" fill="#FFFFFF" />
-    <path d="M35.5 54 H46.5 L41 33 Z" fill="#000000" />
-    <path d="M74 82 L86 22 H98 L86 82 Z" fill="#FFFFFF" />
+  <svg viewBox="0 0 100 100" className="w-5 h-5" aria-hidden="true" style={{ fill: "none" }}>
+    <rect width="100" height="100" rx="22" style={{ fill: "#000000" }} />
+    <path d="M24 82 L38 22 H54 L68 82 H53 L49 66 H33 L29 82 Z" style={{ fill: "#FFFFFF" }} />
+    <path d="M35.5 54 H46.5 L41 33 Z" style={{ fill: "#000000" }} />
+    <path d="M74 82 L86 22 H98 L86 82 Z" style={{ fill: "#FFFFFF" }} />
   </svg>
 );
 
 const MistralLogo = () => (
-  <svg viewBox="0 0 100 100" className="w-5 h-5" aria-hidden="true" fill="none">
-    <rect x="0" y="0" width="10" height="100" fill="#111827" />
-    <rect x="90" y="0" width="10" height="100" fill="#111827" />
-    <rect x="10" y="0" width="22" height="22" fill="#FFCB00" />
-    <rect x="78" y="0" width="12" height="22" fill="#FF8300" />
-    <rect x="10" y="22" width="46" height="22" fill="#FF8300" />
-    <rect x="68" y="22" width="22" height="22" fill="#FF4E00" />
-    <rect x="10" y="44" width="90" height="22" fill="#FF4E00" />
-    <rect x="10" y="66" width="22" height="34" fill="#E60000" />
-    <rect x="44" y="66" width="24" height="22" fill="#FF4E00" />
-    <rect x="32" y="66" width="12" height="34" fill="#111827" />
-    <rect x="68" y="66" width="10" height="34" fill="#111827" />
-    <rect x="78" y="66" width="12" height="34" fill="#E60000" />
+  <svg viewBox="0 0 100 100" className="w-5 h-5" aria-hidden="true" style={{ fill: "none" }}>
+    <rect x="0" y="0" width="10" height="100" style={{ fill: "#111827" }} />
+    <rect x="90" y="0" width="10" height="100" style={{ fill: "#111827" }} />
+    <rect x="10" y="0" width="22" height="22" style={{ fill: "#FFCB00" }} />
+    <rect x="78" y="0" width="12" height="22" style={{ fill: "#FF8300" }} />
+    <rect x="10" y="22" width="46" height="22" style={{ fill: "#FF8300" }} />
+    <rect x="68" y="22" width="22" height="22" style={{ fill: "#FF4E00" }} />
+    <rect x="10" y="44" width="90" height="22" style={{ fill: "#FF4E00" }} />
+    <rect x="10" y="66" width="22" height="34" style={{ fill: "#E60000" }} />
+    <rect x="44" y="66" width="24" height="22" style={{ fill: "#FF4E00" }} />
+    <rect x="32" y="66" width="12" height="34" style={{ fill: "#111827" }} />
+    <rect x="68" y="66" width="10" height="34" style={{ fill: "#111827" }} />
+    <rect x="78" y="66" width="12" height="34" style={{ fill: "#E60000" }} />
   </svg>
 );
 
 const GeminiLogo = () => (
-  <svg viewBox="0 0 100 100" className="w-5 h-5" aria-hidden="true" fill="none">
+  <svg viewBox="0 0 100 100" className="w-5 h-5" aria-hidden="true" style={{ fill: "none" }}>
     <defs>
       <linearGradient id="gemini-grad" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stopColor="#ff4e4e" />
@@ -63,7 +63,7 @@ const GeminiLogo = () => (
     </defs>
     <path
       d="M50 0 C50 35 65 50 100 50 C65 50 50 65 50 100 C50 65 35 50 0 50 C35 50 50 35 50 0 Z"
-      fill="url(#gemini-grad)"
+      style={{ fill: "url(#gemini-grad)" }}
     />
   </svg>
 );
@@ -77,7 +77,7 @@ const AuraProxyLogo: React.FC<AuraProxyLogoProps> = ({ isActive = false, isMatch
   <svg
     viewBox="0 0 200 200"
     className="w-16 h-16 transition-all duration-300 transform scale-110"
-    fill="none"
+    style={{ fill: "none" }}
     xmlns="http://www.w3.org/2000/svg"
   >
     <defs>
@@ -103,12 +103,12 @@ const AuraProxyLogo: React.FC<AuraProxyLogoProps> = ({ isActive = false, isMatch
         <stop offset="100%" stopColor="#10b981" />
       </linearGradient>
     </defs>
-    <circle cx="100" cy="100" r="92" fill="#020712"
+    <circle cx="100" cy="100" r="92" style={{ fill: "#020712" }}
       stroke={isMatched ? "url(#match-grad)" : "url(#ring-grad)"}
       strokeWidth="3" className="transition-colors duration-300" />
     <circle cx="100" cy="100" r="86"
       stroke={isMatched ? "#10b981" : "#7c5cfc"}
-      strokeWidth="1.2" strokeOpacity="0.4" fill="none" />
+      strokeWidth="1.2" strokeOpacity="0.4" style={{ fill: "none" }} />
     <g stroke={isMatched ? "#10b981" : "#a78bfa"} strokeWidth="2" strokeLinecap="round"
       opacity={isActive || isMatched ? "1" : "0.5"} className="transition-opacity duration-300">
       <path d="M 50,75 L 68,75 L 78,85" />
@@ -133,9 +133,9 @@ const AuraProxyLogo: React.FC<AuraProxyLogoProps> = ({ isActive = false, isMatch
       <path d="M 100,50 L 138,135 H 115 L 100,100 L 85,135 H 62 Z"
         fill={isMatched ? "url(#match-grad)" : "url(#a-grad)"} className="transition-all duration-300" />
       <path d="M 75,115 Q 100,90 125,115" stroke="#ffffff" strokeWidth="4.5"
-        strokeLinecap="round" fill="none" filter="url(#neon-glow)" />
-      <circle cx="75" cy="115" r="4.5" fill="#ffffff" filter="url(#neon-glow)" />
-      <circle cx="125" cy="115" r="4.5" fill="#ffffff" filter="url(#neon-glow)" />
+        strokeLinecap="round" style={{ fill: "none" }} filter="url(#neon-glow)" />
+      <circle cx="75" cy="115" r="4.5" style={{ fill: "#ffffff" }} filter="url(#neon-glow)" />
+      <circle cx="125" cy="115" r="4.5" style={{ fill: "#ffffff" }} filter="url(#neon-glow)" />
     </g>
   </svg>
 );
@@ -264,7 +264,7 @@ export default function AuraProxyHeroVisual() {
           <div className="relative w-[1100px] h-[540px] mx-auto">
 
             {/* SVG Base Lines */}
-            <svg className="absolute inset-0 z-0 w-full h-full" viewBox="0 0 1100 540" fill="none">
+            <svg className="absolute inset-0 z-0 w-full h-full" viewBox="0 0 1100 540" style={{ fill: "none" }}>
               <defs>
                 <filter id="glow-purple" x="-30%" y="-30%" width="160%" height="160%">
                   <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur1" />
@@ -338,7 +338,7 @@ export default function AuraProxyHeroVisual() {
 
             {/* Left: Your Application */}
             <div className="absolute" style={{ top: "80px", left: "40px", width: "240px" }}>
-              <div className="backdrop-blur-md rounded-2xl border border-violet-500/15 p-5 shadow-2xl relative overflow-hidden h-[320px] flex flex-col justify-between" style={{background: 'rgba(5,5,7,0.55)'}}>
+              <div className="bg-slate-950/90 backdrop-blur-md rounded-2xl border border-slate-900/90 p-5 shadow-2xl relative overflow-hidden h-[320px] flex flex-col justify-between">
                 <div className="absolute top-0 left-0 w-16 h-[1.5px] bg-gradient-to-r from-violet-500 to-transparent" />
                 <div>
                   <div className="flex items-center gap-2 mb-4">
@@ -350,7 +350,7 @@ export default function AuraProxyHeroVisual() {
                       <span className="text-xs font-bold text-slate-200 uppercase tracking-tight">YOUR APPLICATION</span>
                     </div>
                   </div>
-                  <div className="space-y-3">
+                  <div className="flex flex-col gap-3">
                     {[
                       { icon: Globe, label: "Web App", active: (isPhase1 && p1IncomingRequestGlow) || (isPhase2 && p2IncomingRequestGlow), done: (isPhase1 && p1FinalBackGlow) || (isPhase2 && p2InstantResponseGlow) },
                       { icon: Smartphone, label: "Mobile App", active: false, done: false },
@@ -378,7 +378,7 @@ export default function AuraProxyHeroVisual() {
 
             {/* Top call badge */}
             <div className="absolute" style={{ top: "20px", left: "410px", width: "280px" }}>
-              <div className={`border text-center p-3 rounded-2xl backdrop-blur-md transition-all h-[65px] flex flex-col justify-center ${
+              <div className={`bg-slate-950/95 border text-center p-3 rounded-2xl backdrop-blur-md transition-all h-[65px] flex flex-col justify-center ${
                 p1IncomingRequestGlow || p2IncomingRequestGlow ? "border-violet-500/50" : "border-slate-800/80"
               }`}>
                 <div className="flex items-center justify-between px-1">
@@ -395,11 +395,11 @@ export default function AuraProxyHeroVisual() {
 
             {/* Center: Aura Proxy Core */}
             <div className="absolute" style={{ top: "100px", left: "410px", width: "280px" }}>
-              <div className={`border rounded-3xl p-6 shadow-2xl transition-all duration-300 relative h-[280px] flex flex-col justify-between backdrop-blur-md ${
+              <div className={`bg-gradient-to-b from-slate-950/90 to-slate-950/99 border rounded-3xl p-6 shadow-2xl transition-all duration-300 relative h-[280px] flex flex-col justify-between ${
                 p1ProxyProcessing || p2ProxyMatchGlow
                   ? "border-emerald-500 shadow-[0_0_40px_rgba(16,185,129,0.3)] scale-[1.02]"
-                  : "border-violet-500/40"
-              }`} style={{background: p1ProxyProcessing || p2ProxyMatchGlow ? 'rgba(5,5,7,0.7)' : 'rgba(5,5,7,0.6)'}}>
+                  : "border-violet-500/50"
+              }`}>
                 <div className="flex justify-between items-center relative z-10 w-full">
                   <div className="flex gap-1.5 h-1.5 items-center">
                     <span className={`w-1.5 h-1.5 rounded-full ${p1ProxyProcessing || p2ProxyMatchGlow ? "bg-emerald-400 animate-ping" : "bg-violet-400"}`} />
@@ -471,14 +471,14 @@ export default function AuraProxyHeroVisual() {
 
             {/* Right: Providers */}
             <div className="absolute" style={{ top: "50px", left: "820px", width: "240px" }}>
-              <div className="backdrop-blur-md rounded-2xl border border-violet-500/15 p-5 shadow-2xl relative overflow-hidden h-[420px] flex flex-col justify-between" style={{background: 'rgba(5,5,7,0.55)'}}>
+              <div className="bg-slate-950/90 backdrop-blur-md rounded-2xl border border-slate-900/90 p-5 shadow-2xl relative overflow-hidden h-[420px] flex flex-col justify-between">
                 <div className="absolute top-0 right-0 w-16 h-[1.5px] bg-gradient-to-l from-violet-500 to-transparent" />
                 <div>
                   <div className="flex flex-col mb-4 text-left">
                     <span className="text-[9px] font-mono tracking-wider text-violet-400 font-bold uppercase">EXTERNAL INTELLIGENCE</span>
                     <span className="text-xs font-bold text-slate-200 uppercase tracking-tight">PROVIDERS &amp; LLMS</span>
                   </div>
-                  <div className="space-y-2.5">
+                  <div className="flex flex-col gap-2.5">
                     <div className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-300 ${
                       isPhase1 && p1OpenAIActive ? "border-emerald-500/50 bg-emerald-950/10 scale-[1.01]" : "bg-slate-900/20 border-slate-800/60"
                     }`}>
@@ -513,3 +513,4 @@ export default function AuraProxyHeroVisual() {
     </div>
   );
 }
+
