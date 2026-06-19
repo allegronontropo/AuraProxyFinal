@@ -53,3 +53,10 @@ skills-lock.json
 # Scratch and temp work
 scratch/
 mcp-servers/
+# Added per user request (sensitive/scratch files)
+sdocs/
+original_schema.tsx
+branding/
+skills-lock
+.kilo/
+apps/dashboard/public/media__*
