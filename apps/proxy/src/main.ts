@@ -12,7 +12,7 @@ async function bootstrap() {
     new FastifyAdapter({ logger: true }),
   );
 
-  // Global validation pipe (class-validator)
+  // Pipe de validation globale (class-validator)
   app.useGlobalPipes(
     new ValidationPipe({ whitelist: true, transform: true }),
   );

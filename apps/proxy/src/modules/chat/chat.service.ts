@@ -44,7 +44,7 @@ export class ChatService {
       };
     }
 
-    // Only resolve the full provider implementation if we have a cache miss
+    // Ne résoudre l'implémentation complète du fournisseur qu'en cas de non-correspondance du cache (cache miss)
     const provider = this.resolveProvider(request);
 
     try {
@@ -81,7 +81,7 @@ export class ChatService {
     if (model.startsWith('mistral-') || model.startsWith('codestral')) return 'mistral';
     if (model.startsWith('gemini-')) return 'google';
     
-    return 'openai'; // Default fallback
+    return 'openai'; // Solution de repli par défaut
   }
 
   private resolveProvider(request: ChatRequest) {

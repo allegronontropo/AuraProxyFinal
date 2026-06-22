@@ -452,8 +452,8 @@ export default function FeaturesV3() {
 
       <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative" }}>
         {/* ── Section Header ── */}
-        <div className="mb-24 text-center">
-          <p className="overline" style={{ justifyContent: "center", marginBottom: "1rem" }}>
+        <div className="text-center mb-16 lg:mb-24">
+          <p className="section-overline" style={{ justifyContent: "center", marginBottom: "1rem" }}>
             Features
           </p>
           <h2
@@ -474,7 +474,7 @@ export default function FeaturesV3() {
             style={{
               color: "var(--aura-text-muted)",
               fontSize: "var(--text-base)",
-              maxWidth: "480px",
+              maxWidth: "540px",
               margin: "0 auto",
               lineHeight: 1.75,
             }}

@@ -5,8 +5,6 @@
  * provider-specific configuration types used during initialization.
  */
 
-export type { LLMProvider } from '@aura/shared';
-
 export interface ProviderConfig {
   apiKey: string;
   baseUrl?: string;

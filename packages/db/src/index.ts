@@ -1,9 +1,9 @@
 /**
  * @aura/db — Singleton PrismaClient
  *
- * Design Pattern: Singleton
- * Ensures a single database connection pool is shared across
- * all modules in the application, preventing connection exhaustion.
+ * Motif de conception : Singleton
+ * Assure qu'un seul pool de connexions à la base de données est partagé par
+ * tous les modules de l'application, évitant l'épuisement des connexions.
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -25,6 +25,5 @@ if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
 }
 
-// Re-export Prisma types for convenience
+// Ré-exporte les types Prisma pour plus de commodité
 export * from '@prisma/client';
-export default prisma;

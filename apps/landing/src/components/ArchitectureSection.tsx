@@ -139,7 +139,7 @@ export default function ArchitectureSection() {
       <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative" }}>
         {/* Section header */}
         <div style={{ textAlign: "center", marginBottom: "4rem" }}>
-          <p className="overline" style={{ justifyContent: "center", marginBottom: "1rem" }}>
+          <p className="section-overline" style={{ justifyContent: "center", marginBottom: "1rem" }}>
             Architecture
           </p>
           <h2 style={{

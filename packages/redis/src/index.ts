@@ -1,9 +1,9 @@
 /**
- * @aura/redis — Singleton Redis Client
+ * @aura/redis — Client Redis Singleton
  *
- * Design Pattern: Singleton
- * Ensures a single Redis connection is shared across the application.
- * Uses ioredis with automatic reconnection and error handling.
+ * Motif de conception : Singleton
+ * Assure qu'une seule connexion Redis est partagée dans toute l'application.
+ * Utilise ioredis avec reconnexion automatique et gestion des erreurs.
  */
 
 import Redis from 'ioredis';
@@ -20,7 +20,7 @@ function createRedisClient(): Redis {
     retryStrategy(times: number) {
       if (times > 10) {
         console.error('[Redis] Max reconnection attempts reached');
-        return null; // Stop retrying
+        return null; // Arrêter les tentatives de reconnexion
       }
       const delay = Math.min(times * 200, 5000);
       console.warn(`[Redis] Reconnecting in ${delay}ms (attempt ${times})`);
@@ -46,5 +46,4 @@ if (process.env.NODE_ENV !== 'production') {
   globalForRedis.redis = redis;
 }
 
-export default redis;
 export { Redis };

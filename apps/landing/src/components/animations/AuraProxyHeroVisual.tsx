@@ -254,50 +254,8 @@ export default function AuraProxyHeroVisual() {
   const p2HitBadgeActive = t >= 5000 && t < 7700;
   const p2InstantResponseGlow = t >= 5100 && t < 5800;
 
-  const getConsoleLogs = () => {
-    if (t >= 0 && t < 1000) {
-      return [
-        { type: "info", text: "REQ: POST /v1/chat/completions" },
-        { type: "cache", text: "LOOKUP: querying vector cache index..." },
-        { type: "system", text: "GUARD: checking rate limits... OK" }
-      ];
-    }
-    if (t >= 1000 && t < 2100) {
-      return [
-        { type: "cache", text: "MISS: similarity 74% (threshold 92%)" },
-        { type: "router", text: "ROUTE: forwarding to openai/gpt-4o" },
-        { type: "system", text: "TUNNEL: secure tls handshake established" }
-      ];
-    }
-    if (t >= 2100 && t < 2900) {
-      return [
-        { type: "router", text: "RESP: HTTP/1.1 200 OK from OpenAI" },
-        { type: "cache", text: "WRITE: embedding response in pgvector..." },
-        { type: "info", text: "STATS: 1,450 prompt + 520 completion tokens" }
-      ];
-    }
-    if (t >= 2900 && t < 4000) {
-      return [
-        { type: "success", text: "DONE: delivered response (324ms)" },
-        { type: "cache", text: "INDEXED: prompt vector optimized" },
-        { type: "info", text: "SYSTEM: standing by for next call..." }
-      ];
-    }
-    if (t >= 4000 && t < 5100) {
-      return [
-        { type: "info", text: "REQ: POST /v1/chat/completions" },
-        { type: "cache", text: "LOOKUP: querying vector cache index..." },
-        { type: "cache", text: "MATCH: searching cosine similarity..." }
-      ];
-    }
-    return [
-      { type: "success", text: "HIT: semantic match found (92.4%)" },
-      { type: "success", text: "SERVED: returning cached response (5ms)" },
-      { type: "info", text: "SAVED: $0.038 cost • 1.95s latency saved ⚡" }
-    ];
-  };
-
-  const consoleLogs = getConsoleLogs();
+  const isMissState = t >= 1000 && t < 2900;
+  const isHitState = t >= 5000 && t < 7700;
 
   const cacheActive = (t >= 0 && t < 1000) || (t >= 2900 && t < 3600) || (t >= 4000 && t < 5800);
   const cacheDone = (t >= 5100 && t < 5800) || (t >= 2900 && t < 3600);
@@ -320,6 +278,14 @@ export default function AuraProxyHeroVisual() {
         @keyframes pulseGlow {
           0%, 100% { filter: drop-shadow(0 0 10px rgba(124, 92, 252, 0.35)); }
           50% { filter: drop-shadow(0 0 22px rgba(124, 92, 252, 0.65)); }
+        }
+        @keyframes waveFlow {
+          0% { stroke-dashoffset: 0; }
+          100% { stroke-dashoffset: -300; }
+        }
+        @keyframes equalizerBar {
+          0%, 100% { transform: scaleY(0.3); }
+          50% { transform: scaleY(1.0); }
         }
       `}} />
       <div
@@ -438,7 +404,7 @@ export default function AuraProxyHeroVisual() {
             ].map(({ icon: Icon, label, subtitle, metric, yPos, active, done }) => (
               <div
                 key={label}
-                className={`absolute left-[20px] w-[260px] h-[80px] -translate-y-1/2 rounded-2xl border backdrop-blur-xl transition-all duration-500 overflow-hidden flex items-center justify-between px-4 group ${
+                className={`absolute left-[5px] w-[275px] h-[80px] -translate-y-1/2 rounded-2xl border backdrop-blur-xl transition-all duration-500 overflow-hidden flex items-center justify-between px-4 group ${
                   active 
                     ? "bg-violet-950/20 border-violet-500/80 shadow-[0_0_25px_rgba(124,92,252,0.25),inset_0_1px_0_rgba(255,255,255,0.15)] scale-[1.03]" 
                     : done 
@@ -461,30 +427,30 @@ export default function AuraProxyHeroVisual() {
                 <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent -translate-x-full transition-transform duration-1000 ${active ? "animate-[shimmer_2s_infinite]" : ""}`} />
 
                 <div className="flex items-center gap-3 relative z-10">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center border transition-all duration-300 ${
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-300 ${
                     active 
                       ? "bg-violet-950/40 border-violet-500/40 text-violet-300" 
                       : done 
                       ? "bg-emerald-950/40 border-emerald-500/40 text-emerald-300"
                       : "bg-slate-900/60 border-slate-800/70 text-slate-400"
                   }`}>
-                    <Icon className="w-5.5 h-5.5" />
+                    <Icon className="w-5 h-5" />
                   </div>
                   <div className="flex flex-col text-left">
-                    <span className={`text-[12px] font-bold tracking-tight transition-colors duration-300 ${
-                      active || done ? "text-slate-100" : "text-slate-300"
+                    <span className={`text-[13px] font-extrabold tracking-tight transition-colors duration-300 ${
+                      active || done ? "text-slate-105 font-black" : "text-slate-200"
                     }`}>{label}</span>
-                    <span className="text-[9px] font-mono text-slate-500 font-semibold tracking-tight mt-0.5">{subtitle}</span>
+                    <span className="text-[10px] font-mono text-slate-450 font-bold tracking-tight mt-0.5">{subtitle}</span>
                   </div>
                 </div>
 
                 <div className="flex flex-col items-end gap-1 relative z-10 pr-2">
-                  <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border ${
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded border transition-colors duration-300 ${
                     active 
                       ? "bg-violet-950/60 border-violet-800/50 text-violet-300 font-bold" 
                       : done 
                       ? "bg-emerald-950/60 border-emerald-800/50 text-emerald-300 font-bold"
-                      : "bg-slate-900/40 border-slate-800/60 text-slate-500"
+                      : "bg-slate-900/40 border-slate-800/60 text-slate-500 font-semibold"
                   }`}>{active ? "ACTIVE" : done ? "DONE" : metric}</span>
                 </div>
 
@@ -501,30 +467,61 @@ export default function AuraProxyHeroVisual() {
               </div>
             ))}
 
-            {/* Top call badge */}
+            {/* Top call badge: Pipeline Gate */}
             <div className="absolute" style={{ top: "20px", left: "410px", width: "280px" }}>
-              <div className={`border bg-slate-950/85 rounded-2xl backdrop-blur-md shadow-2xl relative overflow-hidden h-[65px] px-4 flex items-center justify-between transition-all duration-300 ${
+              <div className={`border bg-slate-950/85 rounded-2xl backdrop-blur-md shadow-2xl relative overflow-hidden h-[65px] px-4 flex items-center justify-between transition-all duration-500 ${
                 p1IncomingRequestGlow || p2IncomingRequestGlow ? "border-violet-500/60 shadow-[0_0_15px_rgba(124,92,252,0.15)]" : "border-slate-900/90"
               }`}>
-                <div className="flex gap-1 items-center mr-2.5">
-                  <span className="w-2 h-2 rounded-full bg-red-500/50 border border-red-500/20" />
-                  <span className="w-2 h-2 rounded-full bg-yellow-500/50 border border-yellow-500/20" />
-                  <span className="w-2 h-2 rounded-full bg-green-500/50 border border-green-500/20" />
-                </div>
-                <div className="flex-1 bg-slate-900/40 border border-slate-800/80 rounded-lg px-2.5 py-1 flex items-center justify-between font-mono text-[9px]">
-                  <div className="flex items-center gap-1.5 truncate">
-                    <span className="text-violet-400 font-bold">POST</span>
-                    <span className="text-slate-300">/v1/chat/completions</span>
-                    <span className="w-1 h-3 bg-violet-400/80 animate-[cursorBlink_1s_infinite]" />
+                {/* Tech background pattern */}
+                <div className="absolute inset-0 opacity-[0.02] bg-[radial-gradient(#a855f7_1px,transparent_1px)] bg-[size:10px_10px]" />
+                
+                <div className="flex items-center gap-3 relative z-10">
+                  {/* Glowing Status Dot */}
+                  <div className="relative flex h-2 w-2">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                      p1IncomingRequestGlow || p2IncomingRequestGlow ? "bg-violet-400" : "bg-slate-700"
+                    }`} />
+                    <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                      p1IncomingRequestGlow || p2IncomingRequestGlow ? "bg-violet-500" : "bg-slate-800"
+                    }`} />
                   </div>
-                  <span className={`text-[8px] px-1.5 py-0.5 rounded font-extrabold border transition-all duration-300 ${
+                  
+                  {/* Route Label */}
+                  <div className="flex flex-col text-left">
+                    <span className="text-[7.5px] font-bold font-mono tracking-widest text-slate-500 uppercase">GATEWAY REQUEST</span>
+                    <span className="text-[11px] font-mono font-bold text-slate-200 tracking-tight mt-0.5">POST /v1/chat</span>
+                  </div>
+                </div>
+
+                {/* Animated Equalizer Meter */}
+                <div className="flex items-end gap-[3px] h-5 relative z-10">
+                  {[0.4, 0.7, 0.5, 0.9, 0.3].map((val, index) => (
+                    <div 
+                      key={index} 
+                      className={`w-[3px] rounded-full transition-all duration-300 ${
+                        p1IncomingRequestGlow || p2IncomingRequestGlow ? "bg-violet-500" : "bg-slate-800"
+                      }`}
+                      style={{
+                        height: `${val * 100}%`,
+                        animation: p1IncomingRequestGlow || p2IncomingRequestGlow 
+                          ? `equalizerBar ${0.6 + index * 0.1}s ease-in-out infinite alternate` 
+                          : "none",
+                        transformOrigin: "bottom"
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Method Pill */}
+                <div className="relative z-10">
+                  <span className={`text-[8.5px] px-2 py-0.5 rounded-md font-extrabold border transition-all duration-300 ${
                     p1FinalBackGlow || p2InstantResponseGlow 
-                      ? "bg-emerald-950/60 border-emerald-800/60 text-emerald-400"
+                      ? "bg-emerald-950/60 border-emerald-800/60 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
                       : p1IncomingRequestGlow || p2IncomingRequestGlow 
                       ? "bg-violet-950/60 border-violet-800/60 text-violet-400"
-                      : "bg-slate-950/40 border-slate-900/60 text-slate-500"
+                      : "bg-slate-900/40 border-slate-800/60 text-slate-500"
                   }`}>
-                    {p1FinalBackGlow || p2InstantResponseGlow ? "200 OK" : p1IncomingRequestGlow || p2IncomingRequestGlow ? "REQ" : "IDLE"}
+                    {p1FinalBackGlow || p2InstantResponseGlow ? "200 OK" : "HTTPS"}
                   </span>
                 </div>
               </div>
@@ -571,7 +568,7 @@ export default function AuraProxyHeroVisual() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-4 gap-1.5 border-t border-slate-900/90 pt-4 z-10">
+                <div className="grid grid-cols-4 gap-2 border-t border-slate-900/90 pt-4 z-10">
                   {[
                     { Icon: Grid, label: "Semantic Cache", active: cacheActive, done: cacheDone },
                     { Icon: Share2, label: "Smart Routing", active: routingActive, done: routingDone },
@@ -580,7 +577,7 @@ export default function AuraProxyHeroVisual() {
                   ].map(({ Icon, label, active, done }) => (
                     <div 
                       key={label} 
-                      className={`flex flex-col items-center text-center p-1 rounded-lg border transition-all duration-300 ${
+                      className={`flex flex-col items-center text-center p-1 rounded-lg border transition-all duration-305 ${
                         active 
                           ? done
                             ? "bg-emerald-950/15 border-emerald-500/40 scale-[1.03]"
@@ -588,15 +585,15 @@ export default function AuraProxyHeroVisual() {
                           : "bg-transparent border-transparent"
                       }`}
                     >
-                      <Icon className={`w-3.5 h-3.5 mb-1.5 transition-colors duration-300 ${
+                      <Icon className={`w-[18px] h-[18px] mb-1.5 transition-colors duration-300 ${
                         active 
                           ? done ? "text-emerald-400" : "text-violet-400" 
-                          : "text-slate-655"
+                          : "text-slate-650"
                       }`} />
-                      <span className={`text-[7px] font-bold font-mono tracking-tight leading-tight transition-colors duration-300 ${
+                      <span className={`text-[9.5px] font-extrabold font-mono tracking-tight leading-tight transition-colors duration-300 ${
                         active 
                           ? done ? "text-emerald-300" : "text-violet-300" 
-                          : "text-slate-600"
+                          : "text-slate-500"
                       }`}>{label}</span>
                     </div>
                   ))}
@@ -604,32 +601,128 @@ export default function AuraProxyHeroVisual() {
               </div>
             </div>
 
-            {/* Bottom: Diagnostic Console */}
+            {/* Bottom: Cognitive Cache Engine (Waveform Matcher) */}
             <div className="absolute" style={{ top: "395px", left: "410px", width: "280px" }}>
-              <div className="bg-slate-950/95 border border-slate-900/90 rounded-2xl p-3 shadow-3xl backdrop-blur-md h-[115px] flex flex-col justify-between overflow-hidden">
-                <div className="flex items-center justify-between border-b border-slate-900 pb-1.5">
-                  <span className="text-[7.5px] font-mono tracking-widest text-slate-500 font-bold uppercase">DIAGNOSTIC CONSOLE</span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[7px] font-mono text-slate-500 font-semibold">LIVE</span>
-                  </div>
+              <div className={`border bg-slate-950/95 rounded-2xl p-4 shadow-3xl backdrop-blur-md h-[115px] flex flex-col justify-between overflow-hidden transition-all duration-300 ${
+                isHitState ? "border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.1)]" : "border-slate-900/90"
+              }`}>
+                {/* Visualizer header */}
+                <div className="flex items-center justify-between border-b border-slate-900 pb-2">
+                  <span className="text-[7.5px] font-mono tracking-widest text-slate-500 font-bold uppercase">SEMANTIC SIGNAL WAVEFORM</span>
+                  <span className={`text-[8px] font-bold font-mono px-1.5 py-0.5 rounded ${
+                    isHitState ? "text-emerald-450 bg-emerald-950/50" : isMissState ? "text-orange-455 bg-orange-950/50" : "text-slate-550"
+                  }`}>
+                    {isHitState ? "MATCHED" : isMissState ? "MISSED" : "STANDBY"}
+                  </span>
                 </div>
                 
-                <div className="flex flex-col gap-1 text-left flex-1 justify-center py-1">
-                  {consoleLogs.map((log, index) => {
-                    const colorClass = 
-                      log.type === "success" ? "text-emerald-400" :
-                      log.type === "cache" ? "text-violet-400 font-semibold" :
-                      log.type === "router" ? "text-blue-400" :
-                      log.type === "system" ? "text-slate-500" :
-                      "text-slate-350";
-                    return (
-                      <div key={index} className="flex items-center gap-2 font-mono text-[8.5px] leading-tight truncate">
-                        <span className="text-slate-700 font-bold">❯</span>
-                        <span className={colorClass}>{log.text}</span>
-                      </div>
-                    );
-                  })}
+                {/* Animated Waveform Screen */}
+                <div className="h-10 w-full relative flex items-center justify-center bg-slate-950/60 border border-slate-900/65 rounded-lg overflow-hidden my-1.5">
+                  {/* Screen fine grid lines */}
+                  <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(90deg,rgba(255,255,255,0.15)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.15)_1px,transparent_1px)] bg-[size:8px_8px]" />
+                  
+                  <svg className="w-full h-full absolute inset-0" viewBox="0 0 250 40" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="wave-purple-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="rgba(168, 85, 247, 0)" />
+                        <stop offset="50%" stopColor="rgba(168, 85, 247, 0.6)" />
+                        <stop offset="100%" stopColor="rgba(168, 85, 247, 0)" />
+                      </linearGradient>
+                      <linearGradient id="wave-emerald-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="rgba(16, 185, 129, 0)" />
+                        <stop offset="50%" stopColor="rgba(16, 185, 129, 0.9)" />
+                        <stop offset="100%" stopColor="rgba(16, 185, 129, 0)" />
+                      </linearGradient>
+                      <linearGradient id="wave-red-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="rgba(249, 115, 22, 0)" />
+                        <stop offset="50%" stopColor="rgba(249, 115, 22, 0.7)" />
+                        <stop offset="100%" stopColor="rgba(249, 115, 22, 0)" />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Standard template background wave */}
+                    <path 
+                      d="M 0 20 Q 62.5 5, 125 20 T 250 20" 
+                      stroke="rgba(168, 85, 247, 0.25)" 
+                      strokeWidth="1.5" 
+                      fill="none" 
+                    />
+
+                    {isHitState ? (
+                      <>
+                        {/* Synced Glowing Emerald Wave */}
+                        <path 
+                          d="M 0 20 Q 62.5 5, 125 20 T 250 20" 
+                          stroke="url(#wave-emerald-grad)" 
+                          strokeWidth="2.5" 
+                          fill="none" 
+                          style={{
+                            strokeDasharray: "150",
+                            animation: "waveFlow 2.5s linear infinite"
+                          }}
+                        />
+                        <path 
+                          d="M 0 20 Q 62.5 5, 125 20 T 250 20" 
+                          stroke="rgba(16, 185, 129, 0.25)" 
+                          strokeWidth="6" 
+                          fill="none" 
+                        />
+                      </>
+                    ) : isMissState ? (
+                      <>
+                        {/* Chaotic Out of Sync Wave */}
+                        <path 
+                          d="M 0 20 L 25 10 L 50 30 L 75 5 L 100 35 L 125 15 L 150 25 L 175 10 L 200 30 L 225 15 L 250 20" 
+                          stroke="url(#wave-red-grad)" 
+                          strokeWidth="2" 
+                          fill="none" 
+                          style={{
+                            strokeDasharray: "200",
+                            animation: "waveFlow 4s linear infinite"
+                          }}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        {/* Calm Violet Ripple Wave */}
+                        <path 
+                          d="M 0 20 Q 62.5 12, 125 20 T 250 20" 
+                          stroke="url(#wave-purple-grad)" 
+                          strokeWidth="1.5" 
+                          fill="none" 
+                          style={{
+                            strokeDasharray: "120",
+                            animation: "waveFlow 5s linear infinite"
+                          }}
+                        />
+                      </>
+                    )}
+                  </svg>
+                  
+                  {/* Floating match badge */}
+                  <span className="absolute text-[8px] font-mono bg-slate-950/80 border border-slate-900 px-1.5 py-0.5 rounded text-slate-400 font-bold backdrop-blur-sm scale-90">
+                    {isHitState ? "MATCH: 92.4%" : isMissState ? "MATCH: 74.0%" : "SCANNING..."}
+                  </span>
+                </div>
+
+                {/* Diagnostic readout metrics */}
+                <div className="flex justify-between items-center text-[9px] font-mono font-medium px-0.5">
+                  {isHitState ? (
+                    <>
+                      <span className="text-emerald-400 font-bold">⚡ Instant Cache Hit</span>
+                      <span className="text-slate-500">Latency: <strong className="text-emerald-400 font-bold">5ms</strong> (saved 319ms)</span>
+                    </>
+                  ) : isMissState ? (
+                    <>
+                      <span className="text-orange-450 font-bold">⚠️ Cache Miss / Forward</span>
+                      <span className="text-slate-500">Latency: <strong className="text-slate-400 font-bold">324ms</strong></span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-slate-500 font-semibold uppercase tracking-tight">Cognitive Matcher Standby</span>
+                      <span className="text-slate-600">Awaiting Payload...</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -671,7 +764,7 @@ export default function AuraProxyHeroVisual() {
             ].map(({ Logo, name, subtitle, latency, yPos, active }) => (
               <div
                 key={name}
-                className={`absolute left-[820px] w-[260px] h-[80px] -translate-y-1/2 rounded-2xl border backdrop-blur-xl transition-all duration-500 overflow-hidden flex items-center justify-between px-4 group ${
+                className={`absolute left-[820px] w-[275px] h-[80px] -translate-y-1/2 rounded-2xl border backdrop-blur-xl transition-all duration-500 overflow-hidden flex items-center justify-between px-4 group ${
                   active 
                     ? "bg-emerald-950/20 border-emerald-500/80 shadow-[0_0_25px_rgba(16,185,129,0.25),inset_0_1px_0_rgba(255,255,255,0.15)] scale-[1.03]" 
                     : "bg-slate-950/45 border-slate-900/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] hover:border-slate-800/80 hover:bg-slate-950/60"
@@ -692,22 +785,22 @@ export default function AuraProxyHeroVisual() {
                 <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent -translate-x-full transition-transform duration-1000 ${active ? "animate-[shimmer_2s_infinite]" : ""}`} />
 
                 <div className="flex items-center gap-3 relative z-10">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300">
                     <Logo />
                   </div>
                   <div className="flex flex-col text-left">
-                    <span className={`text-[12px] font-bold tracking-tight transition-colors duration-300 ${
-                      active ? "text-slate-100" : "text-slate-300"
+                    <span className={`text-[13px] font-extrabold tracking-tight transition-colors duration-300 ${
+                      active ? "text-slate-105 font-black" : "text-slate-200"
                     }`}>{name}</span>
-                    <span className="text-[9px] font-mono text-slate-500 font-semibold tracking-tight mt-0.5">{subtitle}</span>
+                    <span className="text-[10px] font-mono text-slate-450 font-bold tracking-tight mt-0.5">{subtitle}</span>
                   </div>
                 </div>
 
                 <div className="flex flex-col items-end gap-1 relative z-10 pr-2">
-                  <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded border transition-colors duration-300 ${
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded border transition-colors duration-300 ${
                     active 
                       ? "bg-emerald-950/60 border-emerald-800/50 text-emerald-300 font-bold" 
-                      : "bg-slate-900/40 border-slate-800/60 text-slate-500"
+                      : "bg-slate-900/40 border-slate-800/60 text-slate-500 font-semibold"
                   }`}>{latency}</span>
                 </div>
 
