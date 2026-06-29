@@ -83,12 +83,12 @@ describeE2E('Semantic cache e2e (real providers, pgvector, Redis)', () => {
     apiKeyId = `key_cache_e2e_${randomUUID()}`;
     rawApiKey = `aura_sk_cache_e2e_${randomUUID()}`;
 
-    await prisma.client.tenant.create({
+    await prisma.client.user.create({
       data: {
         id: tenantId,
         name: 'Cache E2E Tenant',
         email: `${tenantId}@example.test`,
-        password: 'not-used-in-e2e',
+        password_hash: 'not-used-in-e2e',
         plan: 'FREE',
         role: 'CLIENT',
       },
@@ -135,8 +135,8 @@ describeE2E('Semantic cache e2e (real providers, pgvector, Redis)', () => {
       'aura:cache:metrics:exactHits:gpt-4o-mini',
       'aura:cache:metrics:semanticHits:gpt-4o-mini',
       'aura:cache:metrics:misses:gpt-4o-mini',
-      'aura:cache:metrics:embeddingHits:text-embedding-3-small',
-      'aura:cache:metrics:embeddingMisses:text-embedding-3-small',
+      'aura:cache:metrics:embeddingHits:Xenova/all-MiniLM-L6-v2',
+      'aura:cache:metrics:embeddingMisses:Xenova/all-MiniLM-L6-v2',
       exactCacheKey('Explain what machine learning is.'),
       exactCacheKey('What is machine learning?'),
       exactCacheKey('Can you explain the concept of machine learning?'),
@@ -150,7 +150,7 @@ describeE2E('Semantic cache e2e (real providers, pgvector, Redis)', () => {
 
   afterAll(async () => {
     if (prisma && tenantId) {
-      await prisma.client.tenant.delete({ where: { id: tenantId } }).catch(() => undefined);
+      await prisma.client.user.delete({ where: { id: tenantId } }).catch(() => undefined);
     }
     await app?.close();
   });
@@ -360,7 +360,7 @@ describeE2E('Semantic cache e2e (real providers, pgvector, Redis)', () => {
   function embeddingCacheKey(prompt: string): string {
     const normalizedPrompt = `user: ${prompt}`.replace(/\s+/g, ' ').trim();
     const hash = createHash('sha256').update(normalizedPrompt).digest('hex');
-    return `aura:cache:embedding:text-embedding-3-small:${hash}`;
+    return `aura:cache:embedding:Xenova/all-MiniLM-L6-v2:${hash}`;
   }
 });
 
