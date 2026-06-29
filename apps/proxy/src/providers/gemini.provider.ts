@@ -117,7 +117,7 @@ export class GeminiProvider implements LLMProvider {
   }
 
   estimateCost(usage: TokenUsage): number {
-    const pricing = PROVIDER_PRICING['gemini-1.5-flash'];
+    const pricing = PROVIDER_PRICING[usage.completionTokens ? 'gemini-2.5-flash' : 'gemini-2.5-flash'] || PROVIDER_PRICING['gemini-2.5-flash'];
     if (!pricing) return 0;
 
     const inputCost = (usage.promptTokens / 1_000_000) * pricing.input;
@@ -127,6 +127,6 @@ export class GeminiProvider implements LLMProvider {
   }
 
   listModels(): string[] {
-    return ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.0-pro'];
+    return ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-pro-latest'];
   }
 }
