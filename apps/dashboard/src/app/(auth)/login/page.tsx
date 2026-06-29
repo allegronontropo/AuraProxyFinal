@@ -235,20 +235,8 @@ function PlasmaWeb({
       gl.clearColor(0, 0, 0, 1);
     }
 
-    let program: Program;
-
-    function resize() {
-      const scale = 1;
-      renderer.setSize(ctn.offsetWidth * scale, ctn.offsetHeight * scale);
-      if (program) {
-        program.uniforms.uResolution.value = new Color(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height);
-      }
-    }
-    window.addEventListener("resize", resize, false);
-    resize();
-
     const geometry = new Triangle(gl);
-    program = new Program(gl, {
+    const program = new Program(gl, {
       vertex: vertexShader,
       fragment: fragmentShader,
       uniforms: {
@@ -272,6 +260,16 @@ function PlasmaWeb({
         uBrightness: { value: brightness },
       },
     });
+
+    function resize() {
+      const scale = 1;
+      renderer.setSize(ctn.offsetWidth * scale, ctn.offsetHeight * scale);
+      if (program) {
+        program.uniforms.uResolution.value = new Color(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height);
+      }
+    }
+    window.addEventListener("resize", resize, false);
+    resize();
 
     const mesh = new Mesh(gl, { geometry, program });
     let animateId: number;
@@ -404,7 +402,7 @@ function AuthForm() {
       } else {
         router.push(callbackUrl);
       }
-    } catch (err) {
+    } catch {
       setErrors({ general: "An error occurred during sign in" });
     } finally {
       setIsLoading(false);
@@ -435,7 +433,7 @@ function AuthForm() {
         });
         if (!res?.error) router.push(callbackUrl);
       }
-    } catch (err) {
+    } catch {
       setErrors({ general: "An error occurred during registration" });
     } finally {
       setIsLoading(false);
@@ -460,7 +458,7 @@ function AuthForm() {
       } else {
         setIsResetSuccess(true);
       }
-    } catch (err) {
+    } catch {
       setErrors({ general: "An error occurred" });
     } finally {
       setIsLoading(false);
@@ -487,7 +485,7 @@ function AuthForm() {
         setActiveTab("login");
         setErrors({ general: "Password successfully updated! Please log in." });
       }
-    } catch (err) {
+    } catch {
       setErrors({ general: "An error occurred" });
     } finally {
       setIsLoading(false);
@@ -630,7 +628,7 @@ function AuthForm() {
                 </div>
                 <CardTitle className="text-2xl font-bold text-purple-400">Check Your Email</CardTitle>
                 <CardDescription className="text-zinc-400">
-                  We've sent a password reset link to <strong className="text-zinc-300">{resetData.email}</strong>
+                  We&apos;ve sent a password reset link to <strong className="text-zinc-300">{resetData.email}</strong>
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center space-y-4">
@@ -659,7 +657,7 @@ function AuthForm() {
               </CardFooter>
             </>
           ) : (
-            <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as any); setErrors({}); }} className="w-full">
+            <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as "login" | "signup" | "reset" | "new-password"); setErrors({}); }} className="w-full">
               <CardHeader className="space-y-4">
                 <TabsList className="grid w-full grid-cols-2 bg-zinc-800/50 border border-purple-500/20">
                   <TabsTrigger value="login" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-100">

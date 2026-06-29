@@ -24,18 +24,18 @@ export default function ApiKeysTable({
   initialKeys: ApiKey[];
 }) {
   const router = useRouter();
-  const [keys, setKeys] = useState(initialKeys);
+  const [, setKeys] = useState(initialKeys);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [permissions, setPermissions] = useState<string[]>(["chat:write", "models:read"]);
   const [rateLimit, setRateLimit] = useState(60);
   
   const [generatedKey, setGeneratedKey] = useState<string | null>(null);
-  const [generatedKeyPrefix, setGeneratedKeyPrefix] = useState<string | null>(null);
+  const [, setGeneratedKeyPrefix] = useState<string | null>(null);
   const [revokeConfirmId, setRevokeConfirmId] = useState<string | null>(null);
   const [rotatedKey, setRotatedKey] = useState<{ id: string; key: string } | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();

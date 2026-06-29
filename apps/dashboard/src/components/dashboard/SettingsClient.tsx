@@ -28,7 +28,7 @@ export default function SettingsClient({
   user: UserData;
 }) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const [name, setName] = useState(project.name);
   const [budgetLimit, setBudgetLimit] = useState(project.budgetLimit);
