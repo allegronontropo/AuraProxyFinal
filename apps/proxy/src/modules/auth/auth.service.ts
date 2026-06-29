@@ -98,4 +98,83 @@ export class AuthService {
 
     return result;
   }
+
+  async validateApiKeyById(keyId: string): Promise<{ apiKey: ApiKeyPayload; project: any }> {
+    const cacheKey = REDIS_KEYS.apiKeyCache(`id:${keyId}`);
+
+    const cachedResult = await this.redis.get(cacheKey);
+    if (cachedResult) {
+      const cached = JSON.parse(cachedResult);
+      if (cached.invalid) {
+        throw new UnauthorizedException('Invalid API key ID.');
+      }
+      return cached;
+    }
+
+    const apiKeyRecord = await this.prisma.client.apiKey.findUnique({
+      where: { id: keyId },
+      include: {
+        project: {
+          select: {
+            id: true,
+            budgetLimit: true,
+            budgetPeriod: true,
+            isActive: true,
+            tenantId: true,
+          },
+        },
+      },
+    });
+
+    if (!apiKeyRecord) {
+      await this.redis.set(cacheKey, JSON.stringify({ invalid: true }), CACHE_TTL);
+      throw new UnauthorizedException('Invalid API key ID.');
+    }
+
+    if (!apiKeyRecord.isActive) {
+      throw new UnauthorizedException('API key has been deactivated.');
+    }
+
+    if (apiKeyRecord.expiresAt && apiKeyRecord.expiresAt < new Date()) {
+      throw new UnauthorizedException('API key has expired.');
+    }
+
+    if (!apiKeyRecord.project.isActive) {
+      throw new ForbiddenException('Project is inactive.');
+    }
+
+    const apiKeyPayload: ApiKeyPayload = {
+      keyId: apiKeyRecord.id,
+      projectId: apiKeyRecord.projectId,
+      tenantId: apiKeyRecord.project.tenantId,
+      permissions: apiKeyRecord.permissions,
+      rateLimit: apiKeyRecord.rateLimit,
+    };
+
+    const projectPayload = {
+      id: apiKeyRecord.project.id,
+      tenantId: apiKeyRecord.project.tenantId,
+      budgetLimit: apiKeyRecord.project.budgetLimit,
+      budgetPeriod: apiKeyRecord.project.budgetPeriod as 'DAILY' | 'WEEKLY' | 'MONTHLY',
+      isActive: apiKeyRecord.project.isActive,
+    };
+
+    const result = { apiKey: apiKeyPayload, project: projectPayload };
+
+    await this.redis.set(
+      cacheKey,
+      JSON.stringify(result),
+      CACHE_TTL
+    );
+
+    // Update last used timestamp (non-blocking)
+    this.prisma.client.apiKey
+      .update({
+        where: { id: apiKeyRecord.id },
+        data: { lastUsedAt: new Date() },
+      })
+      .catch(() => {});
+
+    return result;
+  }
 }

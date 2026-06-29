@@ -24,7 +24,22 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('API key is empty.');
     }
 
-    const { apiKey, project } = await this.authService.validateApiKey(rawKey);
+    const bypassSecret = process.env.INTERNAL_DASHBOARD_BYPASS_SECRET;
+    let apiKey, project;
+
+    if (bypassSecret && rawKey === bypassSecret) {
+      const keyId = request.headers['x-dashboard-api-key-id'];
+      if (!keyId) {
+        throw new UnauthorizedException('Missing x-dashboard-api-key-id header for internal bypass.');
+      }
+      const result = await this.authService.validateApiKeyById(keyId as string);
+      apiKey = result.apiKey;
+      project = result.project;
+    } else {
+      const result = await this.authService.validateApiKey(rawKey);
+      apiKey = result.apiKey;
+      project = result.project;
+    }
 
     request.apiKey = apiKey;
     request.project = project;
