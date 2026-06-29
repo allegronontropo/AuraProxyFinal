@@ -789,11 +789,16 @@ export default function LogsTable({
     load(page, pageSize, filters, col, newOrder);
   };
 
-  // Client-side status group filter applied on top
+  // Client-side filtering (especially important for mock data)
   const visibleLogs = logs.filter((l) => {
-    if (filters.statusGroup === "2xx") return l.statusCode >= 200 && l.statusCode < 300;
-    if (filters.statusGroup === "4xx") return l.statusCode >= 400 && l.statusCode < 500;
-    if (filters.statusGroup === "5xx") return l.statusCode >= 500;
+    if (filters.statusGroup === "2xx" && (l.statusCode < 200 || l.statusCode >= 300)) return false;
+    if (filters.statusGroup === "4xx" && (l.statusCode < 400 || l.statusCode >= 500)) return false;
+    if (filters.statusGroup === "5xx" && l.statusCode < 500) return false;
+    
+    if (filters.provider !== "all" && l.provider !== filters.provider) return false;
+    if (filters.cached === "hit" && !l.cached) return false;
+    if (filters.cached === "miss" && l.cached) return false;
+    
     return true;
   });
 
