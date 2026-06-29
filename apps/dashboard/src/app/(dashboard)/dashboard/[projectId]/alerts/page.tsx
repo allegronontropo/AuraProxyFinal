@@ -15,6 +15,7 @@ export default async function AlertQueuePage({
   const summary = await getAlertSummary(projectId);
 
   // Derive mock alerts based on real data
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const alerts: any[] = [];
   
   if (summary.errorCount > 0) {

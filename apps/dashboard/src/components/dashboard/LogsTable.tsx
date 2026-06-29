@@ -24,6 +24,7 @@ interface LogRow {
   statusCode: number;
   cached: boolean;
   error: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata: any;
   createdAt: Date | string;
   apiKey?: ApiKey | null;
@@ -801,13 +802,10 @@ export default function LogsTable({
     return sortOrder === "desc" ? " ↓" : " ↑";
   };
 
-  const SortableTh = ({
-    col,
-    label,
-  }: {
-    col: "createdAt" | "latencyMs" | "costUsd";
-    label: string;
-  }) => (
+  const renderSortableTh = (
+    col: "createdAt" | "latencyMs" | "costUsd",
+    label: string
+  ) => (
     <th
       onClick={() => handleSort(col)}
       style={{
@@ -970,7 +968,7 @@ export default function LogsTable({
                   zIndex: 5,
                 }}
               >
-                <SortableTh col="createdAt" label="Time" />
+                {renderSortableTh("createdAt", "Time")}
                 <th
                   style={{
                     padding: "8px 12px",
@@ -1010,8 +1008,8 @@ export default function LogsTable({
                 >
                   Tokens
                 </th>
-                <SortableTh col="costUsd" label="Cost ($)" />
-                <SortableTh col="latencyMs" label="Latency" />
+                {renderSortableTh("costUsd", "Cost ($)")}
+                {renderSortableTh("latencyMs", "Latency")}
                 <th
                   style={{
                     padding: "8px 12px",

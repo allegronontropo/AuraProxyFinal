@@ -18,6 +18,7 @@ export default async function IntelligenceHubPage({
   ]);
 
   // Derive insights based on stats
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const insights: any[] = [];
 
   if (stats.avgLatencyMs > 500) {

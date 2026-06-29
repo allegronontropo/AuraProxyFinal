@@ -112,7 +112,7 @@ export async function getRequestLogs(
   sortBy: "createdAt" | "latencyMs" | "costUsd" = "createdAt",
   sortOrder: "asc" | "desc" = "desc"
 ) {
-  const where: any = { projectId };
+  const where: import("@prisma/client").Prisma.RequestLogWhereInput = { projectId };
   if (filters.provider) where.provider = filters.provider;
   if (filters.model) where.model = filters.model;
   if (filters.statusCode) where.statusCode = filters.statusCode;
