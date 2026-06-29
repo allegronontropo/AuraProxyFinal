@@ -1,6 +1,8 @@
 import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
+import GitHub from "next-auth/providers/github";
+import Google from "next-auth/providers/google";
 import { prisma } from "@aura/db";
 import bcrypt from "bcrypt";
 import { z } from "zod";
@@ -17,6 +19,8 @@ export const { handlers, auth } = NextAuth({
     signIn: "/auth/login",
   },
   providers: [
+    GitHub({ allowDangerousEmailAccountLinking: true }),
+    Google({ allowDangerousEmailAccountLinking: true }),
     Credentials({
       async authorize(credentials) {
         const parsedCredentials = loginSchema.safeParse(credentials);
@@ -27,15 +31,15 @@ export const { handlers, auth } = NextAuth({
 
         const { email, password } = parsedCredentials.data;
 
-        const user = await prisma.tenant.findUnique({
+        const user = await prisma.user.findUnique({
           where: { email },
         });
 
-        if (!user || !user.password) {
+        if (!user || !user.password_hash) {
           return null;
         }
 
-        const passwordsMatch = await bcrypt.compare(password, user.password);
+        const passwordsMatch = await bcrypt.compare(password, user.password_hash);
 
         if (passwordsMatch) {
           return {

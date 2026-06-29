@@ -1,0 +1,100 @@
+"use server";
+
+import { prisma } from "@aura/db";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import crypto from "crypto";
+import { revalidatePath } from "next/cache";
+
+// ─── Create Project (Workspace) ───────────────────────────────────────────────
+
+export async function createProject(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+
+  const name = formData.get("name") as string;
+  const budgetLimit = parseFloat(formData.get("budgetLimit") as string) || 100;
+  const budgetPeriod = (formData.get("budgetPeriod") as string) || "MONTHLY";
+
+  if (!name || name.trim().length < 2) {
+    return { error: "Workspace name must be at least 2 characters." };
+  }
+
+  try {
+    // Create raw API key
+    const rawKey = `sk_aura_${crypto.randomBytes(24).toString("hex")}`;
+    const keyHash = crypto.createHash("sha256").update(rawKey).digest("hex");
+    const keyPrefix = rawKey.slice(0, 12);
+
+    const project = await prisma.project.create({
+      data: {
+        tenantId: session.user.id,
+        name: name.trim(),
+        budgetLimit,
+        budgetPeriod: budgetPeriod as "DAILY" | "WEEKLY" | "MONTHLY",
+        apiKeys: {
+          create: {
+            keyHash,
+            keyPrefix,
+            name: "Default Key",
+            permissions: ["chat:write", "models:read"],
+          },
+        },
+      },
+    });
+
+    revalidatePath("/workspace");
+    // Return raw key once — never stored again
+    return { success: true, projectId: project.id, apiKey: rawKey };
+  } catch (error) {
+    console.error("createProject error:", error);
+    return { error: "Failed to create workspace." };
+  }
+}
+
+// ─── Update Project ───────────────────────────────────────────────────────────
+
+export async function updateProject(
+  projectId: string,
+  data: { name?: string; budgetLimit?: number; budgetPeriod?: string }
+) {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+
+  try {
+    await prisma.project.update({
+      where: { id: projectId, tenantId: session.user.id },
+      data: {
+        ...(data.name && { name: data.name }),
+        ...(data.budgetLimit !== undefined && { budgetLimit: data.budgetLimit }),
+        ...(data.budgetPeriod && {
+          budgetPeriod: data.budgetPeriod as "DAILY" | "WEEKLY" | "MONTHLY",
+        }),
+      },
+    });
+    revalidatePath(`/dashboard/${projectId}`);
+    revalidatePath(`/dashboard/${projectId}/settings`);
+    return { success: true };
+  } catch (error) {
+    console.error("updateProject error:", error);
+    return { error: "Failed to update workspace." };
+  }
+}
+
+// ─── Delete Project ───────────────────────────────────────────────────────────
+
+export async function deleteProject(projectId: string) {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+
+  try {
+    await prisma.project.delete({
+      where: { id: projectId, tenantId: session.user.id },
+    });
+    revalidatePath("/workspace");
+    redirect("/workspace");
+  } catch (error) {
+    console.error("deleteProject error:", error);
+    return { error: "Failed to delete workspace." };
+  }
+}
