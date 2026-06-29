@@ -81,9 +81,9 @@ const AuraProxyLogo: React.FC<AuraLogoProps> = ({
   const a1 = (t / LOOP) * Math.PI * 2 * 2.5;
   const a2 = -(t / LOOP) * Math.PI * 2 * 1.8 + Math.PI * 0.65;
   const a3 = (t / LOOP) * Math.PI * 2 * 3.3 + Math.PI * 1.2;
-  const p1 = { x: cx + 100 * Math.cos(a1), y: cy + 100 * Math.sin(a1) };
-  const p2 = { x: cx + 78  * Math.cos(a2), y: cy + 78  * Math.sin(a2) };
-  const p3 = { x: cx + 100 * Math.cos(a3), y: cy + 100 * Math.sin(a3) };
+  const p1 = { x: +(cx + 100 * Math.cos(a1)).toFixed(4), y: +(cy + 100 * Math.sin(a1)).toFixed(4) };
+  const p2 = { x: +(cx + 78  * Math.cos(a2)).toFixed(4), y: +(cy + 78  * Math.sin(a2)).toFixed(4) };
+  const p3 = { x: +(cx + 100 * Math.cos(a3)).toFixed(4), y: +(cy + 100 * Math.sin(a3)).toFixed(4) };
 
   const hexPts = Array.from({ length: 6 }, (_, i) => {
     const a = (i * 60) * (Math.PI / 180);

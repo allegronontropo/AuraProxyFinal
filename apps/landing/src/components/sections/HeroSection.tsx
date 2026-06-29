@@ -153,7 +153,7 @@ export default function HeroSection() {
             }}
           >
             <a
-              href="#deploy"
+              href="http://localhost:3001"
               style={{
                 display: "inline-flex",
                 alignItems: "center",

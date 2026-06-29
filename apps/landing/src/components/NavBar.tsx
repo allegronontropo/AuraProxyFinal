@@ -155,7 +155,7 @@ export default function NavBar() {
           </a>
 
           <a
-            href="#deploy"
+            href="http://localhost:3001"
             style={{
               padding: "0.5rem 1.125rem",
               background: "linear-gradient(135deg, #7c5cfc, #5b3fd8)",
