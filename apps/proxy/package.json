@@ -6,7 +6,9 @@
     "dev": "tsx watch src/main.ts",
     "build": "nest build",
     "start": "node dist/src/main.js",
-    "test": "vitest"
+    "test": "vitest",
+    "test:unit": "vitest run --exclude '**/*.e2e.test.ts'",
+    "test:e2e": "vitest run --include '**/*.e2e.test.ts'"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.2",
@@ -41,6 +43,7 @@
     "@swc/cli": "^0.8.1",
     "@swc/core": "^1.15.33",
     "@types/node": "^22.0.0",
+    "nock": "^14.0.16",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
