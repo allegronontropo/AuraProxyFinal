@@ -7,6 +7,7 @@ import { existsSync } from 'fs';
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import nock from 'nock';
 
 type PrismaServiceShape = {
   client: any;
@@ -39,7 +40,7 @@ const e2eEnabled =
   process.env.AURA_CACHE_E2E === '1' &&
   Boolean(process.env.DATABASE_URL) &&
   Boolean(process.env.REDIS_URL) &&
-  Boolean(process.env.OPENAI_API_KEY);
+  (Boolean(process.env.OPENAI_API_KEY) || process.env.MOCK_PROVIDERS === '1');
 
 const describeE2E = e2eEnabled ? describe : describe.skip;
 
@@ -57,6 +58,27 @@ describeE2E('Semantic cache e2e (real providers, pgvector, Redis)', () => {
   beforeAll(async () => {
     process.env.CACHE_SIMILARITY_THRESHOLD = process.env.AURA_CACHE_E2E_THRESHOLD ?? '0.85';
     threshold = Number(process.env.CACHE_SIMILARITY_THRESHOLD);
+
+    if (process.env.MOCK_PROVIDERS === '1') {
+      nock('https://api.openai.com')
+        .persist()
+        .post('/v1/chat/completions')
+        .reply(200, {
+          id: 'mock_chatcmpl_test',
+          object: 'chat.completion',
+          created: Date.now(),
+          model: 'gpt-4o-mini',
+          choices: [{ index: 0, message: { role: 'assistant', content: 'Mocked response' }, finish_reason: 'stop' }],
+          usage: { prompt_tokens: 5, completion_tokens: 5, total_tokens: 10 }
+        })
+        .post('/v1/embeddings')
+        .reply(200, {
+          object: 'list',
+          data: [{ object: 'embedding', index: 0, embedding: new Array(1536).fill(0.1) }],
+          model: 'text-embedding-3-small',
+          usage: { prompt_tokens: 5, total_tokens: 5 }
+        });
+    }
 
     const [{ AppModule }, { PrismaService }, { RedisService }, { EmbeddingsService }] =
       await Promise.all([
@@ -149,6 +171,9 @@ describeE2E('Semantic cache e2e (real providers, pgvector, Redis)', () => {
   });
 
   afterAll(async () => {
+    if (process.env.MOCK_PROVIDERS === '1') {
+      nock.cleanAll();
+    }
     if (prisma && tenantId) {
       await prisma.client.user.delete({ where: { id: tenantId } }).catch(() => undefined);
     }
