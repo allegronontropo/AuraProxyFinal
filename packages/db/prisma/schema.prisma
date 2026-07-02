@@ -19,14 +19,31 @@ model Project {
   isActive     Boolean         @default(true) @map("is_active")
   createdAt    DateTime        @default(now()) @map("created_at")
   updatedAt    DateTime        @updatedAt @map("updated_at")
-  apiKeys      ApiKey[]
-  tenant       User            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  logs         RequestLog[]
-  cache        SemanticCache[]
-  usage        UsageRecord[]
+  apiKeys              ApiKey[]
+  tenant               User                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  logs                 RequestLog[]
+  cache                SemanticCache[]
+  usage                UsageRecord[]
+  providerCredentials  ProviderCredential[]
 
   @@map("projects")
 }
+
+model ProviderCredential {
+  id        String   @id @default(cuid())
+  projectId String   @map("project_id")
+  provider  String   // "openai" | "anthropic" | "mistral" | "google"
+  apiKey    String   @map("api_key")    // AES-256-GCM encrypted at rest
+  label     String   @default("Default")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, provider])
+  @@index([projectId])
+  @@map("provider_credentials")
+}
+
 
 model ApiKey {
   id          String       @id @default(cuid())

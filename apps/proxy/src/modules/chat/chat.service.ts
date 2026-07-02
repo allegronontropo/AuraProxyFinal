@@ -63,7 +63,14 @@ export class ChatService {
       this.logger.error(`Failed to record cache miss counter: ${err.message}`)
     );
 
-    const provider = this.resolveProvider(request);
+    // Resolve provider using project-specific credentials (falls back to env vars)
+    let provider: import('@aura/shared').LLMProvider;
+    try {
+      const providerName = this.getProviderName(request);
+      provider = await this.providers.getProviderForProject(providerName, project.id);
+    } catch (err: any) {
+      throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
+    }
 
     try {
       const response = await provider.chat(request);
@@ -147,7 +154,7 @@ export class ChatService {
   private async logCacheHit(request: ChatRequest, project: ProjectContext, response: any, latencyMs: number): Promise<void> {
     if (!request.apiKeyId) return;
 
-    await this.prisma.requestLog.create({
+    await this.prisma.client.requestLog.create({
       data: {
         apiKeyId: request.apiKeyId,
         projectId: project.id,
