@@ -51,6 +51,31 @@ export class BudgetService {
     await this.persistUsage(projectId, costUsd);
   }
 
+  async recordCacheEvent(projectId: string, isHit: boolean): Promise<void> {
+    const now = new Date();
+    const period = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
+
+    await this.prisma.client.usageRecord.upsert({
+      where: {
+        projectId_period_granularity: {
+          projectId,
+          period,
+          granularity: Granularity.HOURLY,
+        },
+      },
+      update: isHit
+        ? { cacheHits: { increment: 1 } }
+        : { cacheMisses: { increment: 1 } },
+      create: {
+        projectId,
+        period,
+        granularity: Granularity.HOURLY,
+        cacheHits: isHit ? 1 : 0,
+        cacheMisses: isHit ? 0 : 1,
+      },
+    });
+  }
+
   async resetBudget(projectId: string): Promise<void> {
     const key = REDIS_KEYS.budget(projectId);
     await this.redis.client.del(key);

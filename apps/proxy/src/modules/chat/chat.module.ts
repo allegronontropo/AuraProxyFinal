@@ -6,9 +6,10 @@ import { ProvidersModule } from '../providers/providers.module';
 import { BudgetModule } from '../budget/budget.module';
 import { CacheModule } from '../cache/cache.module';
 import { AuthModule } from '../auth/auth.module';
+import { PrismaModule } from '../../prisma/prisma.module';
 
 @Module({
-  imports: [ProvidersModule, BudgetModule, CacheModule, AuthModule],
+  imports: [ProvidersModule, BudgetModule, CacheModule, AuthModule, PrismaModule],
   controllers: [ChatController],
   providers: [ChatService, StreamingService],
 })

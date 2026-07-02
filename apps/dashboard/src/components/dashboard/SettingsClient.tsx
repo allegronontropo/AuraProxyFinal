@@ -36,11 +36,13 @@ export default function SettingsClient({
   
   const [loading, setLoading] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     setLoading(true);
+    setMessage(null);
     const res = await updateProject(project.id, {
       name,
       budgetLimit,
@@ -48,12 +50,13 @@ export default function SettingsClient({
     });
     setLoading(false);
     if (res?.success) {
-      alert("Workspace updated successfully");
+      setMessage({ type: 'success', text: "Workspace updated successfully" });
       startTransition(() => {
         router.refresh();
       });
+      setTimeout(() => setMessage(null), 3000);
     } else {
-      alert(res?.error || "Failed to update workspace");
+      setMessage({ type: 'error', text: res?.error || "Failed to update workspace" });
     }
   };
 
@@ -63,7 +66,7 @@ export default function SettingsClient({
     const res = await deleteProject(project.id);
     setLoading(false);
     if (res?.error) {
-      alert(res.error);
+      setMessage({ type: 'error', text: res.error });
     }
   };
 
@@ -137,7 +140,14 @@ export default function SettingsClient({
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end">
+              <div className="pt-2 flex items-center justify-between">
+                {message ? (
+                  <div className={`text-[13px] ${message.type === 'success' ? 'text-green-400' : 'text-[#ef4444]'}`}>
+                    {message.text}
+                  </div>
+                ) : (
+                  <div></div>
+                )}
                 <button
                   type="submit"
                   disabled={loading || !name.trim()}

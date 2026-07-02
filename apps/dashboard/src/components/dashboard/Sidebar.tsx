@@ -6,7 +6,7 @@ import { signOut } from "next-auth/react";
 const NAV_ITEMS = [
   { label: "Overview", icon: "◎", href: (id: string) => `/dashboard/${id}` },
   { label: "Playground", icon: "🧪", href: (id: string) => `/dashboard/${id}/playground` },
-  { label: "Intelligence Hub", icon: "◉", href: (id: string) => `/dashboard/${id}/intelligence` },
+  { label: "Gateway Insights", icon: "⚡", href: (id: string) => `/dashboard/${id}/intelligence` },
   { label: "Alert Queue", icon: "🔔", href: (id: string) => `/dashboard/${id}/alerts`, badge: true },
   { label: "Request Logs", icon: "▤", href: (id: string) => `/dashboard/${id}/logs` },
   { label: "Cache Analytics", icon: "◈", href: (id: string) => `/dashboard/${id}/cache` },
