@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
-// ... rest of imports unchanged
+import { ProviderCredentialsService } from './provider-credentials.service';
 import { LLMProvider, ProviderName } from '@aura/shared';
 import { OpenAIProvider } from '../../providers/openai.provider';
 import { AnthropicProvider } from '../../providers/anthropic.provider';
@@ -19,6 +19,7 @@ export class ProvidersService implements OnModuleInit {
   constructor(
     @Inject(ConfigService) private readonly config: ConfigService,
     @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(ProviderCredentialsService) private readonly credentials: ProviderCredentialsService,
   ) {}
 
   onModuleInit() {
@@ -34,7 +35,6 @@ export class ProvidersService implements OnModuleInit {
     const anthropicKey = this.config.get<string>('ANTHROPIC_API_KEY');
     const mistralKey = this.config.get<string>('MISTRAL_API_KEY');
     const googleKey = this.config.get<string>('GOOGLE_API_KEY');
-    this.logger.debug(`DEBUG: googleKey is: ${googleKey ? 'PRESENT' : 'MISSING'}`);
 
     if (openaiKey) {
       this.register(new OpenAIProvider({ apiKey: openaiKey }));
@@ -60,18 +60,7 @@ export class ProvidersService implements OnModuleInit {
   }
 
   private register(rawProvider: LLMProvider) {
-    // Note: LoggingDecorator expects a logger with info/error/warn methods
-    const decorated = new RetryDecorator(
-      new CostTrackerDecorator(
-        new LoggingDecorator(rawProvider, {
-          info: (obj: any, msg: string) => this.logger.log(`${msg} ${JSON.stringify(obj)}`),
-          error: (obj: any, msg: string) => this.logger.error(`${msg} ${JSON.stringify(obj)}`),
-          warn: (obj: any, msg: string) => this.logger.warn(`${msg} ${JSON.stringify(obj)}`),
-        } as any),
-        this.prisma.client
-      )
-    );
-
+    const decorated = this.wrapWithDecorators(rawProvider);
     this.providers.set(rawProvider.name, decorated);
     this.logger.log(`Registered provider: ${rawProvider.name} (with decorators)`);
   }
@@ -88,6 +77,60 @@ export class ProvidersService implements OnModuleInit {
 
   has(name: string): boolean {
     return this.providers.has(name);
+  }
+
+  /**
+   * Returns a provider instance using the project-specific API key when available,
+   * falling back to the env-var-initialized shared provider.
+   */
+  async getProviderForProject(providerName: string, projectId: string): Promise<LLMProvider> {
+    const projectApiKey = await this.credentials.resolveApiKey(projectId, providerName);
+
+    if (!projectApiKey) {
+      throw new Error(
+        `No API key configured for provider "${providerName}". ` +
+        `Add a credential in Project Settings or set the environment variable.`
+      );
+    }
+
+    // If the shared provider already uses this exact key, return it directly (no extra allocation)
+    const shared = this.providers.get(providerName);
+    if (shared) {
+      // For env-var providers the key is already embedded — reuse without re-wrapping
+      const envKey = this.credentials['getEnvKey'](providerName);
+      if (envKey && envKey === projectApiKey) {
+        return shared;
+      }
+    }
+
+    // Build a fresh provider instance with the project-specific key
+    return this.buildProvider(providerName, projectApiKey);
+  }
+
+  private buildProvider(name: string, apiKey: string): LLMProvider {
+    let raw: LLMProvider;
+    switch (name) {
+      case 'openai':    raw = new OpenAIProvider({ apiKey }); break;
+      case 'anthropic': raw = new AnthropicProvider({ apiKey }); break;
+      case 'mistral':   raw = new MistralProvider({ apiKey }); break;
+      case 'google':    raw = new GeminiProvider({ apiKey }); break;
+      default:
+        throw new Error(`Unknown provider "${name}"`);
+    }
+    return this.wrapWithDecorators(raw);
+  }
+
+  private wrapWithDecorators(raw: LLMProvider): LLMProvider {
+    return new RetryDecorator(
+      new CostTrackerDecorator(
+        new LoggingDecorator(raw, {
+          info:  (obj: any, msg: string) => this.logger.log(`${msg} ${JSON.stringify(obj)}`),
+          error: (obj: any, msg: string) => this.logger.error(`${msg} ${JSON.stringify(obj)}`),
+          warn:  (obj: any, msg: string) => this.logger.warn(`${msg} ${JSON.stringify(obj)}`),
+        } as any),
+        this.prisma.client
+      )
+    );
   }
 
   resolveFromModel(model: string): LLMProvider {
