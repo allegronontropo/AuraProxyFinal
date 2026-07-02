@@ -55,6 +55,7 @@ export default async function DashboardLayout({
         userName={userName}
         userInitials={userInitials}
         alertCount={alertCount}
+        isAdmin={session.user.role === "ADMIN"}
       />
       <main
         style={{

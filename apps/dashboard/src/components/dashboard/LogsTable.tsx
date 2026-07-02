@@ -1214,21 +1214,42 @@ function TableRow({
 
       {/* Provider */}
       <td style={{ padding: "10px 12px" }}>
-        <span
-          style={{
-            display: "inline-block",
-            padding: "2px 8px",
-            borderRadius: 4,
-            fontSize: 11,
-            fontWeight: 600,
-            background: `${providerColor}18`,
-            color: providerColor,
-            border: `1px solid ${providerColor}35`,
-            whiteSpace: "nowrap",
-          }}
-        >
-          {log.provider}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span
+            style={{
+              display: "inline-block",
+              padding: "2px 8px",
+              borderRadius: 4,
+              fontSize: 11,
+              fontWeight: 600,
+              background: `${providerColor}18`,
+              color: providerColor,
+              border: `1px solid ${providerColor}35`,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {log.provider}
+          </span>
+          {log.metadata?.fallback_provider && (
+            <span
+              style={{
+                display: "inline-block",
+                padding: "2px 4px",
+                borderRadius: 4,
+                fontSize: 9,
+                fontWeight: 700,
+                background: "rgba(245,158,11,0.15)",
+                color: "#f59e0b",
+                border: "1px solid rgba(245,158,11,0.25)",
+                letterSpacing: "0.04em",
+                whiteSpace: "nowrap",
+              }}
+              title={`Fell back from ${log.metadata.primary_provider}`}
+            >
+              FALLBACK
+            </span>
+          )}
+        </div>
       </td>
 
       {/* Tokens */}

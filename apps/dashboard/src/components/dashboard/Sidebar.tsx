@@ -19,6 +19,7 @@ interface SidebarProps {
   userName: string;
   userInitials: string;
   alertCount?: number;
+  isAdmin?: boolean;
 }
 
 export default function Sidebar({
@@ -27,6 +28,7 @@ export default function Sidebar({
   userName,
   userInitials,
   alertCount = 0,
+  isAdmin = false,
 }: SidebarProps) {
   const pathname = usePathname();
 
@@ -196,6 +198,34 @@ export default function Sidebar({
           <span style={{ fontSize: 14, width: 16, textAlign: "center" }}>⚙</span>
           <span>Settings</span>
         </Link>
+        
+        {/* Admin Link (Conditional) */}
+        {isAdmin && (
+          <Link
+            href="/admin"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 9,
+              padding: "7px 10px",
+              borderRadius: 8,
+              fontSize: 12.5,
+              textDecoration: "none",
+              background: pathname.startsWith("/admin")
+                ? "rgba(124,58,237,0.12)"
+                : "transparent",
+              color: pathname.startsWith("/admin")
+                ? "#a78bfa"
+                : "#6b7280",
+              marginTop: 10,
+              marginBottom: 2,
+              transition: "all 0.13s",
+            }}
+          >
+            <span style={{ fontSize: 14, width: 16, textAlign: "center" }}>🛡️</span>
+            <span>Admin Panel</span>
+          </Link>
+        )}
       </nav>
 
       {/* Workspace selector link */}
