@@ -56,20 +56,32 @@ export async function createProject(formData: FormData) {
 
 export async function updateProject(
   projectId: string,
-  data: { name?: string; budgetLimit?: number; budgetPeriod?: string }
+  data: { name?: string; budgetLimit?: number; budgetPeriod?: 'DAILY' | 'WEEKLY' | 'MONTHLY' }
 ) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
+  // Verify ownership
+  const project = await prisma.project.findFirst({
+    where: { id: projectId, tenantId: session.user.id },
+  });
+  if (!project) return { error: "Project not found." };
+
+  // Validate
+  if (data.name !== undefined && data.name.trim().length < 1) {
+    return { error: "Project name cannot be empty." };
+  }
+  if (data.budgetLimit !== undefined && data.budgetLimit < 0) {
+    return { error: "Budget limit must be a positive number." };
+  }
+
   try {
     await prisma.project.update({
-      where: { id: projectId, tenantId: session.user.id },
+      where: { id: projectId },
       data: {
-        ...(data.name && { name: data.name }),
+        ...(data.name && { name: data.name.trim() }),
         ...(data.budgetLimit !== undefined && { budgetLimit: data.budgetLimit }),
-        ...(data.budgetPeriod && {
-          budgetPeriod: data.budgetPeriod as "DAILY" | "WEEKLY" | "MONTHLY",
-        }),
+        ...(data.budgetPeriod && { budgetPeriod: data.budgetPeriod }),
       },
     });
     revalidatePath(`/dashboard/${projectId}`);
@@ -87,9 +99,15 @@ export async function deleteProject(projectId: string) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
+  // Verify ownership
+  const project = await prisma.project.findFirst({
+    where: { id: projectId, tenantId: session.user.id },
+  });
+  if (!project) return { error: "Project not found." };
+
   try {
     await prisma.project.delete({
-      where: { id: projectId, tenantId: session.user.id },
+      where: { id: projectId },
     });
     revalidatePath("/workspace");
     redirect("/workspace");
