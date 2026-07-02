@@ -29,19 +29,33 @@ export class GeminiProvider implements LLMProvider {
 
   async chat(request: ChatRequest): Promise<ChatResponse> {
     const modelName = request.model || this.defaultModel;
-    const model = this.genAI.getGenerativeModel({ model: modelName });
+    
+    // Extract system prompt and map messages to Gemini format
+    let systemInstruction: string | undefined;
+    const historyMessages = [];
+
+    for (const msg of request.messages.slice(0, -1)) {
+      if (msg.role === 'system') {
+        systemInstruction = msg.content;
+      } else {
+        historyMessages.push({
+          role: msg.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: msg.content }],
+        });
+      }
+    }
+
+    const modelParams: any = { model: modelName };
+    if (systemInstruction) {
+      modelParams.systemInstruction = systemInstruction;
+    }
+    const model = this.genAI.getGenerativeModel(modelParams);
     const start = performance.now();
 
-    // Map messages to Gemini format
-    const history = request.messages.slice(0, -1).map((msg) => ({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: msg.content }],
-    }));
-    
     const lastMessage = request.messages[request.messages.length - 1].content;
 
     const chatSession = model.startChat({
-      history,
+      history: historyMessages,
       generationConfig: {
         temperature: request.temperature ?? 0.7,
         maxOutputTokens: request.maxTokens,
@@ -72,17 +86,31 @@ export class GeminiProvider implements LLMProvider {
 
   async *stream(request: ChatRequest): AsyncIterable<StreamChunk> {
     const modelName = request.model || this.defaultModel;
-    const model = this.genAI.getGenerativeModel({ model: modelName });
 
-    const history = request.messages.slice(0, -1).map((msg) => ({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: msg.content }],
-    }));
+    let systemInstruction: string | undefined;
+    const historyMessages = [];
+
+    for (const msg of request.messages.slice(0, -1)) {
+      if (msg.role === 'system') {
+        systemInstruction = msg.content;
+      } else {
+        historyMessages.push({
+          role: msg.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: msg.content }],
+        });
+      }
+    }
+
+    const modelParams: any = { model: modelName };
+    if (systemInstruction) {
+      modelParams.systemInstruction = systemInstruction;
+    }
+    const model = this.genAI.getGenerativeModel(modelParams);
     
     const lastMessage = request.messages[request.messages.length - 1].content;
 
     const chatSession = model.startChat({
-      history,
+      history: historyMessages,
       generationConfig: {
         temperature: request.temperature ?? 0.7,
         maxOutputTokens: request.maxTokens,

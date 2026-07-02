@@ -71,35 +71,42 @@ export class CacheService implements OnModuleInit {
     }
 
     // 2. AI PATH: Semantic Similarity (Needs embedding generation)
-    try {
-      const queryVector = await this.embeddings.generate(input.prompt);
-      const vectorString = `[${queryVector.join(',')}]`;
+    // Only use semantic cache for shorter prompts to avoid embedding truncation
+    // all-MiniLM-L6-v2 truncates at 512 tokens. If a multi-turn chat exceeds this,
+    // the new message at the end is ignored, causing 100% false positive matches.
+    if (input.prompt.length < 2000) {
+      try {
+        const queryVector = await this.embeddings.generate(input.prompt);
+        const vectorString = `[${queryVector.join(',')}]`;
 
-      // Semantic search using cosine similarity via pgvector
-      // <=> is the cosine distance operator. 1 - distance = similarity.
-      const results = await this.prisma.client.$queryRaw<any[]>`
-        SELECT 
-          id,
-          response,
-          1 - (embedding <=> ${vectorString}::vector) as similarity
-        FROM semantic_cache
-        WHERE project_id = ${input.projectId}
-          AND provider = ${input.provider}
-          AND model = ${input.model}
-          AND expires_at > NOW()
-          AND 1 - (embedding <=> ${vectorString}::vector) > ${this.threshold}::float
-        ORDER BY similarity DESC
-        LIMIT 1
-      `;
+        // Semantic search using cosine similarity via pgvector
+        // <=> is the cosine distance operator. 1 - distance = similarity.
+        const results = await this.prisma.client.$queryRaw<any[]>`
+          SELECT 
+            id,
+            response,
+            1 - (embedding <=> ${vectorString}::vector) as similarity
+          FROM semantic_cache
+          WHERE project_id = ${input.projectId}
+            AND provider = ${input.provider}
+            AND model = ${input.model}
+            AND expires_at > NOW()
+            AND 1 - (embedding <=> ${vectorString}::vector) > ${this.threshold}::float
+          ORDER BY similarity DESC
+          LIMIT 1
+        `;
 
-      if (results.length > 0) {
-        const semanticHit = results[0];
-        this.logger.log(`CACHE HIT (Semantic: ${semanticHit.similarity.toFixed(4)}) for model ${input.model}`);
-        this.updateHitCount(semanticHit.id);
-        return semanticHit.response as unknown as ChatResponse;
+        if (results.length > 0) {
+          const semanticHit = results[0];
+          this.logger.log(`CACHE HIT (Semantic: ${semanticHit.similarity.toFixed(4)}) for model ${input.model}`);
+          this.updateHitCount(semanticHit.id);
+          return semanticHit.response as unknown as ChatResponse;
+        }
+      } catch (err: any) {
+        this.logger.warn(`Semantic cache lookup failed: ${err.message}`);
       }
-    } catch (err: any) {
-      this.logger.warn(`Semantic cache lookup failed: ${err.message}`);
+    } else {
+      this.logger.log(`Skipping Semantic Cache due to prompt length (${input.prompt.length} chars)`);
     }
 
     this.logger.log(`CACHE MISS for model ${input.model} in project ${input.projectId}`);

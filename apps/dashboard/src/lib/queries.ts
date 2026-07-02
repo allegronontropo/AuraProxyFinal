@@ -269,3 +269,71 @@ export async function getUserWithProjects(userId: string) {
     },
   });
 }
+
+// ─── Gateway Insights ────────────────────────────────────────────────────────
+
+export async function getGatewayProviderHealth(projectId: string) {
+  const [overall, errors] = await Promise.all([
+    prisma.requestLog.groupBy({
+      by: ["provider"],
+      where: { projectId },
+      _count: { id: true },
+      _avg: { latencyMs: true },
+    }),
+    prisma.requestLog.groupBy({
+      by: ["provider", "statusCode"],
+      where: { projectId, statusCode: { gte: 400 } },
+      _count: { id: true },
+    })
+  ]);
+
+  return overall.map((stat) => {
+    const providerErrors = errors.filter(e => e.provider === stat.provider);
+    const clientErrors = providerErrors.filter(e => e.statusCode && e.statusCode >= 400 && e.statusCode < 500).reduce((sum, e) => sum + e._count.id, 0);
+    const serverErrors = providerErrors.filter(e => e.statusCode && e.statusCode >= 500).reduce((sum, e) => sum + e._count.id, 0);
+    const total = stat._count.id;
+    
+    return {
+      provider: stat.provider,
+      totalRequests: total,
+      avgLatencyMs: stat._avg.latencyMs ?? 0,
+      clientErrors,
+      serverErrors,
+      serverErrorRate: total > 0 ? (serverErrors / total) * 100 : 0
+    };
+  });
+}
+
+export async function getGatewayTopModels(projectId: string) {
+  const last7Days = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  return prisma.requestLog.groupBy({
+    by: ["model", "provider"],
+    where: { projectId, createdAt: { gte: last7Days } },
+    _count: { id: true },
+    _sum: { tokensIn: true, tokensOut: true, costUsd: true },
+    orderBy: { _count: { id: 'desc' } },
+    take: 10
+  });
+}
+
+export async function getGatewayLatencyDistribution(projectId: string) {
+  const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const logs = await prisma.requestLog.findMany({
+    where: { projectId, createdAt: { gte: last24h } },
+    select: { latencyMs: true },
+    orderBy: { latencyMs: "asc" }
+  });
+
+  if (logs.length === 0) return { p50: 0, p90: 0, p99: 0 };
+
+  const getPercentile = (p: number) => {
+    const index = Math.ceil((p / 100) * logs.length) - 1;
+    return logs[Math.max(0, index)].latencyMs;
+  };
+
+  return {
+    p50: getPercentile(50),
+    p90: getPercentile(90),
+    p99: getPercentile(99),
+  };
+}
