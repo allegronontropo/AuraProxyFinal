@@ -2,8 +2,15 @@ import { Injectable, Logger, HttpException, HttpStatus, Inject } from '@nestjs/c
 import { ProvidersService } from '../providers/providers.service';
 import { BudgetService } from '../budget/budget.service';
 import { CacheService } from '../cache/cache.service';
-import { ChatRequest, ChatResponse, ProjectContext } from '@aura/shared';
+import {
+  ChatRequest,
+  ChatResponse,
+  ProjectContext,
+  DEFAULT_FALLBACK_CHAINS,
+  isNonRetryableError,
+} from '@aura/shared';
 import { PrismaService } from '../../prisma/prisma.service';
+import type { LLMProvider } from '@aura/shared';
 
 @Injectable()
 export class ChatService {
@@ -18,7 +25,7 @@ export class ChatService {
 
   async chat(request: ChatRequest, project: ProjectContext): Promise<ChatResponse> {
     const start = performance.now();
-    const providerName = this.getProviderName(request);
+    const primaryProvider = this.getProviderName(request);
     const prompt = this.formatPrompt(request.messages);
     const parametersHash = this.cache.hashParameters({
       temperature: request.temperature ?? null,
@@ -28,7 +35,7 @@ export class ChatService {
 
     const cacheInput = {
       projectId: project.id,
-      provider: providerName,
+      provider: primaryProvider,
       model: request.model,
       prompt,
       parametersHash,
@@ -41,14 +48,10 @@ export class ChatService {
 
     if (cachedResponse) {
       this.logger.log(`Cache hit for model ${request.model}`);
-      
-      const response = {
-        ...cachedResponse,
-        cached: true,
-      };
 
-      // Asynchronously log the cache hit and increment the hit counter
-      this.logCacheHit(request, project, response, Math.round(performance.now() - start)).catch(err => 
+      const response = { ...cachedResponse, cached: true };
+
+      this.logCacheHit(request, project, response, Math.round(performance.now() - start)).catch(err =>
         this.logger.error(`Failed to log cache hit: ${err.message}`)
       );
       this.budget.recordCacheEvent(project.id, true).catch(err =>
@@ -58,90 +61,143 @@ export class ChatService {
       return response;
     }
 
-    // Cache miss — increment miss counter before routing to provider
+    // Cache miss — track it
     this.budget.recordCacheEvent(project.id, false).catch(err =>
       this.logger.error(`Failed to record cache miss counter: ${err.message}`)
     );
 
-    // Resolve provider using project-specific credentials (falls back to env vars)
-    let provider: import('@aura/shared').LLMProvider;
-    try {
-      const providerName = this.getProviderName(request);
-      provider = await this.providers.getProviderForProject(providerName, project.id);
-    } catch (err: any) {
-      throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
-    }
+    // Route through fallback chain
+    return this.tryWithFallback(request, project, primaryProvider, cacheInput);
+  }
 
-    try {
-      const response = await provider.chat(request);
-      
-      this.cache
-        .set(cacheInput, response)
-        .catch((err) => this.logger.error(`Failed to cache response: ${err.message}`));
+  /**
+   * Tries each provider in the fallback chain until one succeeds.
+   * Skips remaining providers on auth errors (bad key won't self-fix).
+   */
+  private async tryWithFallback(
+    request: ChatRequest,
+    project: ProjectContext,
+    primaryProvider: string,
+    cacheInput: Parameters<CacheService['set']>[0],
+  ): Promise<ChatResponse> {
+    const chain = DEFAULT_FALLBACK_CHAINS[primaryProvider] ?? [primaryProvider];
+    let lastError: Error | null = null;
 
-      const cost = provider.estimateCost(response.usage);
+    for (const providerName of chain) {
+      let provider: LLMProvider;
 
-      if (cost > 0) {
-        this.budget
-          .recordSpend(project.id, cost, project.budgetPeriod)
-          .catch((err) => this.logger.error(`Failed to record spend: ${err.message}`));
+      try {
+        provider = await this.providers.getProviderForProject(providerName, project.id);
+      } catch (err: any) {
+        // No key configured for this fallback provider — skip it silently
+        this.logger.warn(`Skipping fallback to "${providerName}": ${err.message}`);
+        lastError = err;
+        continue;
       }
 
-      return response;
-    } catch (err: any) {
-      this.logger.error(`Chat request failed: ${err.message}`);
-      throw new HttpException(
-        `Provider "${provider.name}" error: ${this.simplifyErrorMessage(err.message)}`,
-        HttpStatus.BAD_GATEWAY,
-      );
+      try {
+        const isFallback = providerName !== primaryProvider;
+        if (isFallback) {
+          this.logger.warn(`Falling back to "${providerName}" after "${primaryProvider}" failed`);
+        }
+
+        const response = await provider.chat(request);
+
+        // Cache the successful response
+        this.cache
+          .set(cacheInput, response)
+          .catch((err) => this.logger.error(`Failed to cache response: ${err.message}`));
+
+        // Record cost
+        const cost = provider.estimateCost(response.usage);
+        if (cost > 0) {
+          this.budget
+            .recordSpend(project.id, cost, project.budgetPeriod)
+            .catch((err) => this.logger.error(`Failed to record spend: ${err.message}`));
+        }
+
+        // Attach fallback metadata so the logs table can show a FALLBACK badge
+        if (isFallback) {
+          return {
+            ...response,
+            metadata: {
+              ...(response as any).metadata,
+              fallback_provider: providerName,
+              primary_provider: primaryProvider,
+            },
+          } as ChatResponse;
+        }
+
+        return response;
+      } catch (err: any) {
+        lastError = err;
+        this.logger.warn(
+          `Provider "${providerName}" failed: ${this.simplifyErrorMessage(err.message)}`
+        );
+
+        // Auth errors: abort the chain — other providers won't fix a wrong key
+        if (isNonRetryableError(err.message)) {
+          this.logger.warn(`Auth error on "${providerName}" — aborting fallback chain`);
+          break;
+        }
+        // Otherwise continue to the next provider in the chain
+      }
     }
+
+    // All providers exhausted
+    const finalMessage = lastError
+      ? this.simplifyErrorMessage(lastError.message)
+      : 'All providers in the fallback chain failed.';
+
+    throw new HttpException(`Gateway error: ${finalMessage}`, HttpStatus.BAD_GATEWAY);
   }
+
+  // ─── Private helpers ──────────────────────────────────────────────────────
 
   private simplifyErrorMessage(errorMessage: string): string {
     if (!errorMessage) return 'Unknown error occurred.';
     const lowerMsg = errorMessage.toLowerCase();
-    
-    if (lowerMsg.includes('429') || lowerMsg.includes('quota') || lowerMsg.includes('rate limit') || lowerMsg.includes('too many requests')) {
+
+    if (
+      lowerMsg.includes('429') ||
+      lowerMsg.includes('quota') ||
+      lowerMsg.includes('rate limit') ||
+      lowerMsg.includes('too many requests')
+    ) {
       return 'Rate limit exceeded or quota exhausted. Please try again later.';
     }
-    
-    if (lowerMsg.includes('401') || lowerMsg.includes('unauthorized') || lowerMsg.includes('invalid api key') || lowerMsg.includes('authentication')) {
+    if (
+      lowerMsg.includes('401') ||
+      lowerMsg.includes('unauthorized') ||
+      lowerMsg.includes('invalid api key') ||
+      lowerMsg.includes('authentication')
+    ) {
       return 'Invalid API key or authentication failed.';
     }
-    
-    if (lowerMsg.includes('404') || lowerMsg.includes('not found') || lowerMsg.includes('modelname is not defined')) {
+    if (
+      lowerMsg.includes('404') ||
+      lowerMsg.includes('not found') ||
+      lowerMsg.includes('modelname is not defined')
+    ) {
       return 'The requested model was not found or is not supported.';
     }
-
     if (lowerMsg.includes('400') || lowerMsg.includes('bad request')) {
       return 'Invalid request configuration or parameters sent to provider.';
     }
 
-    // Fallback: return a truncated version to prevent massive sidebars
     return errorMessage.length > 120 ? errorMessage.substring(0, 120) + '...' : errorMessage;
   }
 
   private getProviderName(request: ChatRequest): string {
     if (request.provider) return request.provider;
-    
+
     const model = request.model.toLowerCase();
     if (model.startsWith('gpt-') || model.startsWith('o1') || model.startsWith('o3')) return 'openai';
     if (model.startsWith('claude-')) return 'anthropic';
     if (model.startsWith('mistral-') || model.startsWith('codestral')) return 'mistral';
     if (model.startsWith('gemini-')) return 'google';
-    
-    return 'openai'; // Default fallback
-  }
 
-  private resolveProvider(request: ChatRequest) {
-    try {
-      if (request.provider && this.providers.has(request.provider)) {
-        return this.providers.get(request.provider);
-      }
-      return this.providers.resolveFromModel(request.model);
-    } catch (err: any) {
-      throw new HttpException(err.message, HttpStatus.BAD_REQUEST);
-    }
+    return 'openai'; // Default fallback
   }
 
   private formatPrompt(messages: any[]): string {
@@ -151,7 +207,12 @@ export class ChatService {
       .trim();
   }
 
-  private async logCacheHit(request: ChatRequest, project: ProjectContext, response: any, latencyMs: number): Promise<void> {
+  private async logCacheHit(
+    request: ChatRequest,
+    project: ProjectContext,
+    response: any,
+    latencyMs: number,
+  ): Promise<void> {
     if (!request.apiKeyId) return;
 
     await this.prisma.client.requestLog.create({
@@ -166,7 +227,7 @@ export class ChatService {
         latencyMs,
         statusCode: 200,
         cached: true,
-      }
+      },
     });
   }
 }

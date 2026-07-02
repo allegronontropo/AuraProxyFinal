@@ -78,3 +78,34 @@ export const REDIS_KEYS = {
   apiKeyCache: (keyHash: string) => `aura:key:${keyHash}`,
   health: 'aura:health',
 } as const;
+
+// ============================================
+// Fallback Routing Chains
+// ============================================
+
+/**
+ * Ordered fallback chains per primary provider.
+ * When a provider fails, the gateway tries the next one in the list.
+ * Auth errors (401/403) skip the fallback — a bad key won't be fixed by retrying.
+ */
+export const DEFAULT_FALLBACK_CHAINS: Record<string, string[]> = {
+  openai:    ['openai', 'anthropic', 'google'],
+  anthropic: ['anthropic', 'openai', 'google'],
+  google:    ['google', 'openai', 'anthropic'],
+  mistral:   ['mistral', 'openai', 'anthropic'],
+};
+
+/**
+ * Returns true for errors that should NOT trigger a provider fallback.
+ * Auth failures mean the key is wrong — trying another provider won't help.
+ */
+export function isNonRetryableError(message: string): boolean {
+  const lower = message.toLowerCase();
+  return (
+    lower.includes('401') ||
+    lower.includes('403') ||
+    lower.includes('unauthorized') ||
+    lower.includes('invalid api key') ||
+    lower.includes('authentication')
+  );
+}
