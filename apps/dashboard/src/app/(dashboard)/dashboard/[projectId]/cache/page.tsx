@@ -17,26 +17,7 @@ interface TimeSeriesEntry {
   cacheMisses: number;
 }
 
-// ─── Mock data (shown when DB is empty) ──────────────────────────────────────
-
-const MOCK_TIME_SERIES: TimeSeriesEntry[] = Array.from({ length: 24 }, (_, i) => {
-  const now = Date.now();
-  const hits = Math.floor(Math.random() * 180 + 40);
-  const misses = Math.floor(Math.random() * 60 + 10);
-  return {
-    period: new Date(now - (23 - i) * 60 * 60 * 1000),
-    cacheHits: hits,
-    cacheMisses: misses,
-  };
-});
-
-const MOCK_BY_MODEL: CacheByModel[] = [
-  { model: "gpt-4o",          provider: "openai",    _count: { id: 312 }, _sum: { hitCount: 1840 } },
-  { model: "gpt-4o-mini",     provider: "openai",    _count: { id: 228 }, _sum: { hitCount: 1103 } },
-  { model: "claude-3-5-sonnet", provider: "anthropic", _count: { id: 191 }, _sum: { hitCount: 874 } },
-  { model: "gemini-1.5-pro",  provider: "google",    _count: { id: 144 }, _sum: { hitCount: 562 } },
-  { model: "llama-3-70b",     provider: "groq",      _count: { id: 97 },  _sum: { hitCount: 299 } },
-];
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 // ─── Area Chart SVG ───────────────────────────────────────────────────────────
 
@@ -211,20 +192,24 @@ export default async function CacheAnalyticsPage({
 
   const raw = await getCacheStats(projectId);
 
-  // Normalise data — use mock when DB is empty
-  const timeSeries: TimeSeriesEntry[] =
-    raw.timeSeries.length > 0
-      ? raw.timeSeries.map((r) => ({
-          period: r.period,
-          cacheHits: r.cacheHits,
-          cacheMisses: r.cacheMisses,
-        }))
-      : MOCK_TIME_SERIES;
+  // Normalise data
+  let timeSeries: TimeSeriesEntry[] = raw.timeSeries.map((r) => ({
+    period: r.period,
+    cacheHits: r.cacheHits,
+    cacheMisses: r.cacheMisses,
+  }));
 
-  const byModel: CacheByModel[] =
-    (raw.byModel as CacheByModel[]).length > 0
-      ? (raw.byModel as CacheByModel[])
-      : MOCK_BY_MODEL;
+  // If DB is completely empty for this period, pad with an empty 24-hour sequence for the chart
+  if (timeSeries.length === 0) {
+    const now = Date.now();
+    timeSeries = Array.from({ length: 24 }, (_, i) => ({
+      period: new Date(now - (23 - i) * 60 * 60 * 1000),
+      cacheHits: 0,
+      cacheMisses: 0,
+    }));
+  }
+
+  const byModel: CacheByModel[] = raw.byModel as CacheByModel[];
 
   // Aggregate totals
   const totalHits = timeSeries.reduce((s, r) => s + r.cacheHits, 0);
