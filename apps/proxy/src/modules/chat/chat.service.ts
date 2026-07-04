@@ -2,6 +2,7 @@ import { Injectable, Logger, HttpException, HttpStatus, Inject } from '@nestjs/c
 import { ProvidersService } from '../providers/providers.service';
 import { BudgetService } from '../budget/budget.service';
 import { CacheService } from '../cache/cache.service';
+import { AlertsService } from '../alerts/alerts.service';
 import {
   ChatRequest,
   ChatResponse,
@@ -21,6 +22,7 @@ export class ChatService {
     @Inject(BudgetService) private readonly budget: BudgetService,
     @Inject(CacheService) private readonly cache: CacheService,
     @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(AlertsService) private readonly alerts: AlertsService,
   ) {}
 
   async chat(request: ChatRequest, project: ProjectContext): Promise<ChatResponse> {
@@ -135,6 +137,14 @@ export class ChatService {
         const isFallback = providerName !== primaryProvider || modelName !== request.model;
         if (isFallback) {
           this.logger.warn(`Falling back to "${providerName}:${modelName}" after previous model failed`);
+          this.alerts.createAlert({
+            projectId: project.id,
+            severity: 'warning',
+            title: `Fallback Triggered: ${providerName}`,
+            source: 'ChatService',
+            description: `Primary provider ${primaryProvider} failed. Routed request to ${providerName}.`,
+            metadata: { primaryError: primaryError?.message }
+          });
         }
 
         const currentRequest = { 
@@ -208,6 +218,18 @@ export class ChatService {
     if (fallbackErrors.length > 0) {
       finalMessage += ` (Fallbacks also failed: ${fallbackErrors.join(', ')})`;
     }
+
+    this.alerts.createAlert({
+      projectId: project.id,
+      severity: 'critical',
+      title: 'Routing Failure: All Providers Exhausted',
+      source: 'ChatService',
+      description: finalMessage,
+      metadata: {
+        primaryError: primaryError?.message,
+        fallbackErrors,
+      }
+    });
 
     throw new HttpException(`Gateway error: ${finalMessage}`, HttpStatus.BAD_GATEWAY);
   }
