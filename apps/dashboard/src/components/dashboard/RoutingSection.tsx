@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useRef, useEffect } from "react";
 import { saveProjectRouting } from "@/actions/routing";
 import { useRouter } from "next/navigation";
+import { ChevronDown } from "lucide-react";
 
 const CAPABILITY_GROUPS = [
   {
@@ -10,10 +11,10 @@ const CAPABILITY_GROUPS = [
     models: [
       { id: "gpt-4o", label: "GPT-4o", provider: "OpenAI" },
       { id: "gpt-4-turbo", label: "GPT-4 Turbo", provider: "OpenAI" },
-      { id: "claude-3-5-sonnet-20240620", label: "Claude 3.5 Sonnet", provider: "Anthropic" },
+      { id: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet", provider: "Anthropic" },
       { id: "claude-3-opus-20240229", label: "Claude 3 Opus", provider: "Anthropic" },
-      { id: "gemini-1.5-pro", label: "Gemini 1.5 Pro", provider: "Google" },
-      { id: "llama3-70b-8192", label: "Llama 3 70B", provider: "Groq" },
+      { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro", provider: "Google" },
+      { id: "llama-3.3-70b-versatile", label: "Llama 3.3 70B", provider: "Groq" },
     ]
   },
   {
@@ -22,13 +23,84 @@ const CAPABILITY_GROUPS = [
       { id: "gpt-4o-mini", label: "GPT-4o-mini", provider: "OpenAI" },
       { id: "gpt-3.5-turbo", label: "GPT-3.5 Turbo", provider: "OpenAI" },
       { id: "claude-3-haiku-20240307", label: "Claude 3 Haiku", provider: "Anthropic" },
-      { id: "gemini-1.5-flash", label: "Gemini 1.5 Flash", provider: "Google" },
-      { id: "llama3-8b-8192", label: "Llama 3 8B", provider: "Groq" },
+      { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash", provider: "Google" },
+      { id: "llama-3.1-8b-instant", label: "Llama 3.1 8B", provider: "Groq" },
       { id: "mixtral-8x7b-32768", label: "Mixtral 8x7B", provider: "Groq" },
-      { id: "gemma-7b-it", label: "Gemma 7B", provider: "Groq" },
+      { id: "gemma2-9b-it", label: "Gemma 2 9B", provider: "Groq" },
     ]
   }
 ];
+
+function CustomModelSelect({ 
+  value, 
+  onChange,
+}: { 
+  value: string; 
+  onChange: (val: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  let selectedLabel = "Select a model...";
+  for (const g of CAPABILITY_GROUPS) {
+    const found = g.models.find(m => m.id === value);
+    if (found) {
+      selectedLabel = `${found.label} (${found.provider})`;
+      break;
+    }
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full bg-[#151518] border border-white/10 rounded-lg pl-3 pr-10 py-2.5 text-[13px] text-white focus:outline-none focus:border-purple-500/50 cursor-pointer hover:border-white/20 transition-colors text-left flex items-center justify-between"
+      >
+        <span className="truncate">{selectedLabel}</span>
+      </button>
+      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/40">
+        <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </div>
+
+      {open && (
+        <div className="absolute z-50 w-full mt-2 bg-[#1c1c1f] border border-white/10 rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+          <div className="max-h-60 overflow-y-auto p-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+            {CAPABILITY_GROUPS.map(group => (
+              <div key={group.name} className="mb-2 last:mb-0">
+                <div className="px-3 py-1.5 text-[11px] font-semibold text-white/40 uppercase tracking-wider">
+                  {group.name}
+                </div>
+                {group.models.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => { onChange(opt.id); setOpen(false); }}
+                    className={`w-full text-left px-3 py-2 text-[13px] rounded-md transition-colors ${
+                      value === opt.id ? 'bg-purple-500/20 text-purple-200' : 'text-white/80 hover:bg-white/5 hover:text-white'
+                    }`}
+                  >
+                    {opt.label} <span className="opacity-50">({opt.provider})</span>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function RoutingSection({
   projectId,
@@ -127,22 +199,10 @@ export default function RoutingSection({
         <div className="flex gap-2 items-end">
           <div className="flex-1">
             <label className="block text-[12px] text-white/50 mb-1.5">Add a Fallback Model</label>
-            <select
+            <CustomModelSelect 
               value={selectedModel}
-              onChange={(e) => setSelectedModel(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-[13px] text-white focus:outline-none focus:border-violet-500/50 transition-colors"
-            >
-              <option value="" disabled className="bg-[#0d0d0f]">Select a model...</option>
-              {CAPABILITY_GROUPS.map((group) => (
-                <optgroup key={group.name} label={group.name} className="bg-[#0d0d0f] text-white/60 font-semibold mt-2">
-                  {group.models.map((m) => (
-                    <option key={m.id} value={m.id} className="text-white font-normal bg-[#151518]">
-                      {m.label} ({m.provider})
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+              onChange={setSelectedModel}
+            />
           </div>
           <button
             onClick={addModel}
