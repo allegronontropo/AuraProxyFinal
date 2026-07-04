@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { getFallbackLogs } from "@/actions/fallback-logs";
-import { Repeat, ArrowRight, Clock, Box, Key, AlertCircle } from "lucide-react";
+import { Repeat, ArrowRight, Clock, Box, Key, AlertCircle, RefreshCw } from "lucide-react";
 
 interface FallbackLog {
   id: string;
@@ -43,7 +43,20 @@ export default function FallbackLogsTable({ projectId }: { projectId: string }) 
     fetchLogs();
   }, [projectId]);
 
-  if (loading) {
+  const handleRefresh = async () => {
+    setLoading(true);
+    try {
+      const fetchedLogs = await getFallbackLogs(projectId, 15);
+      setLogs(fetchedLogs as any[]);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message || "Failed to load fallback logs");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading && logs.length === 0) {
     return (
       <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] p-6 flex flex-col items-center justify-center min-h-[200px]">
         <div className="flex gap-1.5 items-center">
@@ -82,9 +95,19 @@ export default function FallbackLogsTable({ projectId }: { projectId: string }) 
   return (
     <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] overflow-hidden">
       <div className="px-5 py-4 border-b border-white/[0.05] flex items-center justify-between bg-white/[0.01]">
-        <div className="flex items-center gap-2">
-          <Repeat className="w-4 h-4 text-purple-400" />
-          <h3 className="text-[13px] font-medium text-white/90">Fallback Traces</h3>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Repeat className="w-4 h-4 text-purple-400" />
+            <h3 className="text-[13px] font-medium text-white/90">Fallback Traces</h3>
+          </div>
+          <button 
+            onClick={handleRefresh}
+            disabled={loading}
+            className="p-1 hover:bg-white/10 rounded-md transition-colors text-white/40 hover:text-white disabled:opacity-50"
+            title="Refresh logs"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+          </button>
         </div>
         <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white/[0.05] text-white/40 border border-white/[0.05]">
           Recent {logs.length}

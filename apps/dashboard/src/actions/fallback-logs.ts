@@ -1,6 +1,6 @@
 "use server";
 
-import prisma from "@aura/db";
+import { prisma } from "@aura/db";
 import { auth } from "@/auth";
 
 export async function getFallbackLogs(projectId: string, limit = 10) {

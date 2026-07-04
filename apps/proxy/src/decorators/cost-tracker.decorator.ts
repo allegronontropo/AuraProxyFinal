@@ -46,7 +46,7 @@ export class CostTrackerDecorator extends BaseDecorator {
       latencyMs,
       cached: response.cached,
       statusCode: 200,
-      metadata: (response as any).metadata,
+      metadata: request.metadata,
     }).catch((err) => {
       console.error('[CostTracker] Failed to record log:', err);
     });

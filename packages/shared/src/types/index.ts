@@ -31,6 +31,7 @@ export interface ChatRequest {
   apiKeyId?: string;
   authLatencyMs?: number;
   cacheLatencyMs?: number;
+  metadata?: Record<string, any>;
 }
 
 export interface TokenUsage {

@@ -137,7 +137,13 @@ export class ChatService {
           this.logger.warn(`Falling back to "${providerName}:${modelName}" after previous model failed`);
         }
 
-        const currentRequest = { ...request, model: modelName, provider: providerName as any, cacheLatencyMs };
+        const currentRequest = { 
+          ...request, 
+          model: modelName, 
+          provider: providerName as any, 
+          cacheLatencyMs,
+          metadata: isFallback ? { fallback_provider: providerName, primary_provider: primaryProvider } : undefined
+        };
         const response = await provider.chat(currentRequest);
 
         // Cache the successful response
