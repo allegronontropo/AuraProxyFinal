@@ -112,6 +112,7 @@ export class ChatService {
 
     let lastError: Error | null = null;
     let primaryError: Error | null = null;
+    let fallbackErrors: string[] = [];
 
     for (const { providerName, modelName } of chain) {
       let provider: LLMProvider;
@@ -121,7 +122,11 @@ export class ChatService {
       } catch (err: any) {
         // No key configured for this fallback provider — skip it silently
         this.logger.warn(`Skipping fallback to "${providerName}": ${err.message}`);
-        if (providerName === primaryProvider) primaryError = err;
+        if (providerName === primaryProvider) {
+          primaryError = err;
+        } else {
+          fallbackErrors.push(`[${providerName}] ${this.simplifyErrorMessage(err.message)}`);
+        }
         lastError = err;
         continue;
       }
@@ -162,7 +167,11 @@ export class ChatService {
 
         return response;
       } catch (err: any) {
-        if (providerName === primaryProvider) primaryError = err;
+        if (providerName === primaryProvider) {
+          primaryError = err;
+        } else {
+          fallbackErrors.push(`[${providerName}] ${this.simplifyErrorMessage(err.message)}`);
+        }
         lastError = err;
         this.logger.warn(
           `Provider "${providerName}" failed: ${this.simplifyErrorMessage(err.message)}`
@@ -179,9 +188,13 @@ export class ChatService {
 
     // All providers exhausted
     const errorToReport = primaryError || lastError;
-    const finalMessage = errorToReport
+    let finalMessage = errorToReport
       ? this.simplifyErrorMessage(errorToReport.message)
       : 'All providers in the fallback chain failed.';
+
+    if (fallbackErrors.length > 0) {
+      finalMessage += ` (Fallbacks also failed: ${fallbackErrors.join(', ')})`;
+    }
 
     throw new HttpException(`Gateway error: ${finalMessage}`, HttpStatus.BAD_GATEWAY);
   }
