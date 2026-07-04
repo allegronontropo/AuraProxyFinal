@@ -8,7 +8,7 @@
     "start": "node dist/src/main.js",
     "test": "vitest",
     "test:unit": "vitest run --exclude '**/*.e2e.test.ts'",
-    "test:e2e": "vitest run --include '**/*.e2e.test.ts'"
+    "test:e2e": "vitest run e2e"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.2",
