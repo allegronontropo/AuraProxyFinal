@@ -1,11 +1,10 @@
 "use server";
 
 import prisma from "@aura/db";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { auth } from "@/auth";
 
 export async function getFallbackLogs(projectId: string, limit = 10) {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session?.user) {
     throw new Error("Unauthorized");
   }
