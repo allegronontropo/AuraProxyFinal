@@ -64,7 +64,9 @@ export class ProviderCredentialsService {
       resolvedKey = this.getEnvKey(provider);
     }
 
-    this.cache.set(cacheKey, { apiKey: resolvedKey, expiresAt: Date.now() + CACHE_TTL_MS });
+    if (resolvedKey) {
+      this.cache.set(cacheKey, { apiKey: resolvedKey, expiresAt: Date.now() + CACHE_TTL_MS });
+    }
     return resolvedKey;
   }
 
@@ -82,6 +84,7 @@ export class ProviderCredentialsService {
       anthropic: process.env.ANTHROPIC_API_KEY,
       google:    process.env.GOOGLE_API_KEY,
       mistral:   process.env.MISTRAL_API_KEY,
+      groq:      process.env.GROQ_API_KEY,
     };
     return map[provider.toLowerCase()] ?? null;
   }
