@@ -168,3 +168,23 @@ export interface CacheMetrics {
     embeddingCacheMisses: number;
   }>;
 }
+
+// ============================================
+// Alerts
+// ============================================
+
+export type AlertStatus = 'active' | 'acknowledged' | 'resolved';
+export type AlertSeverity = 'info' | 'warning' | 'critical';
+
+export interface Alert {
+  id: string;
+  projectId: string;
+  status: AlertStatus;
+  severity: AlertSeverity;
+  title: string;
+  description: string;
+  source: string;
+  metadata?: Record<string, any> | null;
+  createdAt: Date;
+  updatedAt: Date;
+}

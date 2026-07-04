@@ -26,6 +26,7 @@ model Project {
   cache                SemanticCache[]
   usage                UsageRecord[]
   providerCredentials  ProviderCredential[]
+  alerts               Alert[]
 
   @@map("projects")
 }
@@ -221,4 +222,35 @@ enum Granularity {
   HOURLY
   DAILY
   MONTHLY
+}
+
+enum AlertStatus {
+  active
+  acknowledged
+  resolved
+}
+
+enum AlertSeverity {
+  info
+  warning
+  critical
+}
+
+model Alert {
+  id          String        @id @default(cuid())
+  projectId   String        @map("project_id")
+  status      AlertStatus   @default(active)
+  severity    AlertSeverity @default(info)
+  title       String
+  description String
+  source      String
+  metadata    Json?
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  project     Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, status])
+  @@index([createdAt])
+  @@map("alerts")
 }
