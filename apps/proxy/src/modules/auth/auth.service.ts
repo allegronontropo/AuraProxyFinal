@@ -79,6 +79,7 @@ export class AuthService {
       budgetLimit: apiKeyRecord.project.budgetLimit,
       budgetPeriod: apiKeyRecord.project.budgetPeriod as 'DAILY' | 'WEEKLY' | 'MONTHLY',
       isActive: apiKeyRecord.project.isActive,
+      fallbackModels: apiKeyRecord.project.fallbackModels,
     };
 
     const result = { apiKey: apiKeyPayload, project: projectPayload };
@@ -159,6 +160,7 @@ export class AuthService {
       budgetLimit: apiKeyRecord.project.budgetLimit,
       budgetPeriod: apiKeyRecord.project.budgetPeriod as 'DAILY' | 'WEEKLY' | 'MONTHLY',
       isActive: apiKeyRecord.project.isActive,
+      fallbackModels: apiKeyRecord.project.fallbackModels,
     };
 
     const result = { apiKey: apiKeyPayload, project: projectPayload };
