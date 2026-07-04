@@ -84,7 +84,7 @@ export class GroqProvider implements LLMProvider {
     if (request.maxTokens !== undefined) payload.max_tokens = request.maxTokens;
     if (request.topP !== undefined) payload.top_p = request.topP;
 
-    const stream = await this.client.chat.completions.create(payload);
+    const stream = await this.client.chat.completions.create(payload) as unknown as AsyncIterable<any>;
 
     for await (const chunk of stream) {
       const delta = chunk.choices[0]?.delta?.content ?? '';
