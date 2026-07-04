@@ -8,7 +8,7 @@ import { prisma } from "@aura/db";
 
 export async function getProjectsByUser(userId: string) {
   return prisma.project.findMany({
-    where: { tenantId: userId },
+    where: { tenantId: userId, isActive: true },
     orderBy: { updatedAt: "desc" },
     include: {
       _count: {
@@ -20,7 +20,7 @@ export async function getProjectsByUser(userId: string) {
 
 export async function getProjectById(projectId: string, userId: string) {
   return prisma.project.findFirst({
-    where: { id: projectId, tenantId: userId },
+    where: { id: projectId, tenantId: userId, isActive: true },
   });
 }
 
@@ -97,7 +97,7 @@ export async function getModelBreakdown(projectId: string) {
 export type LogFilter = {
   provider?: string;
   model?: string;
-  statusCode?: number;
+  statusCode?: number | "error" | "success";
   cached?: boolean;
   search?: string;
   from?: Date;
@@ -114,8 +114,16 @@ export async function getRequestLogs(
 ) {
   const where: import("@prisma/client").Prisma.RequestLogWhereInput = { projectId };
   if (filters.provider) where.provider = filters.provider;
-  if (filters.model) where.model = filters.model;
-  if (filters.statusCode) where.statusCode = filters.statusCode;
+  if (filters.model) where.model = { contains: filters.model, mode: "insensitive" };
+  
+  if (filters.statusCode === "error") {
+    where.statusCode = { not: 200 };
+  } else if (filters.statusCode === "success") {
+    where.statusCode = 200;
+  } else if (filters.statusCode) {
+    where.statusCode = filters.statusCode;
+  }
+
   if (filters.cached !== undefined) where.cached = filters.cached;
   if (filters.from || filters.to) {
     where.createdAt = {};

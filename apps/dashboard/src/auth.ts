@@ -39,6 +39,10 @@ export const { handlers, auth } = NextAuth({
           return null;
         }
 
+        if (!user.isActive) {
+          throw new Error("Account has been suspended.");
+        }
+
         const passwordsMatch = await bcrypt.compare(password, user.password_hash);
 
         if (passwordsMatch) {

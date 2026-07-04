@@ -25,9 +25,12 @@ export class CostTrackerDecorator extends BaseDecorator {
   async chat(request: ChatRequest): Promise<ChatResponse> {
     const start = performance.now();
     const response = await this.wrapped.chat(request);
-    const latencyMs = Math.round(performance.now() - start);
+    const llmLatencyMs = Math.round(performance.now() - start);
 
     const costUsd = this.estimateCost(response.usage);
+    const authLatencyMs = request.authLatencyMs ?? 0;
+    const cacheLatencyMs = request.cacheLatencyMs ?? 0;
+    const latencyMs = authLatencyMs + cacheLatencyMs + llmLatencyMs;
 
     // Record the request log asynchronously — don't block the response
     this.recordLog({
@@ -37,6 +40,9 @@ export class CostTrackerDecorator extends BaseDecorator {
       tokensIn: response.usage.promptTokens,
       tokensOut: response.usage.completionTokens,
       costUsd,
+      authLatencyMs,
+      cacheLatencyMs,
+      llmLatencyMs,
       latencyMs,
       cached: response.cached,
       statusCode: 200,
@@ -59,8 +65,11 @@ export class CostTrackerDecorator extends BaseDecorator {
       }
     }
 
-    const latencyMs = Math.round(performance.now() - start);
+    const llmLatencyMs = Math.round(performance.now() - start);
     const costUsd = this.estimateCost(finalUsage);
+    const authLatencyMs = request.authLatencyMs ?? 0;
+    const cacheLatencyMs = request.cacheLatencyMs ?? 0;
+    const latencyMs = authLatencyMs + cacheLatencyMs + llmLatencyMs;
 
     // Record after stream completes
     this.recordLog({
@@ -70,6 +79,9 @@ export class CostTrackerDecorator extends BaseDecorator {
       tokensIn: finalUsage.promptTokens,
       tokensOut: finalUsage.completionTokens,
       costUsd,
+      authLatencyMs,
+      cacheLatencyMs,
+      llmLatencyMs,
       latencyMs,
       cached: false,
       statusCode: 200,
@@ -86,6 +98,9 @@ export class CostTrackerDecorator extends BaseDecorator {
     tokensOut: number;
     costUsd: number;
     latencyMs: number;
+    authLatencyMs?: number;
+    cacheLatencyMs?: number;
+    llmLatencyMs?: number;
     cached: boolean;
     statusCode: number;
   }): Promise<void> {
@@ -115,6 +130,9 @@ export class CostTrackerDecorator extends BaseDecorator {
         tokensIn: data.tokensIn,
         tokensOut: data.tokensOut,
         costUsd: data.costUsd,
+        authLatencyMs: data.authLatencyMs ?? 0,
+        cacheLatencyMs: data.cacheLatencyMs ?? 0,
+        llmLatencyMs: data.llmLatencyMs ?? data.latencyMs,
         latencyMs: data.latencyMs,
         statusCode: data.statusCode,
         cached: data.cached,

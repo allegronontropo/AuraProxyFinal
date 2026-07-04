@@ -14,6 +14,7 @@ const PROVIDER_MODELS: Record<string, string[]> = {
   anthropic: ["claude-3-5-sonnet-20241022", "claude-3-opus-20240229", "claude-3-haiku-20240307"],
   mistral: ["mistral-large-latest", "mistral-medium-latest", "mistral-small-latest", "open-mistral-7b", "open-mixtral-8x7b"],
   google: ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-pro-latest"],
+  groq: ["llama-3.1-8b-instant", "llama-3.3-70b-versatile", "mixtral-8x7b-32768", "gemma2-9b-it"],
 };
 
 interface PlaygroundClientProps {
@@ -336,7 +337,8 @@ export default function PlaygroundClient({ projectId, projectName, availableKeys
                   { value: "openai", label: "OpenAI" },
                   { value: "anthropic", label: "Anthropic" },
                   { value: "mistral", label: "Mistral" },
-                  { value: "google", label: "Google Gemini" }
+                  { value: "google", label: "Google Gemini" },
+                  { value: "groq", label: "Groq" }
                 ]}
               />
             </div>

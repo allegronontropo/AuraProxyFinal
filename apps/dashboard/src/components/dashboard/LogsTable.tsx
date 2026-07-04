@@ -496,9 +496,9 @@ function Inspector({
           </span>
         </InspectorRow>
 
-        {/* Cached */}
-        <InspectorRow label="Cached">
-          {log.cached ? (
+        {/* Saved to Cache */}
+        <InspectorRow label="Saved to Cache">
+          {!log.cached ? (
             <span
               style={{
                 padding: "2px 8px",
@@ -524,7 +524,7 @@ function Inspector({
                 border: "1px solid rgba(255,255,255,0.07)",
               }}
             >
-              NO
+              NO (Served from cache)
             </span>
           )}
         </InspectorRow>

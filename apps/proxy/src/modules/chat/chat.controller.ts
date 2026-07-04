@@ -21,7 +21,7 @@ import { ChatResponseDto } from './dto/chat-response.dto';
 import type { FastifyReply } from 'fastify';
 import type { ChatRequest, ChatResponse, ProviderName, StreamChunk } from '@aura/shared';
 
-const PROVIDERS: ProviderName[] = ['openai', 'anthropic', 'mistral', 'google'];
+const PROVIDERS: ProviderName[] = ['openai', 'anthropic', 'mistral', 'google', 'groq'];
 
 @ApiTags('Chat')
 @ApiBearerAuth()
@@ -58,6 +58,7 @@ export class ChatController {
       topP: body.top_p,
       provider: this.parseProvider(providerHeader),
       apiKeyId: req.apiKey.keyId,
+      authLatencyMs: req.authLatencyMs || 0,
     };
 
     if (body.stream) {

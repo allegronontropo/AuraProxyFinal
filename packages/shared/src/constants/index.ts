@@ -30,6 +30,12 @@ export const PROVIDER_PRICING: Record<string, { input: number; output: number }>
   'gemini-2.0-flash': { input: 0.1, output: 0.4 },
   'gemini-2.5-pro': { input: 1.25, output: 5 },
   'gemini-2.5-flash': { input: 0.075, output: 0.3 },
+
+  // Groq
+  'llama-3.1-8b-instant': { input: 0.05, output: 0.08 },
+  'llama-3.3-70b-versatile': { input: 0.59, output: 0.79 },
+  'mixtral-8x7b-32768': { input: 0.24, output: 0.24 },
+  'gemma2-9b-it': { input: 0.07, output: 0.07 },
 };
 
 // ============================================
@@ -89,10 +95,11 @@ export const REDIS_KEYS = {
  * Auth errors (401/403) skip the fallback — a bad key won't be fixed by retrying.
  */
 export const DEFAULT_FALLBACK_CHAINS: Record<string, string[]> = {
-  openai:    ['openai', 'anthropic', 'google'],
-  anthropic: ['anthropic', 'openai', 'google'],
-  google:    ['google', 'openai', 'anthropic'],
-  mistral:   ['mistral', 'openai', 'anthropic'],
+  openai:    ['openai', 'anthropic', 'google', 'groq'],
+  anthropic: ['anthropic', 'openai', 'google', 'groq'],
+  google:    ['google', 'openai', 'anthropic', 'groq'],
+  mistral:   ['mistral', 'openai', 'anthropic', 'groq'],
+  groq:      ['groq', 'openai', 'anthropic', 'google'],
 };
 
 /**

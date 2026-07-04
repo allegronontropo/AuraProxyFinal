@@ -12,6 +12,7 @@ export class AuthGuard implements CanActivate {
   constructor(@Inject(AuthService) private readonly authService: AuthService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const start = performance.now();
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
 
@@ -43,6 +44,7 @@ export class AuthGuard implements CanActivate {
 
     request.apiKey = apiKey;
     request.project = project;
+    request.authLatencyMs = Math.round(performance.now() - start);
 
     return true;
   }

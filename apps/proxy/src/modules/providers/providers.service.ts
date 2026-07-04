@@ -7,6 +7,7 @@ import { OpenAIProvider } from '../../providers/openai.provider';
 import { AnthropicProvider } from '../../providers/anthropic.provider';
 import { MistralProvider } from '../../providers/mistral.provider';
 import { GeminiProvider } from '../../providers/gemini.provider';
+import { GroqProvider } from '../../providers/groq.provider';
 import { LoggingDecorator } from '../../decorators/logging.decorator';
 import { CostTrackerDecorator } from '../../decorators/cost-tracker.decorator';
 import { RetryDecorator } from '../../decorators/retry.decorator';
@@ -35,6 +36,7 @@ export class ProvidersService implements OnModuleInit {
     const anthropicKey = this.config.get<string>('ANTHROPIC_API_KEY');
     const mistralKey = this.config.get<string>('MISTRAL_API_KEY');
     const googleKey = this.config.get<string>('GOOGLE_API_KEY');
+    const groqKey = this.config.get<string>('GROQ_API_KEY');
 
     if (openaiKey) {
       this.register(new OpenAIProvider({ apiKey: openaiKey }));
@@ -50,6 +52,10 @@ export class ProvidersService implements OnModuleInit {
 
     if (googleKey) {
       this.register(new GeminiProvider({ apiKey: googleKey }));
+    }
+
+    if (groqKey) {
+      this.register(new GroqProvider({ apiKey: groqKey }));
     }
 
     if (this.providers.size === 0) {
@@ -114,6 +120,7 @@ export class ProvidersService implements OnModuleInit {
       case 'anthropic': raw = new AnthropicProvider({ apiKey }); break;
       case 'mistral':   raw = new MistralProvider({ apiKey }); break;
       case 'google':    raw = new GeminiProvider({ apiKey }); break;
+      case 'groq':      raw = new GroqProvider({ apiKey }); break;
       default:
         throw new Error(`Unknown provider "${name}"`);
     }
@@ -145,6 +152,9 @@ export class ProvidersService implements OnModuleInit {
     }
     if (model.startsWith('gemini-')) {
       return this.get('google');
+    }
+    if (model.startsWith('llama3-') || model.startsWith('mixtral-') || model.startsWith('gemma-')) {
+      return this.get('groq');
     }
 
     throw new Error(

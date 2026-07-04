@@ -33,6 +33,41 @@ services:
       timeout: 5s
       retries: 5
 
+  proxy:
+    build:
+      context: .
+      dockerfile: apps/proxy/Dockerfile
+    container_name: aura-proxy
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=postgresql://aura:aura_secret@postgres:5432/aura?schema=public
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=super_secret_jwt_key_for_proxy
+      - AES_SECRET_KEY=12345678901234567890123456789012
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: apps/dashboard/Dockerfile
+    container_name: aura-dashboard
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://aura:aura_secret@postgres:5432/aura?schema=public
+      - NEXTAUTH_URL=http://localhost:3001
+      - NEXTAUTH_SECRET=super_secret_nextauth_key
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   pgdata:
   redisdata:

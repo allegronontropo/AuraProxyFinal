@@ -17,6 +17,7 @@ const PROVIDERS = [
   { value: "anthropic", label: "Anthropic", hint: "sk-ant-..." },
   { value: "google",   label: "Google",    hint: "AIza..." },
   { value: "mistral",  label: "Mistral",   hint: "..." },
+  { value: "groq",     label: "Groq",      hint: "gsk_..." },
 ];
 
 const PROVIDER_COLORS: Record<string, { bg: string; color: string }> = {
@@ -24,6 +25,7 @@ const PROVIDER_COLORS: Record<string, { bg: string; color: string }> = {
   anthropic: { bg: "rgba(210,105,30,0.12)",  color: "#d2691e" },
   google:    { bg: "rgba(66,133,244,0.12)",  color: "#4285f4" },
   mistral:   { bg: "rgba(167,139,250,0.12)", color: "#a78bfa" },
+  groq:      { bg: "rgba(245,80,54,0.12)",   color: "#f55036" },
 };
 
 export default function ProviderCredentialsSection({

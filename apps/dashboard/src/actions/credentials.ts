@@ -72,7 +72,7 @@ export async function saveProviderCredential(
   if (!project) return { error: "Project not found." };
 
   // Validate provider
-  const validProviders = ["openai", "anthropic", "google", "mistral"];
+  const validProviders = ["openai", "anthropic", "google", "mistral", "groq"];
   if (!validProviders.includes(provider.toLowerCase())) {
     return { error: `Invalid provider. Must be one of: ${validProviders.join(", ")}` };
   }
@@ -104,9 +104,9 @@ export async function saveProviderCredential(
 
     revalidatePath(`/dashboard/${projectId}/keys`);
     return { success: true };
-  } catch (err) {
+  } catch (err: any) {
     console.error("saveProviderCredential error:", err);
-    return { error: "Failed to save provider credential." };
+    return { error: `Failed to save provider credential: ${err?.message || err}` };
   }
 }
 

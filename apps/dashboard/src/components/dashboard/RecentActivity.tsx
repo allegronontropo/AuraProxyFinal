@@ -199,6 +199,7 @@ function LogRow({ log, isExpanded, onToggle }: { log: RequestLog; isExpanded: bo
 
         {/* Time ago */}
         <div
+          suppressHydrationWarning
           style={{
             fontSize: 10,
             color: "#4b5563",
@@ -228,7 +229,7 @@ function LogRow({ log, isExpanded, onToggle }: { log: RequestLog; isExpanded: bo
               { label: "Model", value: log.model },
               { label: "Latency", value: log.latencyMs ? `${log.latencyMs}ms` : "—" },
               { label: "Cost", value: log.costUsd ? `$${Number(log.costUsd).toFixed(6)}` : "—" },
-              { label: "Cached", value: log.cached ? "Yes" : "No" },
+              { label: "Saved to Cache", value: !log.cached ? "Yes" : "No (Served from cache)" },
               {
                 label: "Time",
                 value: new Date(log.createdAt).toLocaleString("en-US", {

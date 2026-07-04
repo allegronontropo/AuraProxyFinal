@@ -41,17 +41,19 @@ export class ChatService {
       parametersHash,
     };
 
+    const cacheStart = performance.now();
     const cachedResponse = await this.cache.find(cacheInput).catch((err) => {
       this.logger.warn(`Cache lookup skipped: ${err.message}`);
       return null;
     });
+    const cacheLatencyMs = Math.round(performance.now() - cacheStart);
 
     if (cachedResponse) {
       this.logger.log(`Cache hit for model ${request.model}`);
 
       const response = { ...cachedResponse, cached: true };
 
-      this.logCacheHit(request, project, response, Math.round(performance.now() - start)).catch(err =>
+      this.logCacheHit(request, project, response, cacheLatencyMs, Math.round(performance.now() - start)).catch(err =>
         this.logger.error(`Failed to log cache hit: ${err.message}`)
       );
       this.budget.recordCacheEvent(project.id, true).catch(err =>
@@ -67,7 +69,7 @@ export class ChatService {
     );
 
     // Route through fallback chain
-    return this.tryWithFallback(request, project, primaryProvider, cacheInput);
+    return this.tryWithFallback(request, project, primaryProvider, cacheInput, cacheLatencyMs);
   }
 
   /**
@@ -79,11 +81,39 @@ export class ChatService {
     project: ProjectContext,
     primaryProvider: string,
     cacheInput: Parameters<CacheService['set']>[0],
+    cacheLatencyMs: number,
   ): Promise<ChatResponse> {
-    const chain = DEFAULT_FALLBACK_CHAINS[primaryProvider] ?? [primaryProvider];
-    let lastError: Error | null = null;
+    
+    // Build the execution chain
+    let chain: Array<{ providerName: string; modelName: string }> = [];
+    
+    // Add primary
+    chain.push({ providerName: primaryProvider, modelName: request.model });
+    
+    // Add fallbacks
+    if (project.fallbackModels && project.fallbackModels.length > 0) {
+      for (const fallbackModel of project.fallbackModels) {
+        try {
+          const fallbackProvider = this.getProviderName({ model: fallbackModel } as ChatRequest);
+          chain.push({ providerName: fallbackProvider, modelName: fallbackModel });
+        } catch (e) {
+          // Ignore invalid fallback models
+        }
+      }
+    } else {
+      // Use default provider chains if no explicit fallback models are set
+      const defaultProviders = DEFAULT_FALLBACK_CHAINS[primaryProvider] ?? [];
+      for (const p of defaultProviders) {
+        if (p !== primaryProvider) {
+          chain.push({ providerName: p, modelName: request.model }); 
+        }
+      }
+    }
 
-    for (const providerName of chain) {
+    let lastError: Error | null = null;
+    let primaryError: Error | null = null;
+
+    for (const { providerName, modelName } of chain) {
       let provider: LLMProvider;
 
       try {
@@ -91,17 +121,19 @@ export class ChatService {
       } catch (err: any) {
         // No key configured for this fallback provider — skip it silently
         this.logger.warn(`Skipping fallback to "${providerName}": ${err.message}`);
+        if (providerName === primaryProvider) primaryError = err;
         lastError = err;
         continue;
       }
 
       try {
-        const isFallback = providerName !== primaryProvider;
+        const isFallback = providerName !== primaryProvider || modelName !== request.model;
         if (isFallback) {
-          this.logger.warn(`Falling back to "${providerName}" after "${primaryProvider}" failed`);
+          this.logger.warn(`Falling back to "${providerName}:${modelName}" after previous model failed`);
         }
 
-        const response = await provider.chat(request);
+        const currentRequest = { ...request, model: modelName, provider: providerName as any, cacheLatencyMs };
+        const response = await provider.chat(currentRequest);
 
         // Cache the successful response
         this.cache
@@ -130,6 +162,7 @@ export class ChatService {
 
         return response;
       } catch (err: any) {
+        if (providerName === primaryProvider) primaryError = err;
         lastError = err;
         this.logger.warn(
           `Provider "${providerName}" failed: ${this.simplifyErrorMessage(err.message)}`
@@ -145,8 +178,9 @@ export class ChatService {
     }
 
     // All providers exhausted
-    const finalMessage = lastError
-      ? this.simplifyErrorMessage(lastError.message)
+    const errorToReport = primaryError || lastError;
+    const finalMessage = errorToReport
+      ? this.simplifyErrorMessage(errorToReport.message)
       : 'All providers in the fallback chain failed.';
 
     throw new HttpException(`Gateway error: ${finalMessage}`, HttpStatus.BAD_GATEWAY);
@@ -196,6 +230,7 @@ export class ChatService {
     if (model.startsWith('claude-')) return 'anthropic';
     if (model.startsWith('mistral-') || model.startsWith('codestral')) return 'mistral';
     if (model.startsWith('gemini-')) return 'google';
+    if (model.startsWith('llama3-') || model.startsWith('mixtral-') || model.startsWith('gemma-')) return 'groq';
 
     return 'openai'; // Default fallback
   }
@@ -211,6 +246,7 @@ export class ChatService {
     request: ChatRequest,
     project: ProjectContext,
     response: any,
+    cacheLatencyMs: number,
     latencyMs: number,
   ): Promise<void> {
     if (!request.apiKeyId) return;
@@ -224,6 +260,9 @@ export class ChatService {
         tokensIn: response.usage?.promptTokens ?? 0,
         tokensOut: response.usage?.completionTokens ?? 0,
         costUsd: 0,
+        authLatencyMs: request.authLatencyMs ?? 0,
+        cacheLatencyMs,
+        llmLatencyMs: 0,
         latencyMs,
         statusCode: 200,
         cached: true,

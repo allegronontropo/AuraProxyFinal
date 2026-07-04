@@ -11,12 +11,14 @@ declare module 'fastify' {
   interface FastifyRequest {
     /** Populated by auth middleware after successful API key validation */
     apiKey: ApiKeyPayload;
+    authLatencyMs?: number;
     /** The raw project record from the database (attached by auth middleware) */
     project: {
       id: string;
       tenantId: string;
       budgetLimit: number;
       budgetPeriod: 'DAILY' | 'WEEKLY' | 'MONTHLY';
+      fallbackModels: string[];
       isActive: boolean;
     };
   }

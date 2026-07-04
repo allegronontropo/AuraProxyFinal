@@ -205,6 +205,22 @@ export default function UsageChart({ timeSeries, title = "Usage Over Time" }: Us
     const sorted = [...timeSeries].sort(
       (a, b) => new Date(a.period).getTime() - new Date(b.period).getTime()
     );
+
+    // If there's only 1 day of data, backfill the last 7 days with zeros so the chart always renders a nice line
+    if (sorted.length === 1) {
+      const singleDate = new Date(sorted[0].period);
+      for (let i = 1; i <= 6; i++) {
+        const d = new Date(singleDate);
+        d.setDate(singleDate.getDate() - i);
+        sorted.unshift({
+          period: d,
+          totalRequests: 0,
+          totalCostUsd: 0,
+          cacheHits: 0,
+        } as TimeSeriesPoint);
+      }
+    }
+
     return {
       data:
         view === "requests"

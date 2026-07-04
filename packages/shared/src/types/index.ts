@@ -8,7 +8,7 @@
 // LLM Provider Types (Strategy Pattern)
 // ============================================
 
-export type ProviderName = 'openai' | 'anthropic' | 'mistral' | 'google';
+export type ProviderName = 'openai' | 'anthropic' | 'mistral' | 'google' | 'groq';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -16,14 +16,21 @@ export interface ChatMessage {
 }
 
 export interface ChatRequest {
-  provider?: ProviderName;
   model: string;
-  messages: ChatMessage[];
+  messages: Array<{
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+  }>;
   temperature?: number;
   maxTokens?: number;
   topP?: number;
+  provider?: ProviderName;
   stream?: boolean;
-  apiKeyId?: string; // Internal tracking
+  
+  // Internal fields for tracking
+  apiKeyId?: string;
+  authLatencyMs?: number;
+  cacheLatencyMs?: number;
 }
 
 export interface TokenUsage {
@@ -78,6 +85,7 @@ export interface ProjectContext {
   tenantId: string;
   budgetLimit: number;
   budgetPeriod: 'DAILY' | 'WEEKLY' | 'MONTHLY';
+  fallbackModels: string[];
   isActive: boolean;
 }
 
