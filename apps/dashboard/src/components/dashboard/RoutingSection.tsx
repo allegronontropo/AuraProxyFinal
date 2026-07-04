@@ -4,6 +4,7 @@ import React, { useState, useTransition, useRef, useEffect } from "react";
 import { saveProjectRouting } from "@/actions/routing";
 import { useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
+import FallbackLogsTable from "./FallbackLogsTable";
 
 const CAPABILITY_GROUPS = [
   {
@@ -251,6 +252,10 @@ export default function RoutingSection({
             </div>
           )}
         </div>
+      </div>
+
+      <div className="mt-8">
+        <FallbackLogsTable projectId={projectId} />
       </div>
     </section>
   );

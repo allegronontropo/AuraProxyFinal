@@ -46,6 +46,7 @@ export class CostTrackerDecorator extends BaseDecorator {
       latencyMs,
       cached: response.cached,
       statusCode: 200,
+      metadata: (response as any).metadata,
     }).catch((err) => {
       console.error('[CostTracker] Failed to record log:', err);
     });
@@ -103,6 +104,7 @@ export class CostTrackerDecorator extends BaseDecorator {
     llmLatencyMs?: number;
     cached: boolean;
     statusCode: number;
+    metadata?: any;
   }): Promise<void> {
     // Only record if we have an apiKeyId (authenticated requests)
     // For unauthenticated requests (Phase 2), we skip DB logging
@@ -136,6 +138,7 @@ export class CostTrackerDecorator extends BaseDecorator {
         latencyMs: data.latencyMs,
         statusCode: data.statusCode,
         cached: data.cached,
+        metadata: data.metadata ? data.metadata : undefined,
       },
     });
   }

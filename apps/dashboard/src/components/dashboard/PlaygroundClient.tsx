@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Send, Settings, Sparkles, AlertCircle, Bot, User, Trash2, ChevronDown } from "lucide-react";
+import { Send, Settings, Sparkles, AlertCircle, Bot, User, Trash2, ChevronDown, Repeat } from "lucide-react";
 
 interface ApiKeyOption {
   id: string;
@@ -26,6 +26,9 @@ interface PlaygroundClientProps {
 interface Message {
   role: "user" | "assistant" | "system";
   content: string;
+  provider?: string;
+  fallbackProvider?: string;
+  model?: string;
 }
 
 function CustomSelect({ 
@@ -188,6 +191,9 @@ export default function PlaygroundClient({ projectId, projectName, availableKeys
       const assistantMessage: Message = {
         role: "assistant",
         content: data.choices[0]?.message?.content || "No response content.",
+        provider: data.provider,
+        fallbackProvider: data.metadata?.fallback_provider,
+        model: data.model,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -240,6 +246,12 @@ export default function PlaygroundClient({ projectId, projectName, availableKeys
                     : 'bg-white/5 text-gray-300 rounded-tl-sm border border-white/5'
                 }`}>
                   <div className="whitespace-pre-wrap">{msg.content}</div>
+                  {msg.fallbackProvider && (
+                    <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-white/5 text-[11px] text-amber-500/70 font-medium">
+                      <Repeat className="w-3 h-3" />
+                      <span>Fallback: Served by {msg.fallbackProvider} ({msg.model})</span>
+                    </div>
+                  )}
                 </div>
                 {msg.role === 'user' && (
                   <div className="w-8 h-8 rounded bg-white/10 flex items-center justify-center shrink-0">
