@@ -9,7 +9,7 @@ export default async function AdminProjectsPage(props: {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   // Construct Prisma where clause based on filters
-  const where: any = {};
+  const where: import("@prisma/client").Prisma.ProjectWhereInput = {};
   if (searchParams.query) {
     where.name = { contains: searchParams.query as string, mode: "insensitive" };
   }

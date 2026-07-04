@@ -20,9 +20,9 @@ export async function toggleUserSuspension(userId: string, isActive: boolean) {
     });
     revalidatePath("/admin/users");
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Failed to toggle user suspension:", error);
-    return { error: error.message || "An error occurred." };
+    return { error: error instanceof Error ? error.message : "An error occurred." };
   }
 }
 
@@ -35,9 +35,9 @@ export async function toggleProjectSuspension(projectId: string, isActive: boole
     });
     revalidatePath("/admin/projects");
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Failed to toggle project suspension:", error);
-    return { error: error.message || "An error occurred." };
+    return { error: error instanceof Error ? error.message : "An error occurred." };
   }
 }
 
@@ -50,8 +50,8 @@ export async function overrideProjectBudget(projectId: string, newLimit: number)
     });
     revalidatePath("/admin/projects");
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Failed to override project budget:", error);
-    return { error: error.message || "An error occurred." };
+    return { error: error instanceof Error ? error.message : "An error occurred." };
   }
 }

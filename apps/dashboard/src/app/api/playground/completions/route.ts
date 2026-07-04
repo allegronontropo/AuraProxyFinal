@@ -58,8 +58,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json(proxyData);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Playground API Error:", error);
-    return NextResponse.json({ message: error.message || "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }

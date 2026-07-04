@@ -6,7 +6,7 @@ export default async function AdminUsersPage(props: {
 }) {
   const searchParams = await props.searchParams;
   // Construct Prisma where clause based on filters
-  const where: any = {};
+  const where: import("@prisma/client").Prisma.UserWhereInput = {};
   if (searchParams.query) {
     where.OR = [
       { email: { contains: searchParams.query as string, mode: "insensitive" } },

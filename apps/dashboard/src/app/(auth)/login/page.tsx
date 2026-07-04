@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useState, useRef, useEffect, ChangeEvent, FormEvent, Suspense } from "react";
+import { useState, useRef, useEffect, FormEvent, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { register, forgotPassword, resetPassword } from "@/actions/auth";

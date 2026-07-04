@@ -104,9 +104,9 @@ export async function saveProviderCredential(
 
     revalidatePath(`/dashboard/${projectId}/keys`);
     return { success: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("saveProviderCredential error:", err);
-    return { error: `Failed to save provider credential: ${err?.message || err}` };
+    return { error: `Failed to save provider credential: ${err instanceof Error ? err.message : String(err)}` };
   }
 }
 

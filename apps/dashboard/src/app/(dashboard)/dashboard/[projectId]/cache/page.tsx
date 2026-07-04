@@ -201,6 +201,7 @@ export default async function CacheAnalyticsPage({
 
   // If DB is completely empty for this period, pad with an empty 24-hour sequence for the chart
   if (timeSeries.length === 0) {
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now();
     timeSeries = Array.from({ length: 24 }, (_, i) => ({
       period: new Date(now - (23 - i) * 60 * 60 * 1000),

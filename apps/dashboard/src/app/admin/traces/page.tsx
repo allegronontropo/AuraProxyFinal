@@ -22,7 +22,7 @@ export default async function AdminTracesPage({
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
   // Construct Prisma where clause based on filters
-  const where: any = {};
+  const where: import("@prisma/client").Prisma.RequestLogWhereInput = {};
   if (searchParams.model) {
     where.model = { contains: searchParams.model as string, mode: "insensitive" };
   }

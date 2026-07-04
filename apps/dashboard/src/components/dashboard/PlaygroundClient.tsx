@@ -106,6 +106,7 @@ export default function PlaygroundClient({ projectId, projectName, availableKeys
   // Auto-switch model when provider changes
   useEffect(() => {
     if (PROVIDER_MODELS[provider] && !PROVIDER_MODELS[provider].includes(model)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setModel(PROVIDER_MODELS[provider][0]);
     }
   }, [provider, model]);
@@ -115,6 +116,7 @@ export default function PlaygroundClient({ projectId, projectName, availableKeys
     const saved = localStorage.getItem(`aura_playground_${projectId}`);
     if (saved) {
       try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMessages(JSON.parse(saved));
       } catch (e) {
         console.error("Failed to parse history", e);
@@ -189,8 +191,8 @@ export default function PlaygroundClient({ projectId, projectName, availableKeys
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (err: any) {
-      setError(err.message || "An unknown error occurred.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
       setLoading(false);
     }
