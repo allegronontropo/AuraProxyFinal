@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 
-export type AlertStatus = "active" | "acknowledged" | "resolved";
-export type AlertSeverity = "critical" | "warning" | "info";
+import { updateAlertStatus } from "@/actions/alerts";
+import type { AlertStatus, AlertSeverity } from "@aura/shared";
 
+// We extend the shared type slightly for the client UI props if needed
 export type Alert = {
   id: string;
   title: string;
@@ -36,13 +37,21 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
     info: { text: "#34d399", bg: "rgba(52,211,153,0.12)", border: "rgba(52,211,153,0.25)" },
   };
 
-  const handleStatusChange = (id: string, newStatus: AlertStatus) => {
+  const handleStatusChange = async (id: string, newStatus: AlertStatus) => {
+    // Optimistic UI update
     setAlerts(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
-    if (activeTab === newStatus) return; // stays in current tab
-    // if moved out of current tab, clear selection if it was selected
-    if (selectedAlertId === id) {
+    
+    if (activeTab !== newStatus && selectedAlertId === id) {
       const nextInTab = filteredAlerts.find(a => a.id !== id);
       setSelectedAlertId(nextInTab?.id || null);
+    }
+
+    // Call server action to update DB
+    try {
+      await updateAlertStatus(id, newStatus);
+    } catch (err) {
+      console.error("Failed to update alert status", err);
+      // Revert could be implemented here
     }
   };
 
