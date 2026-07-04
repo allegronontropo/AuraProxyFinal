@@ -145,8 +145,8 @@ export class ChatService {
           metadata: isFallback ? { 
             fallback_provider: providerName, 
             primary_provider: primaryProvider,
-            primary_error: primaryError ? this.simplifyErrorMessage(primaryError.message) : undefined,
-            fallback_errors: fallbackErrors.length > 0 ? fallbackErrors : undefined
+            primary_error: primaryError ? primaryError.message : null,
+            fallback_errors: fallbackErrors.length > 0 ? fallbackErrors : null
           } : undefined
         };
         const response = await provider.chat(currentRequest);
@@ -172,8 +172,8 @@ export class ChatService {
               ...(response as any).metadata,
               fallback_provider: providerName,
               primary_provider: primaryProvider,
-              primary_error: primaryError ? this.simplifyErrorMessage(primaryError.message) : undefined,
-              fallback_errors: fallbackErrors.length > 0 ? fallbackErrors : undefined
+              primary_error: primaryError ? primaryError.message : null,
+              fallback_errors: fallbackErrors.length > 0 ? fallbackErrors : null
             },
           } as ChatResponse;
         }
