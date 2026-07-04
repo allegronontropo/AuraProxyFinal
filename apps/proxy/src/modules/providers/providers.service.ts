@@ -153,7 +153,7 @@ export class ProvidersService implements OnModuleInit {
     if (model.startsWith('gemini-')) {
       return this.get('google');
     }
-    if (model.startsWith('llama3-') || model.startsWith('mixtral-') || model.startsWith('gemma-')) {
+    if (model.startsWith('llama') || model.startsWith('mixtral') || model.startsWith('gemma')) {
       return this.get('groq');
     }
 

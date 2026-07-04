@@ -230,7 +230,7 @@ export class ChatService {
     if (model.startsWith('claude-')) return 'anthropic';
     if (model.startsWith('mistral-') || model.startsWith('codestral')) return 'mistral';
     if (model.startsWith('gemini-')) return 'google';
-    if (model.startsWith('llama3-') || model.startsWith('mixtral-') || model.startsWith('gemma-')) return 'groq';
+    if (model.startsWith('llama') || model.startsWith('mixtral') || model.startsWith('gemma')) return 'groq';
 
     return 'openai'; // Default fallback
   }
