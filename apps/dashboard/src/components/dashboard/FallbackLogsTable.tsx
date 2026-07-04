@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { getFallbackLogs } from "@/actions/fallback-logs";
-import { Repeat, ArrowRight, Clock, Box, Key, AlertCircle, RefreshCw } from "lucide-react";
+import { Repeat, ArrowRight, Clock, Box, Key, AlertCircle, RefreshCw, ChevronDown, ChevronRight, Info } from "lucide-react";
 
 interface FallbackLog {
   id: string;
@@ -22,6 +22,7 @@ export default function FallbackLogsTable({ projectId }: { projectId: string }) 
   const [logs, setLogs] = useState<FallbackLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let mounted = true;
@@ -54,6 +55,15 @@ export default function FallbackLogsTable({ projectId }: { projectId: string }) 
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleRow = (id: string) => {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   if (loading && logs.length === 0) {
@@ -118,7 +128,8 @@ export default function FallbackLogsTable({ projectId }: { projectId: string }) 
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-white/[0.05]">
-              <th className="px-5 py-3 text-[11px] font-medium text-white/40 uppercase tracking-wider bg-white/[0.01]">Time</th>
+              <th className="px-5 py-3 w-8"></th>
+              <th className="px-2 py-3 text-[11px] font-medium text-white/40 uppercase tracking-wider bg-white/[0.01]">Time</th>
               <th className="px-5 py-3 text-[11px] font-medium text-white/40 uppercase tracking-wider bg-white/[0.01]">API Key</th>
               <th className="px-5 py-3 text-[11px] font-medium text-white/40 uppercase tracking-wider bg-white/[0.01]">Route Flow</th>
               <th className="px-5 py-3 text-[11px] font-medium text-white/40 uppercase tracking-wider bg-white/[0.01]">Latency</th>
@@ -129,62 +140,114 @@ export default function FallbackLogsTable({ projectId }: { projectId: string }) 
             {logs.map((log) => {
               const primaryProvider = log.metadata?.primary_provider || "unknown";
               const fallbackProvider = log.provider;
+              const isExpanded = expandedRows.has(log.id);
 
               return (
-                <tr key={log.id} className="hover:bg-white/[0.02] transition-colors group">
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2 text-white/60 group-hover:text-white/80 transition-colors">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span className="text-[12px] font-mono">
-                        {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                      </span>
-                    </div>
-                  </td>
-                  
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    <div className="flex flex-col">
-                      <span className="text-[13px] text-white/80 font-medium">{log.apiKey.name}</span>
-                      <span className="text-[11px] text-white/40 font-mono flex items-center gap-1 mt-0.5">
-                        <Key className="w-3 h-3" />
-                        {log.apiKey.keyPrefix}
-                      </span>
-                    </div>
-                  </td>
-                  
-                  <td className="px-5 py-4">
-                    <div className="flex flex-col gap-1.5">
-                      <div className="flex items-center gap-2 text-[12px]">
-                        <span className="text-red-400/80 font-medium">{primaryProvider}</span>
-                        <ArrowRight className="w-3.5 h-3.5 text-white/20" />
-                        <span className="text-emerald-400 font-medium">{fallbackProvider}</span>
+                <React.Fragment key={log.id}>
+                  <tr 
+                    onClick={() => toggleRow(log.id)}
+                    className="hover:bg-white/[0.02] transition-colors group cursor-pointer"
+                  >
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      {isExpanded ? (
+                        <ChevronDown className="w-4 h-4 text-white/40 group-hover:text-white/60 transition-colors" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-white/40 group-hover:text-white/60 transition-colors" />
+                      )}
+                    </td>
+                    <td className="px-2 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2 text-white/60 group-hover:text-white/80 transition-colors">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span className="text-[12px] font-mono">
+                          {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-white/40 font-mono bg-white/[0.03] px-2 py-0.5 rounded-md w-fit border border-white/[0.05]">
-                        <Box className="w-3 h-3" />
-                        {log.model}
+                    </td>
+                    
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <div className="flex flex-col">
+                        <span className="text-[13px] text-white/80 font-medium">{log.apiKey.name}</span>
+                        <span className="text-[11px] text-white/40 font-mono flex items-center gap-1 mt-0.5">
+                          <Key className="w-3 h-3" />
+                          {log.apiKey.keyPrefix}
+                        </span>
                       </div>
-                    </div>
-                  </td>
+                    </td>
+                    
+                    <td className="px-5 py-4">
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2 text-[12px]">
+                          <span className="text-red-400/80 font-medium">{primaryProvider}</span>
+                          <ArrowRight className="w-3.5 h-3.5 text-white/20" />
+                          <span className="text-emerald-400 font-medium">{fallbackProvider}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[11px] text-white/40 font-mono bg-white/[0.03] px-2 py-0.5 rounded-md w-fit border border-white/[0.05]">
+                          <Box className="w-3 h-3" />
+                          {log.model}
+                        </div>
+                      </div>
+                    </td>
 
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    <div className="text-[12px] text-white/60 font-mono">
-                      {log.latencyMs}ms
-                    </div>
-                  </td>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <div className="text-[12px] text-white/60 font-mono">
+                        {log.latencyMs}ms
+                      </div>
+                    </td>
 
-                  <td className="px-5 py-4 whitespace-nowrap">
-                    {log.statusCode === 200 ? (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-1 rounded-md">
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400/80 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
-                        Success
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-red-400 bg-red-400/10 border border-red-400/20 px-2 py-1 rounded-md">
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-400/80 shadow-[0_0_8px_rgba(248,113,113,0.5)]" />
-                        Failed ({log.statusCode})
-                      </span>
-                    )}
-                  </td>
-                </tr>
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      {log.statusCode === 200 ? (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-1 rounded-md">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400/80 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+                          Success
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-red-400 bg-red-400/10 border border-red-400/20 px-2 py-1 rounded-md">
+                          <div className="w-1.5 h-1.5 rounded-full bg-red-400/80 shadow-[0_0_8px_rgba(248,113,113,0.5)]" />
+                          Failed ({log.statusCode})
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                  
+                  {isExpanded && (
+                    <tr className="bg-white/[0.01]">
+                      <td colSpan={6} className="px-5 py-4 border-b border-white/[0.05]">
+                        <div className="pl-8">
+                          <div className="bg-black/20 border border-white/[0.05] rounded-lg p-4 max-w-3xl">
+                            <h4 className="text-[12px] font-medium text-white/80 mb-3 flex items-center gap-2">
+                              <Info className="w-3.5 h-3.5 text-blue-400" />
+                              Fallback Details
+                            </h4>
+                            
+                            <div className="space-y-3">
+                              {/* Primary Error */}
+                              <div className="flex flex-col gap-1 text-[12px]">
+                                <span className="text-white/40 uppercase tracking-wider text-[10px] font-medium">Why did <span className="text-red-400">{primaryProvider}</span> fail?</span>
+                                <span className="text-red-300 font-mono bg-red-500/10 px-2 py-1.5 rounded border border-red-500/20">
+                                  {log.metadata?.primary_error || "Unknown error or provider timeout."}
+                                </span>
+                              </div>
+
+                              {/* Intermediate Fallback Errors */}
+                              {log.metadata?.fallback_errors && Array.isArray(log.metadata.fallback_errors) && log.metadata.fallback_errors.length > 0 && (
+                                <div className="flex flex-col gap-1 text-[12px] mt-2">
+                                  <span className="text-white/40 uppercase tracking-wider text-[10px] font-medium">Intermediate Failures</span>
+                                  <div className="flex flex-col gap-1">
+                                    {log.metadata.fallback_errors.map((err: string, i: number) => (
+                                      <span key={i} className="text-amber-300/80 font-mono bg-amber-500/10 px-2 py-1.5 rounded border border-amber-500/20">
+                                        {err}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               );
             })}
           </tbody>

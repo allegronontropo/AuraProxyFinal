@@ -142,7 +142,12 @@ export class ChatService {
           model: modelName, 
           provider: providerName as any, 
           cacheLatencyMs,
-          metadata: isFallback ? { fallback_provider: providerName, primary_provider: primaryProvider } : undefined
+          metadata: isFallback ? { 
+            fallback_provider: providerName, 
+            primary_provider: primaryProvider,
+            primary_error: primaryError ? this.simplifyErrorMessage(primaryError.message) : undefined,
+            fallback_errors: fallbackErrors.length > 0 ? fallbackErrors : undefined
+          } : undefined
         };
         const response = await provider.chat(currentRequest);
 
@@ -167,6 +172,8 @@ export class ChatService {
               ...(response as any).metadata,
               fallback_provider: providerName,
               primary_provider: primaryProvider,
+              primary_error: primaryError ? this.simplifyErrorMessage(primaryError.message) : undefined,
+              fallback_errors: fallbackErrors.length > 0 ? fallbackErrors : undefined
             },
           } as ChatResponse;
         }
