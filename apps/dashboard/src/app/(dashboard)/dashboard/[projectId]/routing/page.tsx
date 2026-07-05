@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { getProjectRouting } from "@/actions/routing";
+import { getApiKeys } from "@/lib/queries";
 import RoutingSection from "@/components/dashboard/RoutingSection";
 import { redirect } from "next/navigation";
 
@@ -14,7 +15,10 @@ export default async function RoutingPage({
   const resolvedParams = await params;
   const { projectId } = resolvedParams;
 
-  const result = await getProjectRouting(projectId);
+  const [result, apiKeys] = await Promise.all([
+    getProjectRouting(projectId),
+    getApiKeys(projectId),
+  ]);
   const fallbackModels = "fallbackModels" in (result ?? {}) ? result.fallbackModels : [];
 
   return (
@@ -29,6 +33,7 @@ export default async function RoutingPage({
           <RoutingSection
             projectId={projectId}
             initialFallbackModels={fallbackModels ?? []}
+            apiKeys={apiKeys}
           />
         </div>
       </div>
