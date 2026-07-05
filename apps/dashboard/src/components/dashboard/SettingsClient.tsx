@@ -5,6 +5,7 @@ import { updateProject, deleteProject } from "@/actions/project";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 type Project = {
   id: string;
@@ -128,15 +129,17 @@ export default function SettingsClient({
                 </div>
                 <div>
                   <label className="block text-[13px] text-white/60 mb-2">Budget Period</label>
-                  <select
+                  <CustomSelect
                     value={budgetPeriod}
-                    onChange={(e) => setBudgetPeriod(e.target.value as "DAILY" | "WEEKLY" | "MONTHLY")}
-                    className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-[14px] text-white focus:outline-none focus:border-violet-500/50 transition-colors appearance-none"
-                  >
-                    <option value="DAILY" className="bg-[#0d0d0f]">Daily</option>
-                    <option value="WEEKLY" className="bg-[#0d0d0f]">Weekly</option>
-                    <option value="MONTHLY" className="bg-[#0d0d0f]">Monthly</option>
-                  </select>
+                    onChange={(val) => setBudgetPeriod(val as "DAILY" | "WEEKLY" | "MONTHLY")}
+                    options={[
+                      { value: "DAILY", label: "Daily" },
+                      { value: "WEEKLY", label: "Weekly" },
+                      { value: "MONTHLY", label: "Monthly" },
+                    ]}
+                    className="w-full"
+                    buttonClassName="!py-2 !px-3 border-white/10"
+                  />
                 </div>
               </div>
 
