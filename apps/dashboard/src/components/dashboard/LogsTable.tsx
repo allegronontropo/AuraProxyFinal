@@ -842,16 +842,9 @@ export default function LogsTable({
   );
 
   return (
-    <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+    <div className="flex-1 flex overflow-hidden bg-white/[0.015] border border-white/[0.08] rounded-[11px] p-5">
       {/* ── Table area ── */}
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Filters Top Row */}
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
           <input
