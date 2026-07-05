@@ -133,17 +133,9 @@ function AreaChart({ data, labels, color, height = 200 }: AreaChartProps) {
           cy={scaleY(v)}
           r="2.5"
           fill={color}
-          opacity={i === data.length - 1 ? 1 : 0}
+          opacity={1}
         />
       ))}
-
-      {/* Last dot always visible */}
-      <circle
-        cx={scaleX(data.length - 1)}
-        cy={scaleY(data[data.length - 1])}
-        r="3"
-        fill={color}
-      />
 
       {/* X-axis labels */}
       {xTicks.map(({ label, x }, i) => (
@@ -206,27 +198,40 @@ export default function UsageChart({ timeSeries, title = "Usage Over Time" }: Us
       (a, b) => new Date(a.period).getTime() - new Date(b.period).getTime()
     );
 
-    // If there's only 1 day of data, backfill the last 7 days with zeros so the chart always renders a nice line
-    if (sorted.length === 1) {
-      const singleDate = new Date(sorted[0].period);
-      for (let i = 1; i <= 6; i++) {
-        const d = new Date(singleDate);
-        d.setDate(singleDate.getDate() - i);
-        sorted.unshift({
+    const dataMap = new Map<string, TimeSeriesPoint>();
+    for (const p of sorted) {
+      dataMap.set(new Date(p.period).toISOString().split("T")[0], p);
+    }
+
+    const filled: TimeSeriesPoint[] = [];
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    // Generate 30 days ending today
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split("T")[0];
+
+      if (dataMap.has(dateStr)) {
+        filled.push(dataMap.get(dateStr)!);
+      } else {
+        filled.push({
           period: d,
           totalRequests: 0,
           totalCostUsd: 0,
           cacheHits: 0,
-        } as TimeSeriesPoint);
+        });
       }
     }
+    const finalSeries = filled;
 
     return {
       data:
         view === "requests"
-          ? sorted.map((p) => p.totalRequests)
-          : sorted.map((p) => Number(p.totalCostUsd)),
-      labels: sorted.map((p) => formatPeriod(p.period)),
+          ? finalSeries.map((p) => p.totalRequests)
+          : finalSeries.map((p) => Number(p.totalCostUsd)),
+      labels: finalSeries.map((p) => formatPeriod(p.period)),
     };
   }, [timeSeries, view]);
 
