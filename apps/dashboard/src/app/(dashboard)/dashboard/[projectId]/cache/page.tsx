@@ -31,7 +31,10 @@ function AreaChart({ data }: { data: { label: string; hits: number; misses: numb
   const hitValues = data.map((d) => d.hits);
   const maxVal = Math.max(...hitValues, 1);
 
-  const scaleX = (i: number) => PAD.left + (i / (data.length - 1)) * cW;
+  const scaleX = (i: number) => {
+    if (data.length <= 1) return PAD.left + cW / 2;
+    return PAD.left + (i / (data.length - 1)) * cW;
+  };
   const scaleY = (v: number) => PAD.top + cH - (v / maxVal) * cH;
 
   const linePath = data
