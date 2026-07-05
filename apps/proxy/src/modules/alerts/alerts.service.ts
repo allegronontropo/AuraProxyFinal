@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as nodemailer from 'nodemailer';
 import { AlertSeverity } from '@aura/shared';
@@ -17,7 +17,7 @@ export class AlertsService {
   private readonly logger = new Logger(AlertsService.name);
   private readonly transporter: nodemailer.Transporter | null = null;
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
 
