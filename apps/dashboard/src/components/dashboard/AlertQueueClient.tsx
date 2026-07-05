@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-
 import { updateAlertStatus } from "@/actions/alerts";
 import type { AlertStatus, AlertSeverity } from "@aura/shared";
 
@@ -32,10 +31,10 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
   
   const [now] = useState(() => Date.now());
 
-  const severityColors = {
-    critical: { text: "#ef4444", bg: "rgba(239,68,68,0.12)", border: "rgba(239,68,68,0.25)" },
-    warning: { text: "#f59e0b", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.25)" },
-    info: { text: "#34d399", bg: "rgba(52,211,153,0.12)", border: "rgba(52,211,153,0.25)" },
+  const severityStyles = {
+    critical: { text: "text-red-400", bg: "bg-red-400/10", border: "border-red-400/20", shadow: "shadow-red-400" },
+    warning: { text: "text-amber-400", bg: "bg-amber-400/10", border: "border-amber-400/20", shadow: "shadow-amber-400" },
+    info: { text: "text-emerald-400", bg: "bg-emerald-400/10", border: "border-emerald-400/20", shadow: "shadow-emerald-400" },
   };
 
   const handleStatusChange = async (id: string, newStatus: AlertStatus) => {
@@ -52,7 +51,6 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
       await updateAlertStatus(id, newStatus);
     } catch (err) {
       console.error("Failed to update alert status", err);
-      // Revert could be implemented here
     }
   };
 
@@ -66,26 +64,18 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
   };
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+    <div className="flex-1 flex flex-col overflow-hidden">
       {/* Top bar */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 20px", height: 52, borderBottom: "1px solid rgba(255,255,255,0.05)",
-        flexShrink: 0, background: "rgba(13,13,15,0.8)",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 16, fontWeight: 600 }}>Alert Queue</span>
-          <span style={{
-            display: "flex", alignItems: "center", justifyContent: "center",
-            background: "rgba(239,68,68,0.15)", color: "#f87171",
-            borderRadius: "50%", width: 20, height: 20, fontSize: 11, fontWeight: 700
-          }}>
+      <div className="flex items-center justify-between px-5 h-[52px] border-b border-white/5 shrink-0 bg-[#0D0D0F]/80">
+        <div className="flex items-center gap-3">
+          <span className="text-[16px] font-semibold text-white/90">Alert Queue</span>
+          <span className="flex items-center justify-center bg-red-500/15 text-red-400 rounded-full w-5 h-5 text-[11px] font-bold">
             {alerts.filter(a => a.status === "active").length}
           </span>
         </div>
         
         {/* Tabs */}
-        <div style={{ display: "flex", background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: 3 }}>
+        <div className="flex bg-white/[0.03] rounded-lg p-1">
           {(["active", "acknowledged", "resolved"] as AlertStatus[]).map(tab => (
             <button
               key={tab}
@@ -94,12 +84,9 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
                 const firstInTab = alerts.find(a => a.status === tab);
                 setSelectedAlertId(firstInTab?.id || null);
               }}
-              style={{
-                background: activeTab === tab ? "rgba(255,255,255,0.08)" : "transparent",
-                border: "none", borderRadius: 6, color: activeTab === tab ? "#f9fafb" : "#9ca3af",
-                fontSize: 12, fontWeight: 500, padding: "5px 14px", cursor: "pointer",
-                transition: "all 0.15s", textTransform: "capitalize"
-              }}
+              className={`border-none rounded-md text-[12px] font-medium px-3.5 py-1.5 cursor-pointer transition-all duration-150 capitalize ${
+                activeTab === tab ? "bg-white/[0.08] text-white" : "bg-transparent text-white/50 hover:text-white/80"
+              }`}
             >
               {tab}
             </button>
@@ -107,67 +94,59 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+      <div className="flex-1 flex overflow-hidden">
         {/* 60% List */}
-        <div style={{ flex: 6, overflowY: "auto", padding: "22px 20px" }}>
+        <div className="flex-[6] overflow-y-auto p-5">
           {filteredAlerts.length === 0 ? (
-            <div style={{ textAlign: "center", color: "#6b7280", fontSize: 13, paddingTop: 60 }}>
+            <div className="text-center text-white/40 text-[13px] pt-[60px]">
               No {activeTab} alerts.
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div className="flex flex-col gap-3">
               {filteredAlerts.map(alert => {
                 const isActive = selectedAlertId === alert.id;
-                const colors = severityColors[alert.severity];
+                const colors = severityStyles[alert.severity];
                 
                 return (
                   <div
                     key={alert.id}
                     onClick={() => setSelectedAlertId(alert.id)}
-                    style={{
-                      background: isActive ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.015)",
-                      border: isActive ? "1px solid rgba(124,58,237,0.4)" : "1px solid rgba(255,255,255,0.07)",
-                      borderRadius: 11, padding: "16px 20px", cursor: "pointer",
-                      transition: "all 0.15s",
-                      boxShadow: isActive ? "0 0 0 1px rgba(124,58,237,0.1)" : "none",
-                    }}
+                    className={`rounded-[11px] p-4 cursor-pointer transition-all duration-150 ${
+                      isActive 
+                        ? "bg-white/[0.03] border border-violet-500/40 shadow-[0_0_0_1px_rgba(139,92,246,0.1)]" 
+                        : "bg-white/[0.015] border border-white/[0.08] hover:border-white/20"
+                    }`}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{
-                          display: "inline-block", width: 8, height: 8, borderRadius: "50%",
-                          background: colors.text, boxShadow: `0 0 8px ${colors.text}`
-                        }} />
-                        <span style={{ fontSize: 14, fontWeight: 600, color: "#f9fafb" }}>{alert.title}</span>
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-block w-2 h-2 rounded-full ${colors.bg} ${colors.shadow} shadow-[0_0_8px_currentColor] ${colors.text}`} />
+                        <span className="text-[14px] font-semibold text-white/90">{alert.title}</span>
                       </div>
-                      <span style={{ fontSize: 11, color: "#6b7280" }}>{formatTimeAgo(alert.timestamp)}</span>
+                      <span className="text-[11px] text-white/40">{formatTimeAgo(alert.timestamp)}</span>
                     </div>
                     
-                    <div style={{ fontSize: 13, color: "#9ca3af", marginBottom: 12, lineHeight: 1.5 }}>
+                    <div className="text-[13px] text-white/60 mb-3 leading-relaxed">
                       {alert.description}
                     </div>
                     
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <span style={{ fontSize: 11, color: "#6b7280", background: "rgba(255,255,255,0.03)", padding: "3px 8px", borderRadius: 4 }}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-[11px] text-white/50 bg-white/[0.03] px-2 py-1 rounded">
                           Source: {alert.source}
                         </span>
                         {alert.metric && (
-                          <span style={{ fontSize: 11, color: "#6b7280" }}>
-                            {alert.metric.label}: <strong style={{ color: "#d1d5db" }}>{alert.metric.value}</strong> 
-                            <span style={{ opacity: 0.5 }}> / {alert.metric.threshold}</span>
+                          <span className="text-[11px] text-white/50">
+                            {alert.metric.label}: <strong className="text-white/80">{alert.metric.value}</strong> 
+                            <span className="opacity-50"> / {alert.metric.threshold}</span>
                           </span>
                         )}
                       </div>
                       
-                      <div style={{ display: "flex", gap: 8 }}>
+                      <div className="flex gap-2">
                         {activeTab === "active" && (
                           <button
                             onClick={(e) => { e.stopPropagation(); handleStatusChange(alert.id, "acknowledged"); }}
-                            style={{
-                              background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.2)",
-                              color: "#c4b5fd", fontSize: 11, padding: "4px 10px", borderRadius: 5, cursor: "pointer"
-                            }}
+                            className="bg-violet-500/10 border border-violet-500/20 text-violet-400 text-[11px] px-2.5 py-1 rounded-md cursor-pointer hover:bg-violet-500/20 transition-colors"
                           >
                             Acknowledge
                           </button>
@@ -175,10 +154,7 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
                         {activeTab !== "resolved" && (
                           <button
                             onClick={(e) => { e.stopPropagation(); handleStatusChange(alert.id, "resolved"); }}
-                            style={{
-                              background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.2)",
-                              color: "#34d399", fontSize: 11, padding: "4px 10px", borderRadius: 5, cursor: "pointer"
-                            }}
+                            className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] px-2.5 py-1 rounded-md cursor-pointer hover:bg-emerald-500/20 transition-colors"
                           >
                             Resolve
                           </button>
@@ -193,88 +169,68 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
         </div>
 
         {/* 40% Detail Panel */}
-        <div style={{ flex: 4, background: "#0d0d0f", borderLeft: "1px solid rgba(255,255,255,0.05)", overflowY: "auto" }}>
+        <div className="flex-[4] bg-[#0d0d0f] border-l border-white/5 overflow-y-auto">
           {selectedAlert ? (
-            <div style={{ padding: "24px 20px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                <span style={{
-                  background: severityColors[selectedAlert.severity].bg,
-                  border: `1px solid ${severityColors[selectedAlert.severity].border}`,
-                  color: severityColors[selectedAlert.severity].text,
-                  fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 4,
-                  textTransform: "uppercase", letterSpacing: "0.05em"
-                }}>
+            <div className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <span className={`${severityStyles[selectedAlert.severity].bg} border ${severityStyles[selectedAlert.severity].border} ${severityStyles[selectedAlert.severity].text} text-[10px] font-bold px-2 py-1 rounded uppercase tracking-[0.05em]`}>
                   {selectedAlert.severity}
                 </span>
-                <span style={{
-                  background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
-                  color: "#d1d5db", fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 4,
-                  textTransform: "uppercase"
-                }}>
+                <span className="bg-white/5 border border-white/10 text-white/80 text-[10px] font-semibold px-2 py-1 rounded uppercase">
                   {selectedAlert.status}
                 </span>
               </div>
               
-              <h2 style={{ fontSize: 20, fontWeight: 600, color: "#f9fafb", marginBottom: 8 }}>
+              <h2 className="text-[20px] font-semibold text-white/90 mb-2">
                 {selectedAlert.title}
               </h2>
-              <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 24 }}>
+              <div className="text-[12px] text-white/40 mb-6">
                 Detected {new Date(selectedAlert.timestamp).toLocaleString()}
               </div>
 
-              <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 8, padding: 16, marginBottom: 24 }}>
-                <h3 style={{ fontSize: 11, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8, fontWeight: 600 }}>
+              <div className="bg-white/[0.02] border border-white/5 rounded-lg p-4 mb-6">
+                <h3 className="text-[11px] text-white/40 uppercase tracking-[0.05em] mb-2 font-semibold">
                   Description
                 </h3>
-                <p style={{ fontSize: 14, color: "#d1d5db", lineHeight: 1.6, margin: 0 }}>
+                <p className="text-[14px] text-white/80 leading-relaxed m-0">
                   {selectedAlert.description}
                 </p>
               </div>
 
               {selectedAlert.metric && (
-                <div style={{ marginBottom: 24 }}>
-                  <h3 style={{ fontSize: 11, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12, fontWeight: 600 }}>
+                <div className="mb-6">
+                  <h3 className="text-[11px] text-white/40 uppercase tracking-[0.05em] mb-3 font-semibold">
                     Trigger Metrics
                   </h3>
-                  <div style={{ display: "flex", gap: 16 }}>
-                    <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 8, padding: "12px 16px", flex: 1 }}>
-                      <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 4 }}>Current Value</div>
-                      <div style={{ fontSize: 18, fontWeight: 600, color: "#f9fafb" }}>{selectedAlert.metric.value}</div>
+                  <div className="flex gap-4">
+                    <div className="bg-white/[0.02] border border-white/5 rounded-lg py-3 px-4 flex-1">
+                      <div className="text-[11px] text-white/50 mb-1">Current Value</div>
+                      <div className="text-[18px] font-semibold text-white/90">{selectedAlert.metric.value}</div>
                     </div>
-                    <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 8, padding: "12px 16px", flex: 1 }}>
-                      <div style={{ fontSize: 11, color: "#9ca3af", marginBottom: 4 }}>Threshold</div>
-                      <div style={{ fontSize: 18, fontWeight: 600, color: "#f9fafb" }}>{selectedAlert.metric.threshold}</div>
+                    <div className="bg-white/[0.02] border border-white/5 rounded-lg py-3 px-4 flex-1">
+                      <div className="text-[11px] text-white/50 mb-1">Threshold</div>
+                      <div className="text-[18px] font-semibold text-white/90">{selectedAlert.metric.threshold}</div>
                     </div>
                   </div>
                 </div>
               )}
 
               {selectedAlert.metadata && Object.keys(selectedAlert.metadata).length > 0 && (
-                <div style={{ marginBottom: 24 }}>
-                  <h3 style={{ fontSize: 11, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8, fontWeight: 600 }}>
+                <div className="mb-6">
+                  <h3 className="text-[11px] text-white/40 uppercase tracking-[0.05em] mb-2 font-semibold">
                     Diagnostic Data
                   </h3>
-                  <pre style={{ 
-                    background: "rgba(0,0,0,0.3)", 
-                    border: "1px solid rgba(255,255,255,0.05)", 
-                    borderRadius: 8, 
-                    padding: 12, 
-                    fontSize: 12, 
-                    color: "#a78bfa",
-                    overflowX: "auto",
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word"
-                  }}>
+                  <pre className="bg-black/30 border border-white/5 rounded-lg p-3 text-[12px] text-violet-400 overflow-x-auto whitespace-pre-wrap break-words">
                     {JSON.stringify(selectedAlert.metadata, null, 2)}
                   </pre>
                 </div>
               )}
 
               <div>
-                <h3 style={{ fontSize: 11, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12, fontWeight: 600 }}>
+                <h3 className="text-[11px] text-white/40 uppercase tracking-[0.05em] mb-3 font-semibold">
                   Recommended Actions
                 </h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div className="flex flex-col gap-2">
                   {(() => {
                     const title = selectedAlert.title.toLowerCase();
                     const actions = [];
@@ -300,13 +256,12 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
                       <button 
                         key={i}
                         onClick={() => { window.location.href = action.href; }}
-                        style={{
-                          background: action.primary ? "rgba(124,58,237,0.1)" : "rgba(255,255,255,0.03)",
-                          border: action.primary ? "1px solid rgba(124,58,237,0.3)" : "1px solid rgba(255,255,255,0.08)",
-                          color: action.primary ? "#c4b5fd" : "#d1d5db", 
-                          fontSize: 13, fontWeight: 500, padding: "10px 16px", borderRadius: 8, cursor: "pointer",
-                          textAlign: "left", transition: "all 0.15s"
-                        }}>
+                        className={`text-left text-[13px] font-medium py-2.5 px-4 rounded-lg cursor-pointer transition-all duration-150 ${
+                          action.primary 
+                            ? "bg-violet-500/10 border border-violet-500/30 text-violet-400 hover:bg-violet-500/20" 
+                            : "bg-white/[0.03] border border-white/[0.08] text-white/80 hover:bg-white/[0.06]"
+                        }`}
+                      >
                         {action.label}
                       </button>
                     ));
@@ -315,7 +270,7 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
               </div>
             </div>
           ) : (
-            <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#6b7280", fontSize: 13 }}>
+            <div className="h-full flex items-center justify-center text-white/40 text-[13px]">
               Select an alert to view details
             </div>
           )}
