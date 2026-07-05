@@ -116,9 +116,9 @@ export default function ApiKeysTable({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="h-[52px] shrink-0 bg-[#0d0d0f]/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6 z-10 sticky top-0">
+      <div className="h-[52px] shrink-0 bg-[#0D0D0F]/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6 z-10 sticky top-0">
         <div className="flex items-center gap-3">
-          <h1 className="text-[15px] font-medium text-white tracking-wide">API Keys</h1>
+          <h1 className="text-[15px] font-medium text-white/90 tracking-wide">API Keys</h1>
           <span className="text-xs font-medium text-white/30 bg-white/5 px-2 py-0.5 rounded-full">
             {initialKeys.length}
           </span>
@@ -132,27 +132,27 @@ export default function ApiKeysTable({
       </div>
 
       <div className="flex-1 overflow-y-auto p-[22px]">
-        <div className="bg-white/[0.015] border border-white/[0.07] rounded-[11px] overflow-hidden">
+        <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] overflow-hidden">
           {initialKeys.length === 0 ? (
-            <div className="p-12 text-center text-white/40 text-sm">
+            <div className="p-12 text-center text-white/40 text-[13px]">
               No API keys found. Generate one to get started.
             </div>
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-white/[0.05] text-[13px] text-white/40">
-                  <th className="px-6 py-4 font-medium">Name</th>
-                  <th className="px-6 py-4 font-medium">Key Prefix</th>
-                  <th className="px-6 py-4 font-medium">Permissions</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
-                  <th className="px-6 py-4 font-medium">Created</th>
-                  <th className="px-6 py-4 font-medium text-right">Actions</th>
+                  <th className="px-6 py-4 font-medium uppercase tracking-wider text-[12px]">Name</th>
+                  <th className="px-6 py-4 font-medium uppercase tracking-wider text-[12px]">Key Prefix</th>
+                  <th className="px-6 py-4 font-medium uppercase tracking-wider text-[12px]">Permissions</th>
+                  <th className="px-6 py-4 font-medium uppercase tracking-wider text-[12px]">Status</th>
+                  <th className="px-6 py-4 font-medium uppercase tracking-wider text-[12px]">Created</th>
+                  <th className="px-6 py-4 font-medium uppercase tracking-wider text-[12px] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="text-[13px] text-white/80">
                 {initialKeys.map((key) => (
                   <tr key={key.id} className="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors">
-                    <td className="px-6 py-4 font-medium text-white">{key.name}</td>
+                    <td className="px-6 py-4 font-medium text-white/90">{key.name}</td>
                     <td className="px-6 py-4 font-mono text-white/60">{key.keyPrefix}...</td>
                     <td className="px-6 py-4">
                       <div className="flex gap-1.5 flex-wrap">
@@ -165,8 +165,8 @@ export default function ApiKeysTable({
                     </td>
                     <td className="px-6 py-4">
                       {key.isActive ? (
-                        <span className="flex items-center gap-1.5 text-[#34d399]">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#34d399]"></span>
+                        <span className="flex items-center gap-1.5 text-emerald-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_currentColor]"></span>
                           Active
                         </span>
                       ) : (
@@ -185,7 +185,7 @@ export default function ApiKeysTable({
                           <button
                             onClick={() => handleRotate(key.id)}
                             disabled={loading}
-                            className="text-white/40 hover:text-white transition-colors"
+                            className="text-white/40 hover:text-white transition-colors cursor-pointer"
                           >
                             Rotate
                           </button>
@@ -193,7 +193,7 @@ export default function ApiKeysTable({
                             <button
                               onClick={() => handleRevoke(key.id)}
                               disabled={loading}
-                              className="text-[#ef4444] hover:text-[#ef4444]/80 font-medium transition-colors"
+                              className="text-red-400 hover:text-red-400/80 font-medium transition-colors cursor-pointer"
                             >
                               Confirm
                             </button>
@@ -201,7 +201,7 @@ export default function ApiKeysTable({
                             <button
                               onClick={() => setRevokeConfirmId(key.id)}
                               disabled={loading}
-                              className="text-white/40 hover:text-[#ef4444] transition-colors"
+                              className="text-white/40 hover:text-red-400 transition-colors cursor-pointer"
                             >
                               Revoke
                             </button>
@@ -213,7 +213,7 @@ export default function ApiKeysTable({
                             <button
                               onClick={() => handleDelete(key.id)}
                               disabled={loading}
-                              className="text-[#ef4444] hover:text-[#ef4444]/80 font-medium transition-colors"
+                              className="text-red-400 hover:text-red-400/80 font-medium transition-colors cursor-pointer"
                             >
                               Confirm Delete
                             </button>
@@ -221,7 +221,7 @@ export default function ApiKeysTable({
                             <button
                               onClick={() => setDeleteConfirmId(key.id)}
                               disabled={loading}
-                              className="text-white/40 hover:text-[#ef4444] transition-colors"
+                              className="text-white/40 hover:text-red-400 transition-colors cursor-pointer"
                             >
                               Delete
                             </button>
@@ -239,8 +239,8 @@ export default function ApiKeysTable({
 
       {showGenerateModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0d0d0f] border border-white/[0.07] rounded-[11px] p-6 w-full max-w-md shadow-2xl">
-            <h2 className="text-lg font-medium text-white mb-4">Generate New Key</h2>
+          <div className="bg-[#0D0D0F] border border-white/[0.08] rounded-[11px] p-6 w-full max-w-md shadow-2xl">
+            <h2 className="text-lg font-medium text-white/90 mb-4">Generate New Key</h2>
             <form onSubmit={handleGenerate} className="space-y-4">
               <div>
                 <label className="block text-[13px] text-white/60 mb-1.5">Key Name</label>
@@ -288,14 +288,14 @@ export default function ApiKeysTable({
                 <button
                   type="button"
                   onClick={() => setShowGenerateModal(false)}
-                  className="text-[13px] text-white/60 hover:text-white px-3 py-1.5 transition-colors"
+                  className="text-[13px] text-white/60 hover:text-white px-3 py-1.5 transition-colors cursor-pointer bg-transparent border-none"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading || !newKeyName.trim() || permissions.length === 0}
-                  className="text-[13px] font-medium text-white bg-violet-600 hover:bg-violet-500 disabled:opacity-50 px-4 py-1.5 rounded-md transition-colors"
+                  className="text-[13px] font-medium text-white bg-violet-600 hover:bg-violet-500 disabled:opacity-50 px-4 py-1.5 rounded-md transition-colors cursor-pointer border-none"
                 >
                   {loading ? "Generating..." : "Generate Key"}
                 </button>
@@ -307,16 +307,16 @@ export default function ApiKeysTable({
 
       {(generatedKey || rotatedKey) && (
         <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#0d0d0f] border border-[#34d399]/20 rounded-[11px] p-6 w-full max-w-lg shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#34d399] to-emerald-400"></div>
-            <h2 className="text-xl font-medium text-white mb-2">
+          <div className="bg-[#0D0D0F] border border-emerald-400/20 rounded-[11px] p-6 w-full max-w-lg shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-emerald-400"></div>
+            <h2 className="text-xl font-medium text-white/90 mb-2">
               {rotatedKey ? "Key Rotated Successfully" : "Key Generated Successfully"}
             </h2>
             <p className="text-[14px] text-white/60 mb-6 leading-relaxed">
-              Please copy this key and save it somewhere secure. For your protection, <strong className="text-white">you will not be able to see it again.</strong>
+              Please copy this key and save it somewhere secure. For your protection, <strong className="text-white/90">you will not be able to see it again.</strong>
             </p>
             <div className="bg-white/5 border border-white/10 rounded-md p-3 flex items-center justify-between mb-6">
-              <code className="text-[15px] font-mono text-[#34d399] break-all select-all">
+              <code className="text-[15px] font-mono text-emerald-400 break-all select-all">
                 {rotatedKey ? rotatedKey.key : generatedKey}
               </code>
               <button
@@ -324,7 +324,7 @@ export default function ApiKeysTable({
                   copyToClipboard((rotatedKey ? rotatedKey.key : generatedKey) as string);
                   alert("Copied to clipboard");
                 }}
-                className="ml-4 text-xs font-medium bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded transition-colors shrink-0"
+                className="ml-4 text-xs font-medium bg-white/10 hover:bg-white/20 text-white/90 px-3 py-1.5 rounded transition-colors shrink-0 cursor-pointer border-none"
               >
                 Copy
               </button>
@@ -335,7 +335,7 @@ export default function ApiKeysTable({
                 setGeneratedKeyPrefix(null);
                 setRotatedKey(null);
               }}
-              className="w-full text-[14px] font-medium text-white bg-white/10 hover:bg-white/20 py-2.5 rounded-md transition-colors"
+              className="w-full text-[14px] font-medium text-white/90 bg-white/10 hover:bg-white/20 py-2.5 rounded-md transition-colors cursor-pointer border-none"
             >
               I have saved my key
             </button>
