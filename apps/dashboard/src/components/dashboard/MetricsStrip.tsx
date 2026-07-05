@@ -100,32 +100,12 @@ function KpiCard({
   sparkColor,
 }: KpiCardProps) {
   return (
-    <div
-      style={{
-        flex: 1,
-        minWidth: 0,
-        background: "rgba(255,255,255,0.015)",
-        border: "1px solid rgba(255,255,255,0.07)",
-        borderRadius: 11,
-        padding: "18px 20px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 12,
-      }}
-    >
+    <div className="flex-1 min-w-0 bg-white/[0.015] border border-white/[0.08] rounded-[11px] px-5 py-4 flex flex-col gap-3">
       {/* Header row */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-          <span style={{ fontSize: 13, color: "#6b7280", lineHeight: 1 }}>{icon}</span>
-          <span
-            style={{
-              fontSize: 11,
-              color: "#6b7280",
-              fontWeight: 500,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase",
-            }}
-          >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-[13px] text-white/50 leading-none">{icon}</span>
+          <span className="text-[11px] text-white/50 font-medium tracking-[0.04em] uppercase">
             {label}
           </span>
         </div>
@@ -135,18 +115,13 @@ function KpiCard({
       {/* Value */}
       <div>
         <div
-          style={{
-            fontSize: 26,
-            fontWeight: 700,
-            color: valueColor,
-            letterSpacing: "-0.02em",
-            lineHeight: 1.1,
-          }}
+          className="text-[26px] font-bold tracking-tight leading-tight"
+          style={{ color: valueColor }}
         >
           {value}
         </div>
         {sub && (
-          <div style={{ fontSize: 11, color: "#6b7280", marginTop: 4 }}>{sub}</div>
+          <div className="text-[11px] text-white/40 mt-1">{sub}</div>
         )}
       </div>
     </div>
@@ -197,7 +172,7 @@ export default function MetricsStrip({
     avgLatencyMs < 200 ? "#34d399" : avgLatencyMs < 500 ? "#f59e0b" : "#ef4444";
 
   return (
-    <div style={{ display: "flex", gap: 14 }}>
+    <div className="flex gap-4">
       <KpiCard
         icon="⬡"
         label="Total Requests"
