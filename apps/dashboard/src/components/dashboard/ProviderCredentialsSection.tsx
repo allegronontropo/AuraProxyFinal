@@ -177,7 +177,7 @@ export default function ProviderCredentialsSection({
 
       {/* Credentials table */}
       {credentials.length === 0 ? (
-        <div className="bg-white/[0.01] border border-dashed border-white/[0.07] rounded-[11px] py-10 flex flex-col items-center text-center gap-2">
+        <div className="bg-white/[0.01] border border-dashed border-white/[0.08] rounded-[11px] py-10 flex flex-col items-center text-center gap-2">
           <span className="text-2xl">🔑</span>
           <p className="text-[13px] text-white/40">No provider credentials configured.</p>
           <p className="text-[12px] text-white/25">
@@ -185,7 +185,7 @@ export default function ProviderCredentialsSection({
           </p>
         </div>
       ) : (
-        <div className="bg-white/[0.015] border border-white/[0.07] rounded-[11px] overflow-hidden">
+        <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] overflow-hidden">
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-white/[0.025]">
