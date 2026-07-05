@@ -19,6 +19,7 @@ export type Alert = {
     value: string;
     threshold: string;
   };
+  metadata?: any;
 };
 
 export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Alert[] }) {
@@ -248,25 +249,68 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
                 </div>
               )}
 
+              {selectedAlert.metadata && Object.keys(selectedAlert.metadata).length > 0 && (
+                <div style={{ marginBottom: 24 }}>
+                  <h3 style={{ fontSize: 11, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8, fontWeight: 600 }}>
+                    Diagnostic Data
+                  </h3>
+                  <pre style={{ 
+                    background: "rgba(0,0,0,0.3)", 
+                    border: "1px solid rgba(255,255,255,0.05)", 
+                    borderRadius: 8, 
+                    padding: 12, 
+                    fontSize: 12, 
+                    color: "#a78bfa",
+                    overflowX: "auto",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word"
+                  }}>
+                    {JSON.stringify(selectedAlert.metadata, null, 2)}
+                  </pre>
+                </div>
+              )}
+
               <div>
                 <h3 style={{ fontSize: 11, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 12, fontWeight: 600 }}>
                   Recommended Actions
                 </h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <button style={{
-                    background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.3)",
-                    color: "#c4b5fd", fontSize: 13, fontWeight: 500, padding: "10px 16px", borderRadius: 8, cursor: "pointer",
-                    textAlign: "left", transition: "all 0.15s"
-                  }}>
-                    Review Provider Logs
-                  </button>
-                  <button style={{
-                    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
-                    color: "#d1d5db", fontSize: 13, fontWeight: 500, padding: "10px 16px", borderRadius: 8, cursor: "pointer",
-                    textAlign: "left", transition: "all 0.15s"
-                  }}>
-                    Modify Routing Policy
-                  </button>
+                  {(() => {
+                    const title = selectedAlert.title.toLowerCase();
+                    const actions = [];
+                    const basePath = typeof window !== 'undefined' 
+                      ? window.location.pathname.split('/alerts')[0] 
+                      : '#';
+
+                    if (title.includes("budget")) {
+                      actions.push({ label: "Manage Project Budget", primary: true, href: `${basePath}/settings` });
+                      actions.push({ label: "Review Cost Analytics", primary: false, href: `${basePath}/intelligence` });
+                    } else if (title.includes("api key") || title.includes("auth") || title.includes("unauthorized")) {
+                      actions.push({ label: "Configure API Keys", primary: true, href: `${basePath}/keys` });
+                      actions.push({ label: "Check Routing Rules", primary: false, href: `${basePath}/routing` });
+                    } else if (title.includes("rate limit") || title.includes("quota")) {
+                      actions.push({ label: "Modify Routing Policy", primary: true, href: `${basePath}/routing` });
+                      actions.push({ label: "Add Provider Keys", primary: false, href: `${basePath}/keys` });
+                    } else {
+                      actions.push({ label: "Review Request Logs", primary: true, href: `${basePath}/logs` });
+                      actions.push({ label: "Modify Routing Policy", primary: false, href: `${basePath}/routing` });
+                    }
+
+                    return actions.map((action, i) => (
+                      <button 
+                        key={i}
+                        onClick={() => { window.location.href = action.href; }}
+                        style={{
+                          background: action.primary ? "rgba(124,58,237,0.1)" : "rgba(255,255,255,0.03)",
+                          border: action.primary ? "1px solid rgba(124,58,237,0.3)" : "1px solid rgba(255,255,255,0.08)",
+                          color: action.primary ? "#c4b5fd" : "#d1d5db", 
+                          fontSize: 13, fontWeight: 500, padding: "10px 16px", borderRadius: 8, cursor: "pointer",
+                          textAlign: "left", transition: "all 0.15s"
+                        }}>
+                        {action.label}
+                      </button>
+                    ));
+                  })()}
                 </div>
               </div>
             </div>
