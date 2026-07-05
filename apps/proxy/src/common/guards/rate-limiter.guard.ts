@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { RedisService } from '../../redis/redis.service';
 import { REDIS_KEYS } from '@aura/shared';
+import { AlertsService } from '../../modules/alerts/alerts.service';
 
 /**
  * @pattern Decorator
@@ -47,7 +48,10 @@ return {1, limit - count - 1, math.ceil((tonumber(ARGV[1]) + tonumber(ARGV[6])) 
 
 @Injectable()
 export class RateLimiterGuard implements CanActivate {
-  constructor(@Inject(RedisService) private readonly redis: RedisService) {}
+  constructor(
+    @Inject(RedisService) private readonly redis: RedisService,
+    @Inject(AlertsService) private readonly alerts: AlertsService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -89,6 +93,16 @@ export class RateLimiterGuard implements CanActivate {
         'X-RateLimit-Reset',
         Math.ceil((now + retryAfter * 1000) / 1000).toString(),
       );
+
+      // Fire and forget alert
+      this.alerts.createAlert({
+        projectId: apiKey.projectId,
+        severity: 'warning',
+        title: 'Rate Limit Exceeded',
+        source: 'RateLimiterGuard',
+        description: `API Key exceeded rate limit of ${apiKey.rateLimit} req/min.`,
+        metadata: { limit: apiKey.rateLimit, retryAfter }
+      }).catch(err => console.error("Failed to create rate limit alert:", err));
 
       throw new HttpException(
         {
