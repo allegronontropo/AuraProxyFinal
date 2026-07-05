@@ -842,7 +842,7 @@ export default function LogsTable({
   );
 
   return (
-    <div className="flex-1 flex overflow-hidden bg-white/[0.015] border border-white/[0.08] rounded-[11px] p-5">
+    <div className="flex-1 flex bg-white/[0.015] border border-white/[0.08] rounded-[11px] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12] p-5">
       {/* ── Table area ── */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Filters Top Row */}

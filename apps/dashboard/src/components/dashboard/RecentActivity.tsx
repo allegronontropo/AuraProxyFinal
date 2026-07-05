@@ -265,7 +265,7 @@ export default function RecentActivity({ logs }: RecentActivityProps) {
   const toggle = (id: string) => setExpandedId((prev) => (prev === id ? null : id));
 
   return (
-    <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] px-5 py-4 flex flex-col h-full">
+    <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] px-5 py-4 flex flex-col h-full transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
       {/* Header */}
       <div
         style={{

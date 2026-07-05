@@ -114,7 +114,7 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
                     className={`rounded-[11px] p-4 cursor-pointer transition-all duration-150 ${
                       isActive 
                         ? "bg-white/[0.03] border border-violet-500/40 shadow-[0_0_0_1px_rgba(139,92,246,0.1)]" 
-                        : "bg-white/[0.015] border border-white/[0.08] hover:border-white/20"
+                        : "bg-white/[0.015] border border-white/[0.08] hover:border-white/[0.12] hover:-translate-y-0.5"
                     }`}
                   >
                     <div className="flex justify-between items-start mb-2">

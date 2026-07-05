@@ -100,7 +100,7 @@ function KpiCard({
   sparkColor,
 }: KpiCardProps) {
   return (
-    <div className="flex-1 min-w-0 bg-white/[0.015] border border-white/[0.08] rounded-[11px] px-5 py-4 flex flex-col gap-3">
+    <div className="flex-1 min-w-0 bg-white/[0.015] border border-white/[0.08] rounded-[11px] px-5 py-4 flex flex-col gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
       {/* Header row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">

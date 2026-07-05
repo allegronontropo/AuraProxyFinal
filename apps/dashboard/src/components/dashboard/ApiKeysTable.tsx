@@ -132,7 +132,7 @@ export default function ApiKeysTable({
       </div>
 
       <div className="flex-1 overflow-y-auto p-[22px]">
-        <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] overflow-hidden">
+        <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
           {initialKeys.length === 0 ? (
             <div className="p-12 text-center text-white/40 text-[13px]">
               No API keys found. Generate one to get started.
