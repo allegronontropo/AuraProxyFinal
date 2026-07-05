@@ -3,6 +3,7 @@
 import React, { useState, useTransition } from "react";
 import { saveProviderCredential, deleteProviderCredential } from "@/actions/credentials";
 import { useRouter } from "next/navigation";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 type Credential = {
   id: string;
@@ -125,17 +126,13 @@ export default function ProviderCredentialsSection({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[12px] text-white/50 mb-1.5">Provider</label>
-              <select
+              <CustomSelect
                 value={provider}
-                onChange={(e) => setProvider(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-[13px] text-white focus:outline-none focus:border-violet-500/50 transition-colors appearance-none"
-              >
-                {PROVIDERS.map((p) => (
-                  <option key={p.value} value={p.value} className="bg-[#0d0d0f]">
-                    {p.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setProvider(val)}
+                options={PROVIDERS}
+                className="w-full"
+                buttonClassName="!py-2 !px-3 border-white/10"
+              />
             </div>
             <div>
               <label className="block text-[12px] text-white/50 mb-1.5">Label (optional)</label>
