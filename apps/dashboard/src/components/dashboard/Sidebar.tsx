@@ -2,17 +2,33 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { 
+  LayoutDashboard, 
+  TestTube, 
+  Waypoints, 
+  BarChart2, 
+  Zap, 
+  Bell, 
+  List, 
+  Database, 
+  Key, 
+  Settings, 
+  ShieldCheck, 
+  ArrowLeftRight,
+  LogOut,
+  Hexagon
+} from "lucide-react";
 
 const NAV_ITEMS = [
-  { label: "Overview", icon: "◎", href: (id: string) => `/dashboard/${id}` },
-  { label: "Playground", icon: "🧪", href: (id: string) => `/dashboard/${id}/playground` },
-  { label: "Routing", icon: "⎀", href: (id: string) => `/dashboard/${id}/routing` },
-  { label: "Usage", icon: "📊", href: (id: string) => `/dashboard/${id}/usage` },
-  { label: "Gateway Insights", icon: "⚡", href: (id: string) => `/dashboard/${id}/intelligence` },
-  { label: "Alert Queue", icon: "🔔", href: (id: string) => `/dashboard/${id}/alerts`, badge: true },
-  { label: "Request Logs", icon: "▤", href: (id: string) => `/dashboard/${id}/logs` },
-  { label: "Cache Analytics", icon: "◈", href: (id: string) => `/dashboard/${id}/cache` },
-  { label: "API Keys", icon: "⚿", href: (id: string) => `/dashboard/${id}/keys` },
+  { label: "Overview", icon: LayoutDashboard, href: (id: string) => `/dashboard/${id}` },
+  { label: "Playground", icon: TestTube, href: (id: string) => `/dashboard/${id}/playground` },
+  { label: "Routing", icon: Waypoints, href: (id: string) => `/dashboard/${id}/routing` },
+  { label: "Usage", icon: BarChart2, href: (id: string) => `/dashboard/${id}/usage` },
+  { label: "Gateway Insights", icon: Zap, href: (id: string) => `/dashboard/${id}/intelligence` },
+  { label: "Alert Queue", icon: Bell, href: (id: string) => `/dashboard/${id}/alerts`, badge: true },
+  { label: "Request Logs", icon: List, href: (id: string) => `/dashboard/${id}/logs` },
+  { label: "Cache Analytics", icon: Database, href: (id: string) => `/dashboard/${id}/cache` },
+  { label: "API Keys", icon: Key, href: (id: string) => `/dashboard/${id}/keys` },
 ];
 
 interface SidebarProps {
@@ -35,73 +51,23 @@ export default function Sidebar({
   const pathname = usePathname();
 
   const isActive = (href: string) => {
-    // Exact match for overview, prefix for sub-pages
     if (href === `/dashboard/${projectId}`) return pathname === href;
     return pathname.startsWith(href);
   };
 
   return (
-    <div
-      style={{
-        width: 220,
-        background: "#0D0D0F",
-        borderRight: "1px solid rgba(255,255,255,0.05)",
-        display: "flex",
-        flexDirection: "column",
-        flexShrink: 0,
-        height: "100vh",
-        position: "sticky",
-        top: 0,
-      }}
-    >
+    <div className="w-[220px] bg-[#0D0D0F] border-r border-white/5 flex flex-col shrink-0 h-screen sticky top-0">
       {/* Logo */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 9,
-          padding: "16px 16px 12px",
-          borderBottom: "1px solid rgba(255,255,255,0.05)",
-        }}
-      >
-        <Link
-          href="/workspace"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 9,
-            textDecoration: "none",
-          }}
-        >
-          <div
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: 7,
-              background: "rgba(124,58,237,0.25)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 13,
-              color: "#a78bfa",
-              flexShrink: 0,
-            }}
-          >
-            ⬡
+      <div className="flex items-center gap-2.5 px-4 pt-4 pb-3 border-b border-white/5">
+        <Link href="/workspace" className="flex items-center gap-2.5 no-underline group">
+          <div className="w-7 h-7 rounded-md bg-violet-500/25 flex items-center justify-center text-violet-400 shrink-0 group-hover:bg-violet-500/30 transition-colors">
+            <Hexagon size={16} />
           </div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#f9fafb", letterSpacing: "-0.01em" }}>
+            <div className="text-[13px] font-bold text-white tracking-tight">
               AURA
             </div>
-            <div
-              style={{
-                fontSize: 8,
-                color: "rgba(124,92,252,0.8)",
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-                fontFamily: "monospace",
-              }}
-            >
+            <div className="text-[8px] text-violet-400/80 tracking-[0.2em] uppercase font-mono">
               PROXY
             </div>
           </div>
@@ -109,57 +75,27 @@ export default function Sidebar({
       </div>
 
       {/* Navigation */}
-      <nav style={{ flex: 1, padding: "10px 8px", overflowY: "auto" }}>
+      <nav className="flex-1 px-2 py-2.5 overflow-y-auto">
         {NAV_ITEMS.map((item) => {
           const href = item.href(projectId);
           const active = isActive(href);
+          const Icon = item.icon;
           return (
             <Link
               key={item.label}
               href={href}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 9,
-                padding: "7px 10px",
-                borderRadius: 8,
-                fontSize: 12.5,
-                textDecoration: "none",
-                background: active ? "rgba(124,58,237,0.12)" : "transparent",
-                color: active ? "#a78bfa" : "#6b7280",
-                marginBottom: 2,
-                transition: "all 0.13s",
-              }}
-              onMouseEnter={(e) => {
-                if (!active) {
-                  e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-                  e.currentTarget.style.color = "#9ca3af";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!active) {
-                  e.currentTarget.style.background = "transparent";
-                  e.currentTarget.style.color = "#6b7280";
-                }
-              }}
+              className={`group flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[12.5px] no-underline mb-0.5 transition-all duration-150 ${
+                active 
+                  ? "bg-violet-500/10 text-violet-400" 
+                  : "text-white/50 hover:bg-white/[0.03] hover:text-white/80"
+              }`}
             >
-              <span style={{ fontSize: 14, width: 16, textAlign: "center", flexShrink: 0 }}>
-                {item.icon}
-              </span>
-              <span style={{ flex: 1 }}>{item.label}</span>
+              <div className="w-4 flex items-center justify-center shrink-0">
+                <Icon size={14} className={active ? "text-violet-400" : "text-white/40 group-hover:text-white/70"} />
+              </div>
+              <span className="flex-1">{item.label}</span>
               {item.badge && alertCount > 0 && (
-                <span
-                  style={{
-                    background: "#ef4444",
-                    color: "#fff",
-                    fontSize: 9,
-                    fontWeight: 700,
-                    padding: "1px 5px",
-                    borderRadius: 10,
-                    minWidth: 16,
-                    textAlign: "center",
-                  }}
-                >
+                <span className="bg-red-500/90 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center">
                   {alertCount}
                 </span>
               )}
@@ -168,36 +104,20 @@ export default function Sidebar({
         })}
 
         {/* Divider */}
-        <div
-          style={{
-            height: 1,
-            background: "rgba(255,255,255,0.05)",
-            margin: "10px 4px",
-          }}
-        />
+        <div className="h-px bg-white/5 mx-1 my-2.5" />
 
         {/* Settings */}
         <Link
           href={`/dashboard/${projectId}/settings`}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 9,
-            padding: "7px 10px",
-            borderRadius: 8,
-            fontSize: 12.5,
-            textDecoration: "none",
-            background: pathname.startsWith(`/dashboard/${projectId}/settings`)
-              ? "rgba(124,58,237,0.12)"
-              : "transparent",
-            color: pathname.startsWith(`/dashboard/${projectId}/settings`)
-              ? "#a78bfa"
-              : "#6b7280",
-            marginBottom: 2,
-            transition: "all 0.13s",
-          }}
+          className={`group flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[12.5px] no-underline mb-0.5 transition-all duration-150 ${
+            pathname.startsWith(`/dashboard/${projectId}/settings`)
+              ? "bg-violet-500/10 text-violet-400"
+              : "text-white/50 hover:bg-white/[0.03] hover:text-white/80"
+          }`}
         >
-          <span style={{ fontSize: 14, width: 16, textAlign: "center" }}>⚙</span>
+          <div className="w-4 flex items-center justify-center shrink-0">
+            <Settings size={14} className={pathname.startsWith(`/dashboard/${projectId}/settings`) ? "text-violet-400" : "text-white/40 group-hover:text-white/70"} />
+          </div>
           <span>Settings</span>
         </Link>
         
@@ -205,145 +125,54 @@ export default function Sidebar({
         {isAdmin && (
           <Link
             href="/admin"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 9,
-              padding: "7px 10px",
-              borderRadius: 8,
-              fontSize: 12.5,
-              textDecoration: "none",
-              background: pathname.startsWith("/admin")
-                ? "rgba(124,58,237,0.12)"
-                : "transparent",
-              color: pathname.startsWith("/admin")
-                ? "#a78bfa"
-                : "#6b7280",
-              marginTop: 10,
-              marginBottom: 2,
-              transition: "all 0.13s",
-            }}
+            className={`group flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-[12.5px] no-underline mt-2.5 mb-0.5 transition-all duration-150 ${
+              pathname.startsWith("/admin")
+                ? "bg-violet-500/10 text-violet-400"
+                : "text-white/50 hover:bg-white/[0.03] hover:text-white/80"
+            }`}
           >
-            <span style={{ fontSize: 14, width: 16, textAlign: "center" }}>🛡️</span>
+            <div className="w-4 flex items-center justify-center shrink-0">
+              <ShieldCheck size={14} className={pathname.startsWith("/admin") ? "text-violet-400" : "text-white/40 group-hover:text-white/70"} />
+            </div>
             <span>Admin Panel</span>
           </Link>
         )}
       </nav>
 
       {/* Workspace selector link */}
-      <div
-        style={{
-          padding: "8px 12px",
-          borderTop: "1px solid rgba(255,255,255,0.05)",
-        }}
-      >
+      <div className="px-3 py-2 border-t border-white/5">
         <Link
           href="/workspace"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "6px 8px",
-            borderRadius: 7,
-            textDecoration: "none",
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.06)",
-            transition: "all 0.13s",
-          }}
+          className="flex items-center gap-2 px-2 py-1.5 rounded-md no-underline bg-white/[0.02] border border-white/5 transition-all duration-150 hover:bg-white/[0.04] hover:border-white/10 group"
         >
-          <div
-            style={{
-              width: 22,
-              height: 22,
-              borderRadius: 5,
-              background: "rgba(124,58,237,0.2)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 9,
-              color: "#a78bfa",
-              fontWeight: 700,
-              flexShrink: 0,
-            }}
-          >
-            ⇄
+          <div className="w-5 h-5 rounded bg-violet-500/20 flex items-center justify-center text-violet-400 shrink-0 group-hover:bg-violet-500/30 transition-colors">
+            <ArrowLeftRight size={10} />
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 500,
-                color: "#9ca3af",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
+          <div className="flex-1 min-w-0">
+            <div className="text-[11px] font-medium text-white/70 whitespace-nowrap overflow-hidden text-ellipsis group-hover:text-white/90 transition-colors">
               {projectName}
             </div>
-            <div style={{ fontSize: 9, color: "#4b5563" }}>Switch workspace</div>
+            <div className="text-[9px] text-white/40">Switch workspace</div>
           </div>
         </Link>
       </div>
 
       {/* User footer */}
-      <div
-        style={{
-          padding: "12px 12px 14px",
-          borderTop: "1px solid rgba(255,255,255,0.05)",
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: "50%",
-            background: "rgba(124,58,237,0.2)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 10,
-            color: "#a78bfa",
-            fontWeight: 600,
-            flexShrink: 0,
-          }}
-        >
+      <div className="px-3 py-3 pb-3.5 border-t border-white/5 flex items-center gap-2">
+        <div className="w-7 h-7 rounded-full bg-violet-500/20 flex items-center justify-center text-[10px] text-violet-400 font-semibold shrink-0">
           {userInitials}
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 500,
-              color: "#d1d5db",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
+        <div className="flex-1 min-w-0">
+          <div className="text-[12px] font-medium text-white/80 whitespace-nowrap overflow-hidden text-ellipsis">
             {userName}
           </div>
         </div>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#4b5563",
-            cursor: "pointer",
-            fontSize: 11,
-            padding: "2px 4px",
-            borderRadius: 4,
-            transition: "color 0.13s",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#9ca3af")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#4b5563")}
+          className="bg-transparent border-none text-white/40 cursor-pointer text-[11px] p-1 rounded hover:text-white/80 hover:bg-white/5 transition-all"
           title="Sign out"
         >
-          ⎋
+          <LogOut size={12} />
         </button>
       </div>
     </div>
