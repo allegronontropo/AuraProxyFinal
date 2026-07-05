@@ -102,14 +102,6 @@ export class ChatService {
           // Ignore invalid fallback models
         }
       }
-    } else {
-      // Use default provider chains if no explicit fallback models are set
-      const defaultProviders = DEFAULT_FALLBACK_CHAINS[primaryProvider] ?? [];
-      for (const p of defaultProviders) {
-        if (p !== primaryProvider) {
-          chain.push({ providerName: p, modelName: request.model }); 
-        }
-      }
     }
 
     let lastError: Error | null = null;
@@ -122,8 +114,17 @@ export class ChatService {
       try {
         provider = await this.providers.getProviderForProject(providerName, project.id);
       } catch (err: any) {
-        // No key configured for this fallback provider — skip it silently
-        this.logger.warn(`Skipping fallback to "${providerName}": ${err.message}`);
+        // No key configured for this provider
+        this.logger.warn(`Skipping provider "${providerName}": ${err.message}`);
+        
+        this.alerts.createAlert({
+          projectId: project.id,
+          severity: 'warning',
+          title: `API Key Not Configured: ${providerName}`,
+          source: 'ChatService',
+          description: `Attempted to route to ${providerName} but no API key is configured.`,
+        }).catch(e => this.logger.error(`Failed to create missing key alert: ${e.message}`));
+
         if (providerName === primaryProvider) {
           primaryError = err;
         } else {
@@ -139,12 +140,12 @@ export class ChatService {
           this.logger.warn(`Falling back to "${providerName}:${modelName}" after previous model failed`);
           this.alerts.createAlert({
             projectId: project.id,
-            severity: 'warning',
+            severity: 'critical',
             title: `Fallback Triggered: ${providerName}`,
             source: 'ChatService',
             description: `Primary provider ${primaryProvider} failed. Routed request to ${providerName}.`,
-            metadata: { primaryError: primaryError?.message }
-          });
+            metadata: { primaryError: primaryError ? primaryError.message : null }
+          }).catch(err => this.logger.error(`Failed to create warning alert: ${err.message}`));
         }
 
         const currentRequest = { 
@@ -200,8 +201,34 @@ export class ChatService {
           `Provider "${providerName}" failed: ${this.simplifyErrorMessage(err.message)}`
         );
 
+        const lowerMsg = err.message.toLowerCase();
+        if (
+          lowerMsg.includes('429') ||
+          lowerMsg.includes('rate limit') ||
+          lowerMsg.includes('quota') ||
+          lowerMsg.includes('too many requests')
+        ) {
+          this.alerts.createAlert({
+            projectId: project.id,
+            severity: 'warning',
+            title: `Rate Limit Exceeded: ${providerName}`,
+            source: 'ChatService',
+            description: `The provider ${providerName} rejected the request due to rate limits or exhausted quota.`,
+            metadata: { error: err.message }
+          }).catch(e => this.logger.error(e.message));
+        }
+
         // Auth errors: abort the chain — other providers won't fix a wrong key
         if (isNonRetryableError(err.message)) {
+          this.alerts.createAlert({
+            projectId: project.id,
+            severity: 'critical',
+            title: `Invalid API Key: ${providerName}`,
+            source: 'ChatService',
+            description: `The configured API key for ${providerName} is invalid or unauthorized.`,
+            metadata: { error: err.message }
+          }).catch(e => this.logger.error(e.message));
+
           this.logger.warn(`Auth error on "${providerName}" — aborting fallback chain`);
           break;
         }
@@ -219,14 +246,16 @@ export class ChatService {
       finalMessage += ` (Fallbacks also failed: ${fallbackErrors.join(', ')})`;
     }
 
-    this.alerts.createAlert({
+    // Since we now generate specific alerts for rate limits/missing keys above,
+    // this final alert truly means the entire routing system failed to find a working provider.
+    await this.alerts.createAlert({
       projectId: project.id,
       severity: 'critical',
-      title: 'Routing Failure: All Providers Exhausted',
+      title: 'System Down: All Routing Providers Exhausted',
       source: 'ChatService',
       description: finalMessage,
       metadata: {
-        primaryError: primaryError?.message,
+        primaryError: primaryError ? primaryError.message : null,
         fallbackErrors,
       }
     });
