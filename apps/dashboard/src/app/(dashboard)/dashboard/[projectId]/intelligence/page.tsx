@@ -11,21 +11,17 @@ import { Activity, ShieldCheck, Zap, DollarSign, Clock, Target, Trophy, AlertTri
 
 function ProviderChip({ provider }: { provider: string }) {
   const map: Record<string, { bg: string; color: string }> = {
-    openai:    { bg: "rgba(16,163,127,0.15)", color: "#10a37f" },
-    anthropic: { bg: "rgba(210,105,30,0.15)", color: "#d2691e" },
-    google:    { bg: "rgba(66,133,244,0.15)", color: "#4285f4" },
-    groq:      { bg: "rgba(167,139,250,0.15)", color: "#a78bfa" },
-    azure:     { bg: "rgba(0,120,212,0.15)",   color: "#0078d4" },
-    cohere:    { bg: "rgba(52,211,153,0.15)",  color: "#34d399" },
+    openai:    { bg: "bg-emerald-500/15", color: "text-emerald-500" },
+    anthropic: { bg: "bg-amber-500/15", color: "text-amber-500" },
+    google:    { bg: "bg-blue-500/15", color: "text-blue-500" },
+    groq:      { bg: "bg-violet-500/15", color: "text-violet-500" },
+    azure:     { bg: "bg-sky-500/15",   color: "text-sky-500" },
+    cohere:    { bg: "bg-teal-500/15",  color: "text-teal-500" },
   };
-  const cfg = map[provider.toLowerCase()] ?? { bg: "rgba(255,255,255,0.08)", color: "#9ca3af" };
+  const cfg = map[provider.toLowerCase()] ?? { bg: "bg-white/10", color: "text-gray-400" };
+  
   return (
-    <span style={{
-      display: "inline-flex", alignItems: "center", justifyContent: "center",
-      background: cfg.bg, color: cfg.color,
-      fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 6,
-      textTransform: "capitalize", letterSpacing: "0.02em"
-    }}>
+    <span className={`inline-flex items-center justify-center ${cfg.bg} ${cfg.color} text-[11px] font-bold px-2.5 py-1 rounded-md capitalize tracking-[0.02em]`}>
       {provider}
     </span>
   );
@@ -39,8 +35,8 @@ function RadialProgress({ percentage, color, label, size = 120, strokeWidth = 8 
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div style={{ position: "relative", width: size, height: size, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
         {/* Track */}
         <circle cx={size / 2} cy={size / 2} r={radius} fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth={strokeWidth} />
         {/* Progress */}
@@ -48,12 +44,14 @@ function RadialProgress({ percentage, color, label, size = 120, strokeWidth = 8 
           cx={size / 2} cy={size / 2} r={radius} fill="transparent" 
           stroke={color} strokeWidth={strokeWidth} strokeLinecap="round"
           strokeDasharray={circumference} strokeDashoffset={strokeDashoffset}
-          style={{ transition: "stroke-dashoffset 1s ease-in-out" }}
+          className="transition-[stroke-dashoffset] duration-1000 ease-in-out"
         />
       </svg>
-      <div style={{ position: "absolute", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <span style={{ fontSize: size * 0.22, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{percentage.toFixed(1)}<span style={{ fontSize: size * 0.12 }}>%</span></span>
-        {label && <span style={{ fontSize: size * 0.1, color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", marginTop: 2 }}>{label}</span>}
+      <div className="absolute flex flex-col items-center">
+        <span className="font-extrabold text-white leading-none" style={{ fontSize: size * 0.22 }}>
+          {percentage.toFixed(1)}<span style={{ fontSize: size * 0.12 }}>%</span>
+        </span>
+        {label && <span className="text-gray-400 font-semibold uppercase mt-0.5" style={{ fontSize: size * 0.1 }}>{label}</span>}
       </div>
     </div>
   );
@@ -84,199 +82,177 @@ export default async function GatewayInsightsPage({
   const formatMs = (v: number) => `${Math.round(v)}ms`;
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", background: "#09090b" }}>
+    <div className="flex-1 flex flex-col overflow-hidden">
       {/* TopBar */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 24px", height: 60, flexShrink: 0,
-        background: "transparent",
-        borderBottom: "1px solid rgba(255,255,255,0.05)",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div className="flex items-center justify-between px-5 h-[52px] border-b border-white/5 shrink-0 bg-[#0D0D0F]/80">
+        <div className="flex items-center gap-3">
           <Activity className="w-5 h-5 text-gray-400" />
-          <span style={{ fontSize: 16, fontWeight: 600, color: "#f9fafb" }}>Gateway Insights</span>
+          <span className="text-[16px] font-semibold text-white/90">Gateway Insights</span>
         </div>
       </div>
 
-      <style>{`
-        .bento-card {
-          background: linear-gradient(145deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.005) 100%);
-          border: 1px solid rgba(255,255,255,0.06);
-          border-radius: 20px;
-          padding: 24px;
-          position: relative;
-          overflow: hidden;
-          transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-        .bento-card:hover {
-          transform: translateY(-2px);
-          border-color: rgba(255,255,255,0.1);
-        }
-        .glow-bg {
-          position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; 
-          border-radius: 50%; filter: blur(60px); opacity: 0.15; z-index: 0; pointer-events: none;
-        }
-        .content-z { position: relative; z-index: 1; }
-      `}</style>
-
-      <div style={{ flex: 1, overflowY: "auto", padding: "32px 40px", display: "flex", flexDirection: "column", gap: 24 }}>
+      <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6">
         {isEmpty ? (
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "center",
-            height: 300, background: "rgba(255,255,255,0.015)",
-            border: "1px dashed rgba(255,255,255,0.1)", borderRadius: 11,
-            color: "#6b7280", fontSize: 14
-          }}>
+          <div className="flex items-center justify-center h-[300px] bg-white/[0.015] border border-dashed border-white/10 rounded-[11px] text-gray-500 text-sm">
             No request data available yet. Make an API request to see gateway insights.
           </div>
         ) : (
           <>
             {/* ── BENTO ROW 1: Hero & Impact ── */}
-            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24 }}>
+            <div className="grid grid-cols-[2fr_1fr] gap-6">
               
               {/* HERO: Gateway Status */}
-              <div className="bento-card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div className="glow-bg" style={{ background: status.successRate > 95 ? "#10b981" : "#f59e0b" }} />
-                <div className="content-z" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div className="group relative overflow-hidden bg-white/[0.015] border border-white/[0.08] rounded-[11px] p-6 flex items-center justify-between transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
+                {/* Aura Shader Gradient Glow */}
+                <div 
+                  className="absolute -top-12 -right-12 w-[200px] h-[200px] rounded-full blur-[60px] opacity-20 pointer-events-none transition-opacity duration-500 group-hover:opacity-30"
+                  style={{ background: status.successRate > 95 ? "#22c55e" : "#f59e0b" }} 
+                />
+                
+                <div className="relative z-10 flex flex-col gap-4">
+                  <div className="flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                    <span style={{ fontSize: 14, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.05em" }}>Gateway Health</span>
+                    <span className="text-sm font-semibold text-gray-400 uppercase tracking-widest">Gateway Health</span>
                   </div>
-                  <h2 style={{ fontSize: 32, fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>
+                  <h2 className="text-[32px] font-extrabold text-white leading-tight">
                     Your API is running smoothly.<br/>
-                    <span style={{ color: "#9ca3af", fontWeight: 500, fontSize: 18 }}>Routing requests with high reliability.</span>
+                    <span className="text-gray-400 font-medium text-lg">Routing requests with high reliability.</span>
                   </h2>
-                  <div style={{ display: "flex", gap: 24, marginTop: 12 }}>
+                  <div className="flex gap-8 mt-2">
                     <div>
-                      <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 600, marginBottom: 4 }}>TOTAL TRAFFIC</div>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: "#f9fafb" }}>{status.totalRequests.toLocaleString()}</div>
+                      <div className="text-xs text-gray-500 font-semibold mb-1">TOTAL TRAFFIC</div>
+                      <div className="text-xl font-bold text-gray-100">{status.totalRequests.toLocaleString()}</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 600, marginBottom: 4 }}>AVG LATENCY</div>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: "#f9fafb" }}>{formatMs(status.avgLatencyMs)}</div>
+                      <div className="text-xs text-gray-500 font-semibold mb-1">AVG LATENCY</div>
+                      <div className="text-xl font-bold text-gray-100">{formatMs(status.avgLatencyMs)}</div>
                     </div>
                   </div>
                 </div>
-                <div className="content-z" style={{ paddingRight: 24 }}>
-                  <RadialProgress percentage={status.successRate} color={status.successRate > 95 ? "#10b981" : "#f59e0b"} label="Success" size={140} strokeWidth={10} />
+                <div className="relative z-10 pr-6">
+                  <RadialProgress percentage={status.successRate} color={status.successRate > 95 ? "#22c55e" : "#f59e0b"} label="Success" size={140} strokeWidth={10} />
                 </div>
               </div>
 
               {/* IMPACT: Semantic Cache Savings */}
-              <div className="bento-card" style={{ display: "flex", flexDirection: "column" }}>
-                <div className="glow-bg" style={{ background: "#3b82f6", top: "auto", bottom: -50 }} />
-                <div className="content-z" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24 }}>
-                  <Zap className="w-5 h-5 text-blue-400" />
-                  <span style={{ fontSize: 14, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.05em" }}>Cache Impact</span>
+              <div className="group relative overflow-hidden bg-white/[0.015] border border-white/[0.08] rounded-[11px] p-6 flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
+                {/* Aura Shader Gradient Glow */}
+                <div 
+                  className="absolute -bottom-12 -right-12 w-[180px] h-[180px] rounded-full blur-[60px] opacity-[0.15] pointer-events-none transition-opacity duration-500 group-hover:opacity-25"
+                  style={{ background: "#7c5cfc" }} 
+                />
+                
+                <div className="relative z-10 flex items-center gap-2 mb-6">
+                  <Zap className="w-5 h-5 text-violet-400" />
+                  <span className="text-sm font-semibold text-gray-400 uppercase tracking-widest">Cache Impact</span>
                 </div>
                 
-                <div className="content-z" style={{ display: "flex", flexDirection: "column", gap: 24, flex: 1, justifyContent: "center" }}>
+                <div className="relative z-10 flex flex-col gap-6 flex-1 justify-center">
                   <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                    <div className="flex items-center gap-1.5 mb-1">
                       <DollarSign className="w-4 h-4 text-emerald-400" />
-                      <span style={{ fontSize: 13, color: "#9ca3af", fontWeight: 500 }}>Money Saved</span>
+                      <span className="text-[13px] text-gray-400 font-medium">Money Saved</span>
                     </div>
-                    <div style={{ fontSize: 36, fontWeight: 800, color: "#fff" }}>{formatMoney(status.costSavedUsd)}</div>
+                    <div className="text-3xl font-extrabold text-white">{formatMoney(status.costSavedUsd)}</div>
                   </div>
                   <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                      <Clock className="w-4 h-4 text-purple-400" />
-                      <span style={{ fontSize: 13, color: "#9ca3af", fontWeight: 500 }}>Time Saved</span>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Clock className="w-4 h-4 text-sky-400" />
+                      <span className="text-[13px] text-gray-400 font-medium">Time Saved</span>
                     </div>
-                    <div style={{ fontSize: 36, fontWeight: 800, color: "#fff" }}>{formatMs(status.timeSavedMs)}</div>
+                    <div className="text-3xl font-extrabold text-white">{formatMs(status.timeSavedMs)}</div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* ── BENTO ROW 2: Provider Race & Top Models ── */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: 24 }}>
+            <div className="grid grid-cols-[1fr_2fr] gap-6">
               
               {/* PROVIDER LEADERBOARD */}
-              <div className="bento-card" style={{ display: "flex", flexDirection: "column" }}>
-                <div className="content-z" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24 }}>
+              <div className="group relative overflow-hidden bg-white/[0.015] border border-white/[0.08] rounded-[11px] p-6 flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
+                <div className="relative z-10 flex items-center gap-2 mb-6">
                   <Trophy className="w-5 h-5 text-amber-400" />
-                  <span style={{ fontSize: 14, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.05em" }}>Speed Leaderboard</span>
+                  <span className="text-sm font-semibold text-gray-400 uppercase tracking-widest">Speed Leaderboard</span>
                 </div>
                 
-                <div className="content-z" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div className="relative z-10 flex flex-col gap-4">
                   {leaderboard.map((prov, i) => {
-                    // Max latency for bar scaling (assume max 3000ms for visual scale, or max of current)
                     const maxLat = Math.max(...leaderboard.map(l => l.avgLatencyMs), 1000);
                     const widthPct = Math.min(100, Math.max(5, (prov.avgLatencyMs / maxLat) * 100));
                     
                     return (
-                      <div key={prov.provider} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: i === 0 ? "#fbbf24" : "#6b7280" }}>#{i + 1}</span>
-                            <span style={{ fontSize: 13, fontWeight: 600, color: "#f9fafb", textTransform: "capitalize" }}>{prov.provider}</span>
+                      <div key={prov.provider} className="flex flex-col gap-1.5">
+                        <div className="flex justify-between items-baseline">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-bold ${i === 0 ? "text-amber-400" : "text-gray-500"}`}>#{i + 1}</span>
+                            <span className="text-[13px] font-semibold text-gray-100 capitalize">{prov.provider}</span>
                           </div>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{formatMs(prov.avgLatencyMs)}</span>
+                          <span className="text-[13px] font-bold text-white">{formatMs(prov.avgLatencyMs)}</span>
                         </div>
                         {/* Bar */}
-                        <div style={{ width: "100%", height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
-                          <div style={{ 
-                            height: "100%", width: `${widthPct}%`, 
-                            background: i === 0 ? "linear-gradient(90deg, #f59e0b, #fbbf24)" : "rgba(255,255,255,0.2)",
-                            borderRadius: 3
-                          }} />
+                        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{ 
+                              width: `${widthPct}%`, 
+                              background: i === 0 ? "linear-gradient(90deg, #f59e0b, #fbbf24)" : "rgba(255,255,255,0.2)"
+                            }} 
+                          />
                         </div>
                         {/* Success rate mini indicator if it's struggling */}
                         {prov.successRate < 95 && (
-                          <div style={{ fontSize: 10, color: "#ef4444", display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+                          <div className="text-[10px] text-red-400 flex items-center gap-1 mt-0.5">
                             <AlertTriangle className="w-3 h-3" /> Error rate: {(100 - prov.successRate).toFixed(1)}%
                           </div>
                         )}
                       </div>
                     );
                   })}
-                  {leaderboard.length === 0 && <span style={{ color: "#6b7280", fontSize: 13 }}>No provider data.</span>}
+                  {leaderboard.length === 0 && <span className="text-gray-500 text-[13px]">No provider data.</span>}
                 </div>
               </div>
 
               {/* TOP MODELS TABLE */}
-              <div className="bento-card" style={{ display: "flex", flexDirection: "column" }}>
-                <div className="content-z" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
-                  <Target className="w-5 h-5 text-pink-400" />
-                  <span style={{ fontSize: 14, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.05em" }}>Top Models (7 Days)</span>
+              <div className="group relative overflow-hidden bg-white/[0.015] border border-white/[0.08] rounded-[11px] p-6 flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
+                <div className="relative z-10 flex items-center gap-2 mb-5">
+                  <Target className="w-5 h-5 text-violet-400" />
+                  <span className="text-sm font-semibold text-gray-400 uppercase tracking-widest">Top Models (7 Days)</span>
                 </div>
 
-                <div className="content-z" style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <div className="relative z-10 overflow-x-auto">
+                  <table className="w-full border-collapse">
                     <thead>
-                      <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                        <th style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase" }}>Model</th>
-                        <th style={{ padding: "12px 16px", textAlign: "left", fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase" }}>Provider</th>
-                        <th style={{ padding: "12px 16px", textAlign: "right", fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase" }}>Requests</th>
-                        <th style={{ padding: "12px 16px", textAlign: "right", fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase" }}>Success Rate</th>
-                        <th style={{ padding: "12px 16px", textAlign: "right", fontSize: 11, fontWeight: 600, color: "#9ca3af", textTransform: "uppercase" }}>Cost</th>
+                      <tr className="border-b border-white/[0.06]">
+                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Model</th>
+                        <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Provider</th>
+                        <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Requests</th>
+                        <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Success Rate</th>
+                        <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Cost</th>
                       </tr>
                     </thead>
                     <tbody>
                       {topModels.map((row, i) => (
-                        <tr key={i} style={{ borderBottom: i === topModels.length - 1 ? "none" : "1px solid rgba(255,255,255,0.03)" }}>
-                          <td style={{ padding: "16px 16px", fontSize: 14, fontWeight: 600, color: "#f9fafb" }}>{row.model}</td>
-                          <td style={{ padding: "16px 16px" }}><ProviderChip provider={row.provider} /></td>
-                          <td style={{ padding: "16px 16px", textAlign: "right", fontSize: 13, color: "#d1d5db", fontWeight: 500 }}>{row._count.id.toLocaleString()}</td>
-                          <td style={{ padding: "16px 16px", textAlign: "right" }}>
-                            <span style={{
-                              display: "inline-flex", alignItems: "center", gap: 6,
-                              color: row.successRate > 95 ? "#10b981" : (row.successRate > 80 ? "#f59e0b" : "#ef4444"),
-                              fontSize: 13, fontWeight: 600
-                            }}>
-                              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "currentColor", boxShadow: "0 0 6px currentColor" }} />
+                        <tr key={i} className={i === topModels.length - 1 ? "" : "border-b border-white/[0.03]"}>
+                          <td className="px-4 py-4 text-[14px] font-semibold text-gray-100">{row.model}</td>
+                          <td className="px-4 py-4"><ProviderChip provider={row.provider} /></td>
+                          <td className="px-4 py-4 text-right text-[13px] text-gray-300 font-medium">{row._count.id.toLocaleString()}</td>
+                          <td className="px-4 py-4 text-right">
+                            <span className={`inline-flex items-center gap-1.5 text-[13px] font-semibold ${
+                              row.successRate > 95 ? "text-emerald-400" : (row.successRate > 80 ? "text-amber-400" : "text-red-400")
+                            }`}>
+                              <span className="w-1.5 h-1.5 rounded-full bg-current shadow-[0_0_6px_currentColor]" />
                               {row.successRate.toFixed(1)}%
                             </span>
                           </td>
-                          <td style={{ padding: "16px 16px", textAlign: "right", fontSize: 13, color: "#10b981", fontWeight: 700 }}>
+                          <td className="px-4 py-4 text-right text-[13px] text-emerald-400 font-bold">
                             ${(row._sum.costUsd ?? 0).toFixed(4)}
                           </td>
                         </tr>
                       ))}
                       {topModels.length === 0 && (
                         <tr>
-                          <td colSpan={5} style={{ padding: "24px", textAlign: "center", color: "#6b7280", fontSize: 13 }}>No models used in the last 7 days.</td>
+                          <td colSpan={5} className="p-6 text-center text-gray-500 text-[13px]">No models used in the last 7 days.</td>
                         </tr>
                       )}
                     </tbody>
