@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { label: "Overview", icon: "◎", href: (id: string) => `/dashboard/${id}` },
   { label: "Playground", icon: "🧪", href: (id: string) => `/dashboard/${id}/playground` },
   { label: "Routing", icon: "⎀", href: (id: string) => `/dashboard/${id}/routing` },
+  { label: "Usage", icon: "📊", href: (id: string) => `/dashboard/${id}/usage` },
   { label: "Gateway Insights", icon: "⚡", href: (id: string) => `/dashboard/${id}/intelligence` },
   { label: "Alert Queue", icon: "🔔", href: (id: string) => `/dashboard/${id}/alerts`, badge: true },
   { label: "Request Logs", icon: "▤", href: (id: string) => `/dashboard/${id}/logs` },
