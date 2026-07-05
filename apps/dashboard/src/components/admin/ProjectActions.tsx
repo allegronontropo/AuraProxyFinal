@@ -14,7 +14,7 @@ export default function ProjectActions({
 }) {
   const [isPending, startTransition] = useTransition();
   const [showBudgetModal, setShowBudgetModal] = useState(false);
-  const [newBudget, setNewBudget] = useState(currentBudget);
+  const [newBudget, setNewBudget] = useState<number | string>(currentBudget ?? 0);
 
   const handleToggleSuspension = () => {
     startTransition(async () => {
@@ -24,8 +24,11 @@ export default function ProjectActions({
 
   const handleOverrideBudget = (e: React.FormEvent) => {
     e.preventDefault();
+    const parsedBudget = typeof newBudget === 'string' ? parseFloat(newBudget) : newBudget;
+    if (isNaN(parsedBudget)) return;
+    
     startTransition(async () => {
-      await overrideProjectBudget(projectId, newBudget);
+      await overrideProjectBudget(projectId, parsedBudget);
       setShowBudgetModal(false);
     });
   };
@@ -67,7 +70,7 @@ export default function ProjectActions({
                   step="0.01"
                   required
                   value={newBudget}
-                  onChange={(e) => setNewBudget(parseFloat(e.target.value))}
+                  onChange={(e) => setNewBudget(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-[14px] text-white focus:outline-none focus:border-violet-500/50"
                 />
               </div>
