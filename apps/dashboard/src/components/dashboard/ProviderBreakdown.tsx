@@ -105,17 +105,7 @@ function EmptyState() {
 export default function ProviderBreakdown({ providers }: ProviderBreakdownProps) {
   if (!providers || providers.length === 0) {
     return (
-      <div
-        style={{
-          background: "rgba(255,255,255,0.015)",
-          border: "1px solid rgba(255,255,255,0.07)",
-          borderRadius: 11,
-          padding: "18px 20px",
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-        }}
-      >
+      <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] px-5 py-4 flex flex-col h-full">
         <div style={{ fontSize: 13, fontWeight: 600, color: "#f9fafb", marginBottom: 4 }}>
           Provider Breakdown
         </div>
@@ -130,18 +120,7 @@ export default function ProviderBreakdown({ providers }: ProviderBreakdownProps)
   const totalRequests = providers.reduce((s, p) => s + p._count.id, 0);
 
   return (
-    <div
-      style={{
-        background: "rgba(255,255,255,0.015)",
-        border: "1px solid rgba(255,255,255,0.07)",
-        borderRadius: 11,
-        padding: "18px 20px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 14,
-        height: "100%",
-      }}
-    >
+    <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] px-5 py-4 flex flex-col gap-[14px] h-full">
       {/* Header */}
       <div>
         <div style={{ fontSize: 13, fontWeight: 600, color: "#f9fafb" }}>Provider Breakdown</div>
