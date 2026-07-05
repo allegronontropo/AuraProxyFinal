@@ -5,6 +5,8 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import crypto from "crypto";
 import { revalidatePath } from "next/cache";
+import { redis } from "@aura/redis";
+import { REDIS_KEYS } from "@aura/shared";
 
 // ─── Create Project (Workspace) ───────────────────────────────────────────────
 
@@ -84,6 +86,18 @@ export async function updateProject(
         ...(data.budgetPeriod && { budgetPeriod: data.budgetPeriod }),
       },
     });
+
+    // Invalidate API key cache in Redis so that the proxy picks up the new budget limit immediately
+    try {
+      const apiKeys = await prisma.apiKey.findMany({ where: { projectId } });
+      for (const key of apiKeys) {
+        await redis.del(REDIS_KEYS.apiKeyCache(key.keyHash));
+        await redis.del(REDIS_KEYS.apiKeyCache(`id:${key.id}`));
+      }
+    } catch (redisError) {
+      console.error("Failed to invalidate Redis cache:", redisError);
+    }
+
     revalidatePath(`/dashboard/${projectId}`);
     revalidatePath(`/dashboard/${projectId}/settings`);
     return { success: true };
