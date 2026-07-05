@@ -19,16 +19,18 @@ function timeAgo(date: Date) {
 export default async function AdminTracesPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const params = await searchParams;
+
   // Construct Prisma where clause based on filters
   const where: import("@prisma/client").Prisma.RequestLogWhereInput = {};
-  if (searchParams.model) {
-    where.model = { contains: searchParams.model as string, mode: "insensitive" };
+  if (params.model) {
+    where.model = { contains: params.model as string, mode: "insensitive" };
   }
-  if (searchParams.status === "200") {
+  if (params.status === "200") {
     where.statusCode = 200;
-  } else if (searchParams.status === "error") {
+  } else if (params.status === "error") {
     where.statusCode = { not: 200 };
   }
 
@@ -55,12 +57,12 @@ export default async function AdminTracesPage({
           type="text" 
           name="model" 
           placeholder="Filter by model (e.g. gpt-4)" 
-          defaultValue={searchParams.model as string || ""} 
+          defaultValue={params.model as string || ""} 
           style={{ padding: "8px 12px", borderRadius: "6px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "white", flex: 1, maxWidth: "300px" }} 
         />
         <select 
           name="status" 
-          defaultValue={searchParams.status as string || ""} 
+          defaultValue={params.status as string || ""} 
           style={{ padding: "8px 12px", borderRadius: "6px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "white", outline: "none" }}
         >
           <option value="" style={{ background: "#0a0a0c" }}>All Statuses</option>
@@ -73,7 +75,7 @@ export default async function AdminTracesPage({
         >
           Filter
         </button>
-        {(searchParams.model || searchParams.status) && (
+        {(params.model || params.status) && (
           <a href="/admin/traces" style={{ padding: "8px 16px", borderRadius: "6px", background: "rgba(255,255,255,0.1)", color: "white", textDecoration: "none", display: "flex", alignItems: "center", fontSize: "13px" }}>
             Clear
           </a>
