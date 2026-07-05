@@ -36,7 +36,7 @@ export function CostBreakdown({ budgetStatus, modelBreakdown }: CostBreakdownPro
     .slice(0, 5);
 
   return (
-    <div className="flex flex-col h-full bg-[rgba(255,255,255,0.015)] border border-[rgba(255,255,255,0.07)] rounded-[11px] p-5">
+    <div className="flex flex-col h-full bg-white/[0.015] border border-white/[0.08] rounded-[11px] px-5 py-4">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-[15px] font-medium text-gray-100 flex items-center gap-2">
           <DollarSign className="w-4 h-4 text-gray-400" />
