@@ -3,6 +3,7 @@
  * All functions are server-only and query Prisma directly.
  */
 import { prisma } from "@aura/db";
+import { Prisma } from "@prisma/client";
 
 // ─── Workspace / Project ─────────────────────────────────────────────────────
 
@@ -26,8 +27,16 @@ export async function getProjectById(projectId: string, userId: string) {
 
 // ─── Overview / Aggregate Stats ──────────────────────────────────────────────
 
+export async function getProjectApiKeys(projectId: string) {
+  return prisma.apiKey.findMany({
+    where: { projectId },
+    select: { id: true, name: true, keyPrefix: true },
+    orderBy: { createdAt: "desc" }
+  });
+}
+
 export async function getProjectStats(projectId: string) {
-  const [requestStats, usageStats, cacheStats] = await Promise.all([
+  const [requestStats, cacheStats] = await Promise.all([
     // Total requests, errors, cached count
     prisma.requestLog.aggregate({
       where: { projectId },
@@ -35,28 +44,49 @@ export async function getProjectStats(projectId: string) {
       _sum: { costUsd: true, tokensIn: true, tokensOut: true },
       _avg: { latencyMs: true },
     }),
-    // Last 30 days usage records
-    prisma.usageRecord.findMany({
-      where: {
-        projectId,
-        period: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
-        granularity: "DAILY",
-      },
-      orderBy: { period: "asc" },
-    }),
     // Cache totals
-    prisma.usageRecord.aggregate({
+    prisma.requestLog.aggregate({
       where: { projectId },
-      _sum: { cacheHits: true, cacheMisses: true },
+      _count: {
+        id: true
+      },
     }),
   ]);
+
+  // Total cache hits
+  const cacheHitsStats = await prisma.requestLog.count({
+    where: { projectId, cached: true },
+  });
+
+  // Calculate 30-day timeseries on the fly from RequestLog
+  const timeSeriesRaw = await prisma.$queryRawUnsafe<
+    { period: Date; totalRequests: bigint; totalCostUsd: number; cacheHits: bigint }[]
+  >(`
+    SELECT 
+      DATE_TRUNC('day', "created_at") as period,
+      COUNT(id) as "totalRequests",
+      SUM("cost_usd") as "totalCostUsd",
+      SUM(CASE WHEN "cached" THEN 1 ELSE 0 END) as "cacheHits"
+    FROM "request_logs"
+    WHERE "project_id" = $1
+      AND "created_at" >= NOW() - INTERVAL '30 days'
+    GROUP BY DATE_TRUNC('day', "created_at")
+    ORDER BY period ASC;
+  `, projectId);
+
+  const usageStats = timeSeriesRaw.map((row) => ({
+    period: row.period,
+    totalRequests: Number(row.totalRequests),
+    totalCostUsd: Number(row.totalCostUsd ?? 0),
+    cacheHits: Number(row.cacheHits),
+  }));
 
   const totalRequests = requestStats._count.id;
   const totalCostUsd = requestStats._sum.costUsd ?? 0;
   const avgLatencyMs = requestStats._avg.latencyMs ?? 0;
-  const cacheHits = cacheStats._sum.cacheHits ?? 0;
-  const cacheMisses = cacheStats._sum.cacheMisses ?? 0;
-  const totalCacheTotal = cacheHits + cacheMisses;
+  const cacheHits = cacheHitsStats;
+  const cacheMisses = totalRequests - cacheHits;
+  const totalCacheTotal = totalRequests;
   const cacheHitRate = totalCacheTotal > 0 ? (cacheHits / totalCacheTotal) * 100 : 0;
 
   return {
@@ -102,6 +132,7 @@ export type LogFilter = {
   search?: string;
   from?: Date;
   to?: Date;
+  apiKeyId?: string;
 };
 
 export async function getRequestLogs(
@@ -115,6 +146,7 @@ export async function getRequestLogs(
   const where: import("@prisma/client").Prisma.RequestLogWhereInput = { projectId };
   if (filters.provider) where.provider = filters.provider;
   if (filters.model) where.model = { contains: filters.model, mode: "insensitive" };
+  if (filters.apiKeyId) where.apiKeyId = filters.apiKeyId;
   
   if (filters.statusCode === "error") {
     where.statusCode = { not: 200 };
@@ -280,7 +312,54 @@ export async function getUserWithProjects(userId: string) {
 
 // ─── Gateway Insights ────────────────────────────────────────────────────────
 
-export async function getGatewayProviderHealth(projectId: string) {
+export async function getGatewayStatus(projectId: string) {
+  const [stats, errorStats] = await Promise.all([
+    prisma.requestLog.aggregate({
+      where: { projectId },
+      _count: { id: true },
+      _avg: { latencyMs: true },
+    }),
+    prisma.requestLog.aggregate({
+      where: { projectId, statusCode: { gte: 400 } },
+      _count: { id: true },
+    })
+  ]);
+
+  const totalRequests = stats._count.id;
+  const errors = errorStats._count.id;
+  const successRate = totalRequests > 0 ? ((totalRequests - errors) / totalRequests) * 100 : 100;
+
+  // Calculate Cache Savings
+  const [cacheHits, uncachedAvg] = await Promise.all([
+    prisma.requestLog.aggregate({
+      where: { projectId, cached: true },
+      _count: { id: true },
+      _avg: { latencyMs: true },
+    }),
+    prisma.requestLog.aggregate({
+      where: { projectId, cached: false },
+      _avg: { latencyMs: true, costUsd: true },
+    })
+  ]);
+
+  const hits = cacheHits._count.id;
+  const avgUncachedCost = uncachedAvg._avg.costUsd ?? 0.0001; // fallback cost
+  const avgUncachedLatency = uncachedAvg._avg.latencyMs ?? 500;
+  const avgCachedLatency = cacheHits._avg.latencyMs ?? 50;
+  
+  const costSavedUsd = hits * avgUncachedCost;
+  const timeSavedMs = hits * Math.max(0, avgUncachedLatency - avgCachedLatency);
+
+  return {
+    successRate,
+    avgLatencyMs: stats._avg.latencyMs ?? 0,
+    costSavedUsd,
+    timeSavedMs,
+    totalRequests
+  };
+}
+
+export async function getGatewayProviderLeaderboard(projectId: string) {
   const [overall, errors] = await Promise.all([
     prisma.requestLog.groupBy({
       by: ["provider"],
@@ -295,26 +374,27 @@ export async function getGatewayProviderHealth(projectId: string) {
     })
   ]);
 
-  return overall.map((stat) => {
+  const leaderboard = overall.map((stat) => {
     const providerErrors = errors.filter(e => e.provider === stat.provider);
-    const clientErrors = providerErrors.filter(e => e.statusCode && e.statusCode >= 400 && e.statusCode < 500).reduce((sum, e) => sum + e._count.id, 0);
-    const serverErrors = providerErrors.filter(e => e.statusCode && e.statusCode >= 500).reduce((sum, e) => sum + e._count.id, 0);
+    const totalErrors = providerErrors.reduce((sum, e) => sum + e._count.id, 0);
     const total = stat._count.id;
+    const errorRate = total > 0 ? (totalErrors / total) * 100 : 0;
+    const successRate = 100 - errorRate;
     
     return {
       provider: stat.provider,
       totalRequests: total,
       avgLatencyMs: stat._avg.latencyMs ?? 0,
-      clientErrors,
-      serverErrors,
-      serverErrorRate: total > 0 ? (serverErrors / total) * 100 : 0
+      successRate,
     };
   });
+
+  return leaderboard.sort((a, b) => a.avgLatencyMs - b.avgLatencyMs);
 }
 
 export async function getGatewayTopModels(projectId: string) {
   const last7Days = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  return prisma.requestLog.groupBy({
+  const models = await prisma.requestLog.groupBy({
     by: ["model", "provider"],
     where: { projectId, createdAt: { gte: last7Days } },
     _count: { id: true },
@@ -322,26 +402,56 @@ export async function getGatewayTopModels(projectId: string) {
     orderBy: { _count: { id: 'desc' } },
     take: 10
   });
+
+  // Calculate success rate for each top model
+  const modelsWithSuccess = await Promise.all(models.map(async (m) => {
+    const errors = await prisma.requestLog.count({
+      where: { projectId, model: m.model, provider: m.provider, statusCode: { gte: 400 }, createdAt: { gte: last7Days } }
+    });
+    const total = m._count.id;
+    const successRate = total > 0 ? ((total - errors) / total) * 100 : 100;
+    return { ...m, successRate };
+  }));
+
+  return modelsWithSuccess;
 }
 
-export async function getGatewayLatencyDistribution(projectId: string) {
-  const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const logs = await prisma.requestLog.findMany({
-    where: { projectId, createdAt: { gte: last24h } },
-    select: { latencyMs: true },
-    orderBy: { latencyMs: "asc" }
-  });
+// ─── Usage / Analytics ────────────────────────────────────────────────────────
 
-  if (logs.length === 0) return { p50: 0, p90: 0, p99: 0 };
+export async function getUsageByModel(
+  projectId: string | null,
+  from: Date,
+  to: Date
+) {
+  // Use raw SQL to group by day and model
+  const projectCondition = projectId ? Prisma.sql`AND project_id = ${projectId}` : Prisma.empty;
+  
+  const results = await prisma.$queryRaw<any[]>`
+    SELECT 
+      model,
+      provider,
+      DATE_TRUNC('day', created_at) as "period",
+      CAST(COUNT(id) AS INTEGER) as "totalRequests",
+      CAST(SUM(tokens_in) AS INTEGER) as "tokensIn",
+      CAST(SUM(tokens_out) AS INTEGER) as "tokensOut",
+      CAST(SUM(tokens_in + tokens_out) AS INTEGER) as "totalTokens",
+      CAST(SUM(cost_usd) AS FLOAT) as "totalCostUsd"
+    FROM request_logs
+    WHERE created_at >= ${from} AND created_at <= ${to}
+      ${projectCondition}
+    GROUP BY model, provider, DATE_TRUNC('day', created_at)
+    ORDER BY "period" ASC;
+  `;
 
-  const getPercentile = (p: number) => {
-    const index = Math.ceil((p / 100) * logs.length) - 1;
-    return logs[Math.max(0, index)].latencyMs;
-  };
-
-  return {
-    p50: getPercentile(50),
-    p90: getPercentile(90),
-    p99: getPercentile(99),
-  };
+  return results.map(r => ({
+    model: r.model,
+    provider: r.provider,
+    period: r.period,
+    totalRequests: r.totalRequests || 0,
+    tokensIn: r.tokensIn || 0,
+    tokensOut: r.tokensOut || 0,
+    totalTokens: r.totalTokens || 0,
+    totalCostUsd: r.totalCostUsd || 0,
+  }));
 }
+
