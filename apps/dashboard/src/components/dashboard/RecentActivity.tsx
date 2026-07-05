@@ -265,17 +265,7 @@ export default function RecentActivity({ logs }: RecentActivityProps) {
   const toggle = (id: string) => setExpandedId((prev) => (prev === id ? null : id));
 
   return (
-    <div
-      style={{
-        background: "rgba(255,255,255,0.015)",
-        border: "1px solid rgba(255,255,255,0.07)",
-        borderRadius: 11,
-        padding: "18px 20px",
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-      }}
-    >
+    <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] px-5 py-4 flex flex-col h-full">
       {/* Header */}
       <div
         style={{
