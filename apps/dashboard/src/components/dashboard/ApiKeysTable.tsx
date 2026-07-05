@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { generateApiKey, revokeApiKey, rotateApiKey } from "@/actions/apikeys";
+import { generateApiKey, revokeApiKey, rotateApiKey, deleteApiKey } from "@/actions/apikeys";
 import { useRouter } from "next/navigation";
 
 type ApiKey = {
@@ -33,6 +33,7 @@ export default function ApiKeysTable({
   const [generatedKey, setGeneratedKey] = useState<string | null>(null);
   const [, setGeneratedKeyPrefix] = useState<string | null>(null);
   const [revokeConfirmId, setRevokeConfirmId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [rotatedKey, setRotatedKey] = useState<{ id: string; key: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [, startTransition] = useTransition();
@@ -70,6 +71,21 @@ export default function ApiKeysTable({
       });
     } else {
       alert(res.error || "Failed to revoke key");
+    }
+  };
+
+  const handleDelete = async (keyId: string) => {
+    setLoading(true);
+    const res = await deleteApiKey(keyId, projectId);
+    setLoading(false);
+    if (res.success) {
+      setDeleteConfirmId(null);
+      setKeys((prev) => prev.filter((k) => k.id !== keyId));
+      startTransition(() => {
+        router.refresh();
+      });
+    } else {
+      alert(res.error || "Failed to delete key");
     }
   };
 
@@ -164,7 +180,7 @@ export default function ApiKeysTable({
                       {new Date(key.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {key.isActive && (
+                      {key.isActive ? (
                         <div className="flex items-center justify-end gap-3">
                           <button
                             onClick={() => handleRotate(key.id)}
@@ -188,6 +204,26 @@ export default function ApiKeysTable({
                               className="text-white/40 hover:text-[#ef4444] transition-colors"
                             >
                               Revoke
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-end gap-3">
+                          {deleteConfirmId === key.id ? (
+                            <button
+                              onClick={() => handleDelete(key.id)}
+                              disabled={loading}
+                              className="text-[#ef4444] hover:text-[#ef4444]/80 font-medium transition-colors"
+                            >
+                              Confirm Delete
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setDeleteConfirmId(key.id)}
+                              disabled={loading}
+                              className="text-white/40 hover:text-[#ef4444] transition-colors"
+                            >
+                              Delete
                             </button>
                           )}
                         </div>
