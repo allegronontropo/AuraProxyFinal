@@ -24,24 +24,10 @@ export default async function RequestLogsPage({
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* TopBar */}
-      <header
-        className="shrink-0 flex items-center justify-between px-6 z-10"
-        style={{
-          height: "52px",
-          background: "rgba(13,13,15,0.8)",
-          borderBottom: "1px solid rgba(255,255,255,0.05)",
-        }}
-      >
+      <header className="h-[52px] shrink-0 bg-[#0D0D0F]/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6 z-10 sticky top-0">
         <div className="flex items-center gap-3">
-          <h1 className="text-sm font-medium text-gray-200">Request Logs</h1>
-          <div
-            className="flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium"
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.05)",
-              color: "#9ca3af",
-            }}
-          >
+          <h1 className="text-[15px] font-medium text-white/90 tracking-wide">Request Logs</h1>
+          <div className="text-xs font-medium text-white/30 bg-white/5 px-2 py-0.5 rounded-full border border-white/[0.05]">
             {initialLogsData.total.toLocaleString()}
           </div>
         </div>
