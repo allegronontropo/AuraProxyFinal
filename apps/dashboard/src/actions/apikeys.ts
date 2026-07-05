@@ -116,3 +116,27 @@ export async function rotateApiKey(keyId: string, projectId: string) {
     return { error: "Failed to rotate API key." };
   }
 }
+
+// ─── Delete API Key ───────────────────────────────────────────────────────────
+
+export async function deleteApiKey(keyId: string, projectId: string) {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+
+  try {
+    const key = await prisma.apiKey.findFirst({
+      where: { id: keyId, project: { tenantId: session.user.id } },
+    });
+    if (!key) return { error: "Key not found." };
+
+    await prisma.apiKey.delete({
+      where: { id: keyId },
+    });
+
+    revalidatePath(`/dashboard/${projectId}/keys`);
+    return { success: true };
+  } catch (error) {
+    console.error("deleteApiKey error:", error);
+    return { error: "Failed to delete API key." };
+  }
+}
