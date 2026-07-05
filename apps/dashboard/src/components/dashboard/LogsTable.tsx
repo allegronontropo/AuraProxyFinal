@@ -3,6 +3,7 @@
 import { useState, useCallback, useTransition } from "react";
 import { fetchLogs } from "@/actions/logs";
 import type { LogFilter } from "@/lib/queries";
+import CustomSelect from "@/components/ui/CustomSelect";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,6 +36,7 @@ export interface LogsTableProps {
   initialLogs: LogRow[];
   initialTotal: number;
   initialPages: number;
+  apiKeys?: { id: string; name: string; keyPrefix: string }[];
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -699,6 +701,7 @@ export default function LogsTable({
   initialLogs,
   initialTotal,
   initialPages,
+  apiKeys = [],
 }: LogsTableProps) {
   const useMock = initialLogs.length === 0;
   const [logs, setLogs] = useState<LogRow[]>(useMock ? MOCK_LOGS : initialLogs);
@@ -711,7 +714,9 @@ export default function LogsTable({
     provider: string;
     statusGroup: string; // "all" | "2xx" | "4xx" | "5xx"
     cached: string; // "all" | "hit" | "miss"
-  }>({ provider: "all", statusGroup: "all", cached: "all" });
+    model: string;
+    apiKeyId: string;
+  }>({ provider: "all", statusGroup: "all", cached: "all", model: "", apiKeyId: "" });
 
   const [sortBy, setSortBy] = useState<"createdAt" | "latencyMs" | "costUsd">(
     "createdAt"
@@ -727,6 +732,8 @@ export default function LogsTable({
       if (f.provider !== "all") lf.provider = f.provider;
       if (f.cached === "hit") lf.cached = true;
       if (f.cached === "miss") lf.cached = false;
+      if (f.model) lf.model = f.model;
+      if (f.apiKeyId) lf.apiKeyId = f.apiKeyId;
       // statusCode handled client-side for group filtering
       return lf;
     },
@@ -799,6 +806,9 @@ export default function LogsTable({
     if (filters.cached === "hit" && !l.cached) return false;
     if (filters.cached === "miss" && l.cached) return false;
     
+    if (filters.model && !l.model.toLowerCase().includes(filters.model.toLowerCase())) return false;
+    if (filters.apiKeyId && l.apiKeyId !== filters.apiKeyId) return false;
+    
     return true;
   });
 
@@ -842,7 +852,38 @@ export default function LogsTable({
           overflow: "hidden",
         }}
       >
-        {/* Filter bar */}
+        {/* Filters Top Row */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          <input
+            type="text"
+            placeholder="Filter by model (e.g. gpt-4)"
+            value={filters.model}
+            onChange={(e) => handleFilterChange("model", e.target.value)}
+            style={{
+              padding: "6px 12px",
+              borderRadius: 6,
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "#fff",
+              fontSize: 13,
+              flex: 1,
+              maxWidth: 240,
+              outline: "none",
+            }}
+          />
+          <CustomSelect
+            value={filters.apiKeyId}
+            onChange={(val) => handleFilterChange("apiKeyId", val)}
+            placeholder="All API Keys"
+            options={[
+              { value: "", label: "All API Keys" },
+              ...apiKeys.map(k => ({ value: k.id, label: `${k.name} (${k.keyPrefix}...)` }))
+            ]}
+            className="flex-1 max-w-[240px]"
+          />
+        </div>
+
+        {/* Filter pills row */}
         <div
           style={{
             padding: "0 0 16px",
@@ -854,7 +895,7 @@ export default function LogsTable({
         >
           {/* Provider */}
           <div style={{ display: "flex", gap: 4 }}>
-            {["all", "openai", "anthropic", "mistral", "google"].map((p) => (
+            {["all", "openai", "anthropic", "mistral", "google", "groq"].map((p) => (
               <FilterPill
                 key={p}
                 label={p === "all" ? "All Providers" : p.charAt(0).toUpperCase() + p.slice(1)}
