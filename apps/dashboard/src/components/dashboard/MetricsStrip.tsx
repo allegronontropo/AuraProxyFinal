@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { Activity, DollarSign, Target, Gauge } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -51,7 +52,7 @@ function Sparkline({
       viewBox={`0 0 ${width} ${height}`}
       width={width}
       height={height}
-      style={{ overflow: "visible", flexShrink: 0 }}
+      className="overflow-visible shrink-0"
     >
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
@@ -81,13 +82,14 @@ function Sparkline({
 // ─── KPI Card ─────────────────────────────────────────────────────────────────
 
 interface KpiCardProps {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   value: string;
   valueColor?: string;
   sub?: string;
   sparkData: number[];
   sparkColor: string;
+  glowColor: string;
 }
 
 function KpiCard({
@@ -98,14 +100,21 @@ function KpiCard({
   sub,
   sparkData,
   sparkColor,
+  glowColor,
 }: KpiCardProps) {
   return (
-    <div className="flex-1 min-w-0 bg-white/[0.015] border border-white/[0.08] rounded-[11px] px-5 py-4 flex flex-col gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
+    <div className="group relative flex-1 min-w-0 bg-white/[0.015] border border-white/[0.08] rounded-[11px] px-5 py-4 flex flex-col gap-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12] overflow-hidden">
+      {/* Subtle Aura Glow Shader */}
+      <div 
+        className="absolute -top-12 -right-12 w-[120px] h-[120px] rounded-full blur-[40px] opacity-[0.08] pointer-events-none transition-opacity duration-500 group-hover:opacity-[0.15]"
+        style={{ background: glowColor }} 
+      />
+
       {/* Header row */}
-      <div className="flex items-center justify-between">
+      <div className="relative z-10 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-[13px] text-white/50 leading-none">{icon}</span>
-          <span className="text-[11px] text-white/50 font-medium tracking-[0.04em] uppercase">
+          <div className="text-gray-500">{icon}</div>
+          <span className="text-[11px] text-gray-500 font-semibold tracking-widest uppercase">
             {label}
           </span>
         </div>
@@ -113,7 +122,7 @@ function KpiCard({
       </div>
 
       {/* Value */}
-      <div>
+      <div className="relative z-10">
         <div
           className="text-[26px] font-bold tracking-tight leading-tight"
           style={{ color: valueColor }}
@@ -121,7 +130,7 @@ function KpiCard({
           {value}
         </div>
         {sub && (
-          <div className="text-[11px] text-white/40 mt-1">{sub}</div>
+          <div className="text-[11px] text-gray-500 font-medium mt-1">{sub}</div>
         )}
       </div>
     </div>
@@ -166,48 +175,58 @@ export default function MetricsStrip({
     return n.toLocaleString();
   };
 
+  // Aura Brand Colors
+  const auraViolet = "#7c5cfc";
+  const auraEmerald = "#22c55e";
+  const auraAmber = "#f59e0b";
+  const auraRed = "#ef4444";
+
   const cacheColor =
-    cacheHitRate >= 50 ? "#34d399" : cacheHitRate >= 25 ? "#f59e0b" : "#ef4444";
+    cacheHitRate >= 50 ? auraEmerald : cacheHitRate >= 25 ? auraAmber : auraRed;
   const latencyColor =
-    avgLatencyMs < 200 ? "#34d399" : avgLatencyMs < 500 ? "#f59e0b" : "#ef4444";
+    avgLatencyMs < 200 ? auraEmerald : avgLatencyMs < 500 ? auraAmber : auraRed;
 
   return (
     <div className="flex gap-4">
       <KpiCard
-        icon="⬡"
+        icon={<Activity className="w-3.5 h-3.5" />}
         label="Total Requests"
         value={formatRequests(totalRequests)}
         valueColor="#f9fafb"
         sub="All time"
         sparkData={requestSeries}
-        sparkColor="#7c3aed"
+        sparkColor={auraViolet}
+        glowColor={auraViolet}
       />
       <KpiCard
-        icon="◈"
+        icon={<DollarSign className="w-3.5 h-3.5" />}
         label="Total Cost"
         value={`$${Number(totalCostUsd).toFixed(2)}`}
         valueColor="#f9fafb"
         sub="Cumulative spend"
         sparkData={costSeries}
-        sparkColor="#a78bfa"
+        sparkColor={auraEmerald}
+        glowColor={auraEmerald}
       />
       <KpiCard
-        icon="◉"
+        icon={<Target className="w-3.5 h-3.5" />}
         label="Cache Hit Rate"
         value={`${cacheHitRate.toFixed(1)}%`}
         valueColor={cacheColor}
         sub={cacheHitRate >= 50 ? "Saving on compute" : "Room to improve"}
         sparkData={cacheHitSeries}
         sparkColor={cacheColor}
+        glowColor={cacheColor}
       />
       <KpiCard
-        icon="⚡"
+        icon={<Gauge className="w-3.5 h-3.5" />}
         label="Avg Latency"
         value={`${Math.round(avgLatencyMs)}ms`}
         valueColor={latencyColor}
         sub={avgLatencyMs < 200 ? "Excellent" : avgLatencyMs < 500 ? "Acceptable" : "Degraded"}
         sparkData={latencySeries}
         sparkColor={latencyColor}
+        glowColor={latencyColor}
       />
     </div>
   );

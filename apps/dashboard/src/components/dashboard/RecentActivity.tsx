@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ListIcon } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,18 +34,18 @@ function timeAgo(date: Date | string): string {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-function statusColor(code: number | null): string {
-  if (!code) return "#6b7280";
-  if (code < 300) return "#34d399";
-  if (code < 500) return "#f59e0b";
-  return "#ef4444";
+function getStatusColorClass(code: number | null): string {
+  if (!code) return "bg-gray-500 shadow-gray-500/50";
+  if (code < 300) return "bg-emerald-400 shadow-emerald-400/50";
+  if (code < 500) return "bg-amber-400 shadow-amber-400/50";
+  return "bg-red-500 shadow-red-500/50";
 }
 
-function latencyColor(ms: number | null): string {
-  if (!ms) return "#6b7280";
-  if (ms < 200) return "#34d399";
-  if (ms < 500) return "#f59e0b";
-  return "#ef4444";
+function getLatencyColorClass(ms: number | null): string {
+  if (!ms) return "text-gray-500";
+  if (ms < 200) return "text-emerald-400";
+  if (ms < 500) return "text-amber-400";
+  return "text-red-500";
 }
 
 function truncateModel(model: string): string {
@@ -60,34 +61,13 @@ function formatProvider(p: string): string {
 
 function EmptyState() {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 10,
-        padding: "48px 24px",
-        textAlign: "center",
-      }}
-    >
-      <span style={{ fontSize: 32, opacity: 0.12 }}>▤</span>
-      <div style={{ fontSize: 13, fontWeight: 500, color: "#4b5563" }}>No requests yet</div>
-      <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.5, maxWidth: 260 }}>
+    <div className="flex flex-col items-center justify-center gap-2.5 py-12 px-6 text-center">
+      <ListIcon className="w-8 h-8 text-gray-700 opacity-50" />
+      <div className="text-[13px] font-medium text-gray-400">No requests yet</div>
+      <div className="text-xs text-gray-500 leading-relaxed max-w-[260px]">
         Start using your proxy endpoint and requests will appear here in real-time.
       </div>
-      <code
-        style={{
-          fontSize: 10,
-          color: "#6b7280",
-          background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.07)",
-          borderRadius: 5,
-          padding: "4px 10px",
-          marginTop: 4,
-          fontFamily: "monospace",
-        }}
-      >
+      <code className="text-[10px] text-gray-500 bg-white/[0.04] border border-white/[0.07] rounded-md px-2.5 py-1 mt-1 font-mono">
         POST https://proxy.aura.dev/v1/chat/completions
       </code>
     </div>
@@ -100,128 +80,53 @@ function LogRow({ log, isExpanded, onToggle }: { log: RequestLog; isExpanded: bo
   return (
     <div
       onClick={onToggle}
-      style={{
-        borderBottom: "1px solid rgba(255,255,255,0.04)",
-        cursor: "pointer",
-        transition: "background 0.13s",
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.02)")}
-      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+      className="border-b border-white/[0.04] cursor-pointer transition-colors duration-150 hover:bg-white/[0.02]"
     >
       {/* Main row */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "10px 4px",
-        }}
-      >
+      <div className="flex items-center gap-2.5 px-1 py-2.5">
         {/* Status dot */}
-        <div
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            background: statusColor(log.statusCode),
-            flexShrink: 0,
-            boxShadow: `0 0 4px ${statusColor(log.statusCode)}88`,
-          }}
-        />
+        <div className={`w-1.5 h-1.5 rounded-full shrink-0 shadow-[0_0_4px] ${getStatusColorClass(log.statusCode)}`} />
 
         {/* Model + Provider */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 500,
-              color: "#f9fafb",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
+        <div className="flex-1 min-w-0">
+          <div className="text-xs font-medium text-gray-100 whitespace-nowrap overflow-hidden text-ellipsis">
             {truncateModel(log.model)}
           </div>
-          <div style={{ fontSize: 10, color: "#6b7280", marginTop: 1 }}>
+          <div className="text-[10px] text-gray-500 mt-0.5">
             {formatProvider(log.provider)}
-            {log.apiKey && (
-              <span style={{ color: "#374151" }}> · {log.apiKey.name}</span>
-            )}
+            {log.apiKey && <span className="text-gray-600"> · {log.apiKey.name}</span>}
           </div>
         </div>
 
         {/* Cached badge */}
-        <span
-          style={{
-            fontSize: 9,
-            fontWeight: 700,
-            padding: "2px 6px",
-            borderRadius: 4,
-            background: log.cached ? "rgba(52,211,153,0.12)" : "rgba(255,255,255,0.04)",
-            border: log.cached
-              ? "1px solid rgba(52,211,153,0.25)"
-              : "1px solid rgba(255,255,255,0.07)",
-            color: log.cached ? "#34d399" : "#4b5563",
-            letterSpacing: "0.05em",
-            flexShrink: 0,
-          }}
-        >
+        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-[4px] border tracking-wider shrink-0 ${
+          log.cached 
+            ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-400" 
+            : "bg-white/[0.04] border-white/[0.07] text-gray-500"
+        }`}>
           {log.cached ? "HIT" : "MISS"}
         </span>
 
         {/* Latency */}
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 500,
-            color: latencyColor(log.latencyMs),
-            minWidth: 44,
-            textAlign: "right",
-            flexShrink: 0,
-          }}
-        >
+        <div className={`text-[11px] font-medium min-w-[44px] text-right shrink-0 ${getLatencyColorClass(log.latencyMs)}`}>
           {log.latencyMs != null ? `${log.latencyMs}ms` : "—"}
         </div>
 
         {/* Cost */}
-        <div
-          style={{
-            fontSize: 11,
-            color: "#9ca3af",
-            minWidth: 48,
-            textAlign: "right",
-            flexShrink: 0,
-          }}
-        >
+        <div className="text-[11px] text-gray-400 min-w-[48px] text-right shrink-0">
           {log.costUsd != null ? `$${Number(log.costUsd).toFixed(5)}` : "—"}
         </div>
 
         {/* Time ago */}
-        <div
-          suppressHydrationWarning
-          style={{
-            fontSize: 10,
-            color: "#4b5563",
-            minWidth: 48,
-            textAlign: "right",
-            flexShrink: 0,
-          }}
-        >
+        <div suppressHydrationWarning className="text-[10px] text-gray-500 min-w-[48px] text-right shrink-0">
           {timeAgo(log.createdAt)}
         </div>
       </div>
 
       {/* Expanded detail */}
       {isExpanded && (
-        <div
-          style={{
-            padding: "8px 16px 12px",
-            background: "rgba(124,58,237,0.04)",
-            borderTop: "1px solid rgba(124,58,237,0.12)",
-          }}
-        >
-          <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+        <div className="px-4 py-2.5 pb-3 bg-violet-500/[0.04] border-t border-violet-500/[0.12]">
+          <div className="flex gap-6 flex-wrap">
             {[
               { label: "Request ID", value: log.id.slice(0, 12) + "…" },
               { label: "Status Code", value: String(log.statusCode ?? "—") },
@@ -242,10 +147,10 @@ function LogRow({ log, isExpanded, onToggle }: { log: RequestLog; isExpanded: bo
               },
             ].map(({ label, value }) => (
               <div key={label}>
-                <div style={{ fontSize: 9, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                <div className="text-[9px] text-gray-500 uppercase tracking-[0.06em] font-semibold">
                   {label}
                 </div>
-                <div style={{ fontSize: 11, color: "#d1d5db", marginTop: 2, fontFamily: "monospace" }}>
+                <div className="text-[11px] text-gray-300 mt-0.5 font-mono">
                   {value}
                 </div>
               </div>
@@ -267,76 +172,46 @@ export default function RecentActivity({ logs }: RecentActivityProps) {
   return (
     <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] px-5 py-4 flex flex-col h-full transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 14,
-        }}
-      >
+      <div className="flex items-center justify-between mb-3.5">
         <div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "#f9fafb" }}>Recent Activity</div>
-          <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>
+          <div className="text-[13px] font-semibold text-gray-100">Recent Activity</div>
+          <div className="text-[11px] text-gray-500 mt-0.5 uppercase tracking-widest font-semibold">
             Last {logs.length} requests
           </div>
         </div>
 
         {logs.length > 0 && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div
-              style={{
-                width: 5,
-                height: 5,
-                borderRadius: "50%",
-                background: "#34d399",
-                animation: "pulse 1.8s infinite",
-              }}
-            />
-            <span style={{ fontSize: 10, color: "#34d399", fontWeight: 500 }}>Live</span>
+          <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" />
+            <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-wider">Live</span>
           </div>
         )}
       </div>
 
       {/* Column headers */}
       {logs.length > 0 && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "0 4px 8px",
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
-            marginBottom: 4,
-          }}
-        >
-          <div style={{ width: 6, flexShrink: 0 }} />
-          <div style={{ flex: 1, fontSize: 9, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+        <div className="flex items-center gap-2.5 px-1 pb-2 border-b border-white/[0.06] mb-1">
+          <div className="w-1.5 shrink-0" />
+          <div className="flex-1 text-[9px] text-gray-500 uppercase tracking-[0.06em] font-semibold">
             Model / Key
           </div>
-          <div style={{ fontSize: 9, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.06em", minWidth: 32 }}>
+          <div className="text-[9px] text-gray-500 uppercase tracking-[0.06em] font-semibold min-w-[32px]">
             Cache
           </div>
-          <div style={{ fontSize: 9, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.06em", minWidth: 44, textAlign: "right" }}>
+          <div className="text-[9px] text-gray-500 uppercase tracking-[0.06em] font-semibold min-w-[44px] text-right">
             Latency
           </div>
-          <div style={{ fontSize: 9, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.06em", minWidth: 48, textAlign: "right" }}>
+          <div className="text-[9px] text-gray-500 uppercase tracking-[0.06em] font-semibold min-w-[48px] text-right">
             Cost
           </div>
-          <div style={{ fontSize: 9, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.06em", minWidth: 48, textAlign: "right" }}>
+          <div className="text-[9px] text-gray-500 uppercase tracking-[0.06em] font-semibold min-w-[48px] text-right">
             When
           </div>
         </div>
       )}
 
       {/* Log list */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          maxHeight: 320,
-        }}
-      >
+      <div className="flex-1 overflow-y-auto max-h-[320px] pr-1 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
         {logs.length === 0 ? (
           <EmptyState />
         ) : (

@@ -1,5 +1,7 @@
 "use client";
 
+import { Server } from "lucide-react";
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ProviderStat {
@@ -80,20 +82,10 @@ function getProviderMeta(provider: string) {
 
 function EmptyState() {
   return (
-    <div
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 8,
-        padding: "40px 20px",
-      }}
-    >
-      <span style={{ fontSize: 28, opacity: 0.15 }}>⬡</span>
-      <span style={{ fontSize: 12, color: "#4b5563" }}>No provider data yet</span>
-      <span style={{ fontSize: 11, color: "#374151", textAlign: "center" }}>
+    <div className="flex-1 flex flex-col items-center justify-center gap-2.5 py-10 px-5 text-center">
+      <Server className="w-8 h-8 text-gray-700 opacity-50" />
+      <span className="text-[13px] font-medium text-gray-400">No provider data yet</span>
+      <span className="text-xs text-gray-500 leading-relaxed max-w-[220px]">
         Provider distribution will appear once you start routing requests
       </span>
     </div>
@@ -106,10 +98,10 @@ export default function ProviderBreakdown({ providers }: ProviderBreakdownProps)
   if (!providers || providers.length === 0) {
     return (
       <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] px-5 py-4 flex flex-col h-full transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
-        <div style={{ fontSize: 13, fontWeight: 600, color: "#f9fafb", marginBottom: 4 }}>
+        <div className="text-[13px] font-semibold text-gray-100">
           Provider Breakdown
         </div>
-        <div style={{ fontSize: 11, color: "#6b7280", marginBottom: 16 }}>
+        <div className="text-[11px] text-gray-500 mt-0.5 uppercase tracking-widest font-semibold mb-4">
           Request distribution by AI provider
         </div>
         <EmptyState />
@@ -120,18 +112,18 @@ export default function ProviderBreakdown({ providers }: ProviderBreakdownProps)
   const totalRequests = providers.reduce((s, p) => s + p._count.id, 0);
 
   return (
-    <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] px-5 py-4 flex flex-col gap-[14px] h-full transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
+    <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] px-5 py-4 flex flex-col gap-3.5 h-full transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
       {/* Header */}
       <div>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "#f9fafb" }}>Provider Breakdown</div>
-        <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>
+        <div className="text-[13px] font-semibold text-gray-100">Provider Breakdown</div>
+        <div className="text-[11px] text-gray-500 mt-0.5 uppercase tracking-widest font-semibold">
           {totalRequests.toLocaleString()} total requests across {providers.length} provider
           {providers.length !== 1 ? "s" : ""}
         </div>
       </div>
 
       {/* Provider rows */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div className="flex flex-col gap-3">
         {providers.map((p) => {
           const meta = getProviderMeta(p.provider);
           const pct = totalRequests > 0 ? (p._count.id / totalRequests) * 100 : 0;
@@ -141,71 +133,47 @@ export default function ProviderBreakdown({ providers }: ProviderBreakdownProps)
           return (
             <div key={p.provider}>
               {/* Provider header */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: 7,
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2.5">
                   {/* Icon */}
                   <div
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold shrink-0"
                     style={{
-                      width: 26,
-                      height: 26,
-                      borderRadius: 6,
                       background: meta.bg,
                       border: `1px solid ${meta.border}`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 10,
-                      fontWeight: 700,
                       color: meta.color,
-                      flexShrink: 0,
                     }}
                   >
                     {meta.initial}
                   </div>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "#f9fafb" }}>
+                    <div className="text-xs font-semibold text-gray-100">
                       {meta.label}
                     </div>
-                    <div style={{ fontSize: 10, color: "#6b7280", marginTop: 1 }}>
+                    <div className="text-[10px] text-gray-500 mt-0.5">
                       {p._count.id.toLocaleString()} req · {Math.round(avgLatency)}ms avg
                     </div>
                   </div>
                 </div>
 
                 {/* Right stats */}
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: meta.color }}>
+                <div className="text-right">
+                  <div className="text-xs font-semibold" style={{ color: meta.color }}>
                     {pct.toFixed(1)}%
                   </div>
-                  <div style={{ fontSize: 10, color: "#6b7280", marginTop: 1 }}>
+                  <div className="text-[10px] text-gray-500 mt-0.5">
                     ${totalCost.toFixed(4)}
                   </div>
                 </div>
               </div>
 
               {/* Progress bar */}
-              <div
-                style={{
-                  height: 4,
-                  borderRadius: 3,
-                  background: "rgba(255,255,255,0.05)",
-                  overflow: "hidden",
-                }}
-              >
+              <div className="h-1 rounded-full bg-white/5 overflow-hidden">
                 <div
+                  className="h-full rounded-full transition-all duration-500"
                   style={{
-                    height: "100%",
                     width: `${pct}%`,
                     background: `linear-gradient(90deg, ${meta.color}cc, ${meta.color})`,
-                    borderRadius: 3,
-                    transition: "width 0.5s ease",
                   }}
                 />
               </div>
@@ -215,29 +183,16 @@ export default function ProviderBreakdown({ providers }: ProviderBreakdownProps)
       </div>
 
       {/* Footer legend */}
-      <div
-        style={{
-          paddingTop: 12,
-          borderTop: "1px solid rgba(255,255,255,0.05)",
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "8px 16px",
-        }}
-      >
+      <div className="pt-3 mt-auto border-t border-white/5 flex flex-wrap gap-x-4 gap-y-2">
         {providers.map((p) => {
           const meta = getProviderMeta(p.provider);
           return (
-            <div key={p.provider} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <div key={p.provider} className="flex items-center gap-1.5">
               <div
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: meta.color,
-                  flexShrink: 0,
-                }}
+                className="w-1.5 h-1.5 rounded-full shrink-0"
+                style={{ background: meta.color }}
               />
-              <span style={{ fontSize: 10, color: "#6b7280" }}>{meta.label}</span>
+              <span className="text-[10px] text-gray-500">{meta.label}</span>
             </div>
           );
         })}

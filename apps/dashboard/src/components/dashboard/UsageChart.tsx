@@ -18,11 +18,16 @@ interface UsageChartProps {
 
 type View = "requests" | "cost";
 
-// ─── Helper: format date label ────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatPeriod(d: Date | string): string {
   const date = typeof d === "string" ? new Date(d) : d;
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+// Format date securely to YYYY-MM-DD using local timezone to avoid off-by-one errors
+function toLocalDateString(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 // ─── SVG Area Chart ───────────────────────────────────────────────────────────
@@ -76,7 +81,7 @@ function AreaChart({ data, labels, color, height = 200 }: AreaChartProps) {
       viewBox={`0 0 ${W} ${H}`}
       width="100%"
       height={H}
-      style={{ overflow: "visible", display: "block" }}
+      className="overflow-visible block"
     >
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
@@ -93,7 +98,7 @@ function AreaChart({ data, labels, color, height = 200 }: AreaChartProps) {
           x2={PAD.left + innerW}
           y1={tick.y}
           y2={tick.y}
-          stroke="rgba(255,255,255,0.05)"
+          className="stroke-white/[0.05]"
           strokeWidth="1"
         />
       ))}
@@ -157,7 +162,7 @@ function AreaChart({ data, labels, color, height = 200 }: AreaChartProps) {
         x2={PAD.left + innerW}
         y1={PAD.top + innerH}
         y2={PAD.top + innerH}
-        stroke="rgba(255,255,255,0.08)"
+        className="stroke-white/[0.08]"
         strokeWidth="1"
       />
     </svg>
@@ -169,18 +174,12 @@ function AreaChart({ data, labels, color, height = 200 }: AreaChartProps) {
 function EmptyChart({ height }: { height: number }) {
   return (
     <div
-      style={{
-        height,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 8,
-      }}
+      className="flex flex-col items-center justify-center gap-2"
+      style={{ height }}
     >
-      <span style={{ fontSize: 24, opacity: 0.2 }}>◈</span>
-      <span style={{ fontSize: 12, color: "#4b5563" }}>No usage data yet</span>
-      <span style={{ fontSize: 11, color: "#374151" }}>
+      <div className="w-4 h-4 border-2 border-gray-600 rounded-sm opacity-20 rotate-45" />
+      <span className="text-xs text-gray-500 font-medium">No usage data yet</span>
+      <span className="text-[11px] text-gray-600">
         Data will appear once requests flow through your proxy
       </span>
     </div>
@@ -200,7 +199,7 @@ export default function UsageChart({ timeSeries, title = "Usage Over Time" }: Us
 
     const dataMap = new Map<string, TimeSeriesPoint>();
     for (const p of sorted) {
-      dataMap.set(new Date(p.period).toISOString().split("T")[0], p);
+      dataMap.set(toLocalDateString(new Date(p.period)), p);
     }
 
     const filled: TimeSeriesPoint[] = [];
@@ -211,7 +210,7 @@ export default function UsageChart({ timeSeries, title = "Usage Over Time" }: Us
     for (let i = 29; i >= 0; i--) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split("T")[0];
+      const dateStr = toLocalDateString(d);
 
       if (dataMap.has(dateStr)) {
         filled.push(dataMap.get(dateStr)!);
@@ -235,56 +234,36 @@ export default function UsageChart({ timeSeries, title = "Usage Over Time" }: Us
     };
   }, [timeSeries, view]);
 
-  const chartColor = view === "requests" ? "#7c3aed" : "#34d399";
+  // Aura Violet for requests, Aura Emerald for cost
+  const chartColor = view === "requests" ? "#7c5cfc" : "#22c55e";
   const chartHeight = 200;
   const hasData = data.length >= 2;
 
   return (
-    <div
-      style={{
-        background: "rgba(255,255,255,0.015)",
-        border: "1px solid rgba(255,255,255,0.07)",
-        borderRadius: 11,
-        padding: "18px 20px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-        height: "100%",
-      }}
-    >
+    <div className="group relative bg-white/[0.015] border border-white/[0.08] rounded-[11px] p-6 flex flex-col gap-4 h-full overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
+      {/* Subtle Aura Glow Shader */}
+      <div 
+        className={`absolute -top-24 -right-24 w-[300px] h-[300px] rounded-full blur-[80px] opacity-[0.08] pointer-events-none transition-all duration-700 group-hover:opacity-[0.15] ${view === "requests" ? "bg-violet-500" : "bg-emerald-500"}`}
+      />
+
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div className="relative z-10 flex items-center justify-between">
         <div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "#f9fafb" }}>{title}</div>
-          <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>Last 30 days · Daily</div>
+          <div className="text-[13px] font-semibold text-gray-100">{title}</div>
+          <div className="text-[11px] text-gray-500 mt-0.5 uppercase tracking-widest font-semibold">Last 30 days · Daily</div>
         </div>
 
         {/* Toggle */}
-        <div
-          style={{
-            display: "flex",
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: 7,
-            padding: 2,
-            gap: 2,
-          }}
-        >
+        <div className="flex bg-white/[0.04] border border-white/[0.08] rounded-md p-0.5 gap-0.5">
           {(["requests", "cost"] as View[]).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
-              style={{
-                padding: "5px 12px",
-                borderRadius: 5,
-                border: "none",
-                cursor: "pointer",
-                fontSize: 11,
-                fontWeight: 500,
-                transition: "all 0.13s",
-                background: view === v ? (v === "requests" ? "rgba(124,58,237,0.2)" : "rgba(52,211,153,0.15)") : "transparent",
-                color: view === v ? (v === "requests" ? "#a78bfa" : "#34d399") : "#6b7280",
-              }}
+              className={`px-3 py-1.5 rounded-[4px] border-none cursor-pointer text-[11px] font-semibold transition-all duration-150 ${
+                view === v 
+                  ? (v === "requests" ? "bg-violet-500/20 text-violet-400" : "bg-emerald-500/15 text-emerald-400") 
+                  : "bg-transparent text-gray-500 hover:text-gray-300"
+              }`}
             >
               {v === "requests" ? "Requests" : "Cost"}
             </button>
@@ -293,7 +272,7 @@ export default function UsageChart({ timeSeries, title = "Usage Over Time" }: Us
       </div>
 
       {/* Chart */}
-      <div style={{ flex: 1, minHeight: chartHeight }}>
+      <div className="relative z-10 flex-1" style={{ minHeight: chartHeight }}>
         {hasData ? (
           <AreaChart data={data} labels={labels} color={chartColor} height={chartHeight} />
         ) : (
@@ -303,32 +282,26 @@ export default function UsageChart({ timeSeries, title = "Usage Over Time" }: Us
 
       {/* Summary pills */}
       {hasData && (
-        <div style={{ display: "flex", gap: 16, paddingTop: 4, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+        <div className="relative z-10 flex gap-6 pt-4 border-t border-white/5">
           <div>
-            <div style={{ fontSize: 10, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-              Total
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#f9fafb", marginTop: 2 }}>
+            <div className="text-[10px] text-gray-500 uppercase tracking-[0.06em] font-semibold">Total</div>
+            <div className={`text-[13px] font-bold mt-1 ${view === "requests" ? "text-violet-400" : "text-emerald-400"}`}>
               {view === "requests"
                 ? data.reduce((s, v) => s + v, 0).toLocaleString()
                 : `$${data.reduce((s, v) => s + v, 0).toFixed(4)}`}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-              Peak
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#f9fafb", marginTop: 2 }}>
+            <div className="text-[10px] text-gray-500 uppercase tracking-[0.06em] font-semibold">Peak</div>
+            <div className="text-[13px] font-bold text-white mt-1">
               {view === "requests"
                 ? Math.max(...data).toLocaleString()
                 : `$${Math.max(...data).toFixed(4)}`}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 10, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-              Avg / day
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#f9fafb", marginTop: 2 }}>
+            <div className="text-[10px] text-gray-500 uppercase tracking-[0.06em] font-semibold">Avg / day</div>
+            <div className="text-[13px] font-bold text-white mt-1">
               {view === "requests"
                 ? Math.round(data.reduce((s, v) => s + v, 0) / data.length).toLocaleString()
                 : `$${(data.reduce((s, v) => s + v, 0) / data.length).toFixed(4)}`}
