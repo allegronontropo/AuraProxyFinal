@@ -5,6 +5,11 @@
 import { prisma } from "@aura/db";
 import { Prisma } from "@prisma/client";
 
+function estimateJsonBytes(value: unknown) {
+  if (value == null) return 0;
+  return Buffer.byteLength(JSON.stringify(value), "utf8");
+}
+
 // ─── Workspace / Project ─────────────────────────────────────────────────────
 
 export async function getProjectsByUser(userId: string) {
@@ -179,7 +184,7 @@ export async function getRecentLogs(projectId: string, limit = 20) {
 // ─── Cache Analytics ──────────────────────────────────────────────────────────
 
 export async function getCacheStats(projectId: string) {
-  const [byModel, topEntries, timeSeries] = await Promise.all([
+  const [byModel, topEntries, timeSeries, cacheEntriesForSavings] = await Promise.all([
     // Cache breakdown by model
     prisma.semanticCache.groupBy({
       by: ["model", "provider"],
@@ -203,9 +208,17 @@ export async function getCacheStats(projectId: string) {
       },
       orderBy: { period: "asc" },
     }),
+    prisma.semanticCache.findMany({
+      where: { projectId },
+      select: { hitCount: true, response: true },
+    }),
   ]);
 
-  return { byModel, topEntries, timeSeries };
+  const estimatedBandwidthSavedBytes = cacheEntriesForSavings.reduce((sum, entry) => {
+    return sum + estimateJsonBytes(entry.response) * Math.max(entry.hitCount, 0);
+  }, 0);
+
+  return { byModel, topEntries, timeSeries, estimatedBandwidthSavedBytes };
 }
 
 // ─── API Keys ─────────────────────────────────────────────────────────────────
@@ -318,7 +331,7 @@ export async function getGatewayStatus(projectId: string) {
   const successRate = totalRequests > 0 ? ((totalRequests - errors) / totalRequests) * 100 : 100;
 
   // Calculate Cache Savings
-  const [cacheHits, uncachedAvg] = await Promise.all([
+  const [cacheHits, uncachedAvg, cacheEntriesForSavings] = await Promise.all([
     prisma.requestLog.aggregate({
       where: { projectId, cached: true },
       _count: { id: true },
@@ -327,22 +340,33 @@ export async function getGatewayStatus(projectId: string) {
     prisma.requestLog.aggregate({
       where: { projectId, cached: false },
       _avg: { latencyMs: true, costUsd: true },
-    })
+    }),
+    prisma.semanticCache.findMany({
+      where: { projectId },
+      select: { hitCount: true, response: true },
+    }),
   ]);
 
   const hits = cacheHits._count.id;
+  const cacheHitRate = totalRequests > 0 ? (hits / totalRequests) * 100 : 0;
   const avgUncachedCost = uncachedAvg._avg.costUsd ?? 0.0001; // fallback cost
   const avgUncachedLatency = uncachedAvg._avg.latencyMs ?? 500;
   const avgCachedLatency = cacheHits._avg.latencyMs ?? 50;
   
   const costSavedUsd = hits * avgUncachedCost;
   const timeSavedMs = hits * Math.max(0, avgUncachedLatency - avgCachedLatency);
+  const estimatedBandwidthSavedBytes = cacheEntriesForSavings.reduce((sum, entry) => {
+    return sum + estimateJsonBytes(entry.response) * Math.max(entry.hitCount, 0);
+  }, 0);
 
   return {
     successRate,
     avgLatencyMs: stats._avg.latencyMs ?? 0,
+    cacheHits: hits,
+    cacheHitRate,
     costSavedUsd,
     timeSavedMs,
+    estimatedBandwidthSavedBytes,
     totalRequests
   };
 }

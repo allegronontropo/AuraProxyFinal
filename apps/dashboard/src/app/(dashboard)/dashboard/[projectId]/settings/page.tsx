@@ -39,6 +39,7 @@ export default async function SettingsPage({
         email: user?.email || session.user.email || "",
         image: user?.image || session.user.image || "",
         plan: user?.plan || "FREE",
+        hasPassword: Boolean(user?.password_hash),
       }}
     />
   );

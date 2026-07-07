@@ -174,6 +174,20 @@ function ProviderChip({ provider }: { provider: string }) {
   );
 }
 
+function formatBytes(bytes: number) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "0 KB";
+  const units = ["B", "KB", "MB", "GB", "TB"];
+  let value = bytes;
+  let unitIndex = 0;
+
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+
+  return `${value >= 10 ? value.toFixed(0) : value.toFixed(1)} ${units[unitIndex]}`;
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function CacheAnalyticsPage({
@@ -232,6 +246,7 @@ export default async function CacheAnalyticsPage({
   const avgHitsPerEntry = totalEntries > 0 ? (totalHits / totalEntries).toFixed(1) : "0";
   const topModel = byModel[0]?.model ?? "—";
   const totalCacheHitCount = byModel.reduce((s, m) => s + (m._sum.hitCount ?? 0), 0);
+  const estimatedBandwidthSaved = formatBytes(raw.estimatedBandwidthSavedBytes);
 
   const isEmpty = raw.timeSeries.length === 0 && (raw.byModel as CacheByModel[]).length === 0;
 
@@ -441,7 +456,7 @@ export default async function CacheAnalyticsPage({
               <div className="flex justify-between items-center">
                 <span className="text-xs text-gray-400 font-medium">Bandwidth saved (est.)</span>
                 <span className="text-[13px] font-bold text-emerald-400 flex items-center gap-1.5">
-                  ~${(totalHits * 0.0004).toFixed(2)}
+                  ~{estimatedBandwidthSaved}
                 </span>
               </div>
             </div>

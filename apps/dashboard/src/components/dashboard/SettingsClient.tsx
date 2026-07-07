@@ -2,6 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { updateProject, deleteProject } from "@/actions/project";
+import { updatePassword } from "@/actions/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -19,6 +20,7 @@ type UserData = {
   email: string;
   image: string;
   plan: string;
+  hasPassword: boolean;
 };
 
 export default function SettingsClient({
@@ -36,8 +38,15 @@ export default function SettingsClient({
   const [budgetPeriod, setBudgetPeriod] = useState<"DAILY" | "WEEKLY" | "MONTHLY">(project.budgetPeriod);
   
   const [loading, setLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +80,36 @@ export default function SettingsClient({
     }
   };
 
+  const handlePasswordUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordMessage(null);
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordMessage({ type: "error", text: "New passwords do not match." });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("currentPassword", passwordForm.currentPassword);
+    formData.append("newPassword", passwordForm.newPassword);
+    formData.append("confirmPassword", passwordForm.confirmPassword);
+
+    setPasswordLoading(true);
+    const res = await updatePassword(formData);
+    setPasswordLoading(false);
+
+    if (res?.success) {
+      setPasswordMessage({ type: "success", text: res.success });
+      setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      startTransition(() => {
+        router.refresh();
+      });
+      setTimeout(() => setPasswordMessage(null), 3000);
+    } else {
+      setPasswordMessage({ type: "error", text: res?.error || "Failed to update password." });
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <div className="h-[52px] shrink-0 bg-[#0d0d0f]/80 backdrop-blur-md border-b border-white/5 flex items-center px-6 z-10 sticky top-0">
@@ -100,6 +139,80 @@ export default function SettingsClient({
                 <p className="text-[13px] text-white/50">{user.email}</p>
               </div>
             </div>
+          </section>
+
+          <section>
+            <h2 className="text-sm font-medium text-white/80 mb-4">Security</h2>
+            <form onSubmit={handlePasswordUpdate} className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] p-5 space-y-5">
+              <div>
+                <h3 className="text-[14px] font-medium text-white mb-1">
+                  {user.hasPassword ? "Update Password" : "Create Password"}
+                </h3>
+                <p className="text-[13px] text-white/50">
+                  {user.hasPassword
+                    ? "Confirm your current password before setting a new one."
+                    : "Add a password so this account can also sign in with email credentials."}
+                </p>
+              </div>
+
+              {user.hasPassword && (
+                <div>
+                  <label className="block text-[13px] text-white/60 mb-2">Current Password</label>
+                  <input
+                    type="password"
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
+                    className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-[14px] text-white focus:outline-none focus:border-violet-500/50 transition-colors"
+                    autoComplete="current-password"
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[13px] text-white/60 mb-2">New Password</label>
+                  <input
+                    type="password"
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))}
+                    className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-[14px] text-white focus:outline-none focus:border-violet-500/50 transition-colors"
+                    autoComplete="new-password"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[13px] text-white/60 mb-2">Confirm Password</label>
+                  <input
+                    type="password"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                    className="w-full bg-white/5 border border-white/10 rounded-md px-3 py-2 text-[14px] text-white focus:outline-none focus:border-violet-500/50 transition-colors"
+                    autoComplete="new-password"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2 flex items-center justify-between">
+                {passwordMessage ? (
+                  <div className={`text-[13px] ${passwordMessage.type === "success" ? "text-emerald-400" : "text-red-400"}`}>
+                    {passwordMessage.text}
+                  </div>
+                ) : (
+                  <div className="text-[12px] text-white/40">Minimum 6 characters.</div>
+                )}
+                <button
+                  type="submit"
+                  disabled={
+                    passwordLoading ||
+                    !passwordForm.newPassword ||
+                    !passwordForm.confirmPassword ||
+                    (user.hasPassword && !passwordForm.currentPassword)
+                  }
+                  className="text-[13px] font-medium text-white bg-violet-500/20 border border-violet-500/30 hover:bg-violet-500/30 px-4 py-2 rounded-md transition-colors disabled:opacity-50"
+                >
+                  {passwordLoading ? "Saving..." : user.hasPassword ? "Update Password" : "Create Password"}
+                </button>
+              </div>
+            </form>
           </section>
 
           <section>

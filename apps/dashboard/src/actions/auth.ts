@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@aura/db";
+import { auth } from "@/auth";
 import bcrypt from "bcrypt";
 import { z } from "zod";
 import crypto from "crypto";
@@ -10,6 +11,12 @@ const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+const updatePasswordSchema = z.object({
+  currentPassword: z.string().optional(),
+  newPassword: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
 });
 
 export async function register(formData: FormData) {
@@ -137,6 +144,64 @@ export async function resetPassword(formData: FormData, token: string) {
     return { success: "Password successfully reset! You can now log in." };
   } catch (error) {
     console.error("Reset password error:", error);
+    return { error: "Something went wrong." };
+  }
+}
+
+export async function updatePassword(formData: FormData) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { error: "You must be signed in to update your password." };
+    }
+
+    const data = Object.fromEntries(formData.entries());
+    const validatedData = updatePasswordSchema.safeParse(data);
+
+    if (!validatedData.success) {
+      return { error: validatedData.error.errors[0]?.message || "Invalid fields." };
+    }
+
+    const { currentPassword, newPassword, confirmPassword } = validatedData.data;
+
+    if (newPassword !== confirmPassword) {
+      return { error: "New passwords do not match." };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true, password_hash: true },
+    });
+
+    if (!user) {
+      return { error: "User not found." };
+    }
+
+    if (user.password_hash) {
+      if (!currentPassword) {
+        return { error: "Current password is required." };
+      }
+
+      const passwordsMatch = await bcrypt.compare(currentPassword, user.password_hash);
+      if (!passwordsMatch) {
+        return { error: "Current password is incorrect." };
+      }
+    }
+
+    const password_hash = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password_hash },
+    });
+
+    return {
+      success: user.password_hash
+        ? "Password updated successfully."
+        : "Password created successfully.",
+    };
+  } catch (error) {
+    console.error("Update password error:", error);
     return { error: "Something went wrong." };
   }
 }
