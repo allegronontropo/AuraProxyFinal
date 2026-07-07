@@ -265,9 +265,18 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
                   {(() => {
                     const title = selectedAlert.title.toLowerCase();
                     const actions = [];
-                    const basePath = typeof window !== 'undefined' 
-                      ? window.location.pathname.split('/alerts')[0] 
-                      : '#';
+                    const basePath = (() => {
+                      if (typeof window === 'undefined') return '#';
+
+                      const segments = window.location.pathname.split('/').filter(Boolean);
+                      const dashboardIndex = segments.findIndex(segment => segment === 'dashboard');
+
+                      if (dashboardIndex >= 0 && segments[dashboardIndex + 1]) {
+                        return `/dashboard/${segments[dashboardIndex + 1]}`;
+                      }
+
+                      return '';
+                    })();
 
                     if (title.includes("budget")) {
                       actions.push({ label: "Manage Project Budget", primary: true, href: `${basePath}/settings` });
