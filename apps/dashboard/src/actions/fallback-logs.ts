@@ -35,7 +35,6 @@ export async function getFallbackLogs(
     projectId,
     metadata: {
       path: ["fallback_provider"],
-      // @ts-expect-error - Prisma typing for JSON filters sometimes misbehaves
       not: null,
     },
   };
