@@ -268,11 +268,9 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
                     const basePath = (() => {
                       if (typeof window === 'undefined') return '#';
 
-                      const segments = window.location.pathname.split('/').filter(Boolean);
-                      const dashboardIndex = segments.findIndex(segment => segment === 'dashboard');
-
-                      if (dashboardIndex >= 0 && segments[dashboardIndex + 1]) {
-                        return `/dashboard/${segments[dashboardIndex + 1]}`;
+                      const match = window.location.pathname.match(/^\/dashboard\/([^/]+)(?:\/.*)?$/);
+                      if (match?.[1]) {
+                        return `/dashboard/${match[1]}`;
                       }
 
                       return '';

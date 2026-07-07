@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { getProjectById, getAlertSummary } from "@/lib/queries";
 import Sidebar from "@/components/dashboard/Sidebar";
 
+export const dynamic = "force-dynamic";
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
   params: Promise<{ projectId: string }>;

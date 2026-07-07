@@ -1,5 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@aura/db";
+
+export const dynamic = "force-dynamic";
 import { redirect, notFound } from "next/navigation";
 import SettingsClient from "@/components/dashboard/SettingsClient";
 

@@ -1,5 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+
+export const dynamic = "force-dynamic";
 import { getProjectAlerts } from "@/actions/alerts";
 import AlertQueueClient, { type Alert } from "@/components/dashboard/AlertQueueClient";
 

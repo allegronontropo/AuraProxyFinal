@@ -1,5 +1,7 @@
 import { auth } from "@/auth";
 import { getApiKeys } from "@/lib/queries";
+
+export const dynamic = "force-dynamic";
 import { getProviderCredentials } from "@/actions/credentials";
 import ApiKeysTable from "@/components/dashboard/ApiKeysTable";
 import ProviderCredentialsSection from "@/components/dashboard/ProviderCredentialsSection";
