@@ -426,7 +426,8 @@ export async function getUsageByModel(
   // Use raw SQL to group by day and model
   const projectCondition = projectId ? Prisma.sql`AND project_id = ${projectId}` : Prisma.empty;
   
-  const results = await prisma.$queryRaw<any[]>`
+  interface UsageRawRow { model: string; provider: string; period: Date; totalRequests: number; tokensIn: number; tokensOut: number; totalTokens: number; totalCostUsd: number; }
+  const results = await prisma.$queryRaw<UsageRawRow[]>`
     SELECT 
       model,
       provider,

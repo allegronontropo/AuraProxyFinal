@@ -31,11 +31,11 @@ export async function getFallbackLogs(
   const limit = params.limit || 10;
   const skip = (page - 1) * limit;
 
-  const where: any = {
+  const where: Record<string, unknown> = {
     projectId,
     metadata: {
       path: ["fallback_provider"],
-      // @ts-ignore - Prisma typing for JSON filters sometimes misbehaves
+      // @ts-expect-error - Prisma typing for JSON filters sometimes misbehaves
       not: null,
     },
   };

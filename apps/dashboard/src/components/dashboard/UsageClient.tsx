@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { DollarSign, Activity, Calendar, ChevronDown, Check } from "lucide-react";
+import { Calendar, ChevronDown } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 interface UsageDataPoint {

@@ -40,7 +40,7 @@ export default function RoutingSection({
 }: {
   projectId: string;
   initialFallbackModels: string[];
-  apiKeys: any[];
+  apiKeys: { id: string; name: string; keyPrefix: string }[];
 }) {
   const router = useRouter();
   const [, startTransition] = useTransition();

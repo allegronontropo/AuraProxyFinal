@@ -1,8 +1,36 @@
 "use client";
 
+import { ProviderIcon } from "@lobehub/icons";
 import { useState } from "react";
 import { updateAlertStatus } from "@/actions/alerts";
 import type { AlertStatus, AlertSeverity } from "@aura/shared";
+
+const PROVIDER_COLORS: Record<string, string> = {
+  openai: "#10a37f",
+  anthropic: "#cc785c",
+  google: "#4285F4",
+  groq: "#8b5cf6",
+  azure: "#0078D4",
+  mistral: "#ff7000",
+  cohere: "#39594D",
+};
+
+function extractProvider(alert: { title: string; metadata?: Record<string, unknown> }): string | null {
+  const title = alert.title.toLowerCase();
+  const metadata = alert.metadata || {};
+  
+  if (metadata.primary_provider) return metadata.primary_provider as string;
+  if (metadata.fallback_provider) return metadata.fallback_provider as string;
+  
+  for (const p of Object.keys(PROVIDER_COLORS)) {
+    if (title.includes(p)) return p;
+  }
+  
+  return null;
+}
+
+
+
 
 // We extend the shared type slightly for the client UI props if needed
 export type Alert = {
@@ -13,12 +41,13 @@ export type Alert = {
   status: AlertStatus;
   timestamp: string;
   source: string;
+  provider?: string;
   metric?: {
     label: string;
     value: string;
     threshold: string;
   };
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 };
 
 export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Alert[] }) {
@@ -106,6 +135,7 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
               {filteredAlerts.map(alert => {
                 const isActive = selectedAlertId === alert.id;
                 const colors = severityStyles[alert.severity];
+                const provider = alert.provider || extractProvider(alert);
                 
                 return (
                   <div
@@ -120,7 +150,8 @@ export default function AlertQueueClient({ initialAlerts }: { initialAlerts: Ale
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-2">
                         <span className={`inline-block w-2 h-2 rounded-full ${colors.bg} ${colors.shadow} shadow-[0_0_8px_currentColor] ${colors.text}`} />
-                        <span className="text-[14px] font-semibold text-white/90">{alert.title}</span>
+                      {provider && <ProviderIcon provider={provider} size={12} type="color" />}
+                      <span className="text-[14px] font-semibold text-white/90">{alert.title}</span>
                       </div>
                       <span className="text-[11px] text-white/40">{formatTimeAgo(alert.timestamp)}</span>
                     </div>

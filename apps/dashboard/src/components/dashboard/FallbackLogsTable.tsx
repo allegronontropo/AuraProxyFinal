@@ -5,21 +5,32 @@ import { getFallbackLogs } from "@/actions/fallback-logs";
 import { Repeat, ArrowRight, Clock, Box, Key, AlertCircle, RefreshCw, ChevronDown, ChevronRight, Info, ChevronLeft } from "lucide-react";
 import CustomSelect from "@/components/ui/CustomSelect";
 
+interface ApiKey {
+  id: string;
+  name: string;
+  keyPrefix: string;
+}
+
 interface FallbackLog {
   id: string;
   createdAt: Date;
-  provider: string; // The fallback provider
-  model: string; // The fallback model
+  provider: string;
+  model: string;
   latencyMs: number;
   statusCode: number;
-  metadata: any;
+  metadata: Record<string, unknown>;
   apiKey: {
     name: string;
     keyPrefix: string;
   };
 }
 
-export default function FallbackLogsTable({ projectId, apiKeys }: { projectId: string; apiKeys: any[] }) {
+function SortIcon({ field, sortBy, sortOrder }: { field: string; sortBy: string; sortOrder: string }) {
+  if (sortBy !== field) return null;
+  return <span className="ml-1 inline-block">{sortOrder === "desc" ? "↓" : "↑"}</span>;
+}
+
+export default function FallbackLogsTable({ projectId, apiKeys }: { projectId: string; apiKeys: ApiKey[] }) {
   const [logs, setLogs] = useState<FallbackLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +46,7 @@ export default function FallbackLogsTable({ projectId, apiKeys }: { projectId: s
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
-    let mounted = true;
+    const mounted = true;
 
     async function fetchLogs() {
       setLoading(true);
@@ -48,13 +59,13 @@ export default function FallbackLogsTable({ projectId, apiKeys }: { projectId: s
           sortOrder,
         });
         if (mounted) {
-          setLogs(result.logs as any[]);
+          setLogs(result.logs as FallbackLog[]);
           setTotalPages(result.pages);
           setTotalLogs(result.total);
           setError(null);
         }
-      } catch (err: any) {
-        if (mounted) setError(err.message || "Failed to load fallback logs");
+      } catch (err: unknown) {
+        if (mounted) setError((err as Error).message || "Failed to load fallback logs");
       } finally {
         if (mounted) setLoading(false);
       }
@@ -73,12 +84,12 @@ export default function FallbackLogsTable({ projectId, apiKeys }: { projectId: s
         sortBy,
         sortOrder,
       });
-      setLogs(result.logs as any[]);
+      setLogs(result.logs as FallbackLog[]);
       setTotalPages(result.pages);
       setTotalLogs(result.total);
       setError(null);
-    } catch (err: any) {
-      setError(err.message || "Failed to load fallback logs");
+    } catch (err: unknown) {
+      setError((err as Error).message || "Failed to load fallback logs");
     } finally {
       setLoading(false);
     }
@@ -103,10 +114,6 @@ export default function FallbackLogsTable({ projectId, apiKeys }: { projectId: s
     setPage(1); // Reset page on sort
   };
 
-  const SortIcon = ({ field }: { field: string }) => {
-    if (sortBy !== field) return null;
-    return <span className="ml-1 inline-block">{sortOrder === "desc" ? "↓" : "↑"}</span>;
-  };
 
   if (error) {
     return (
@@ -188,7 +195,7 @@ export default function FallbackLogsTable({ projectId, apiKeys }: { projectId: s
                   className="px-2 py-3 text-[11px] font-medium text-white/40 uppercase tracking-wider bg-white/[0.01] cursor-pointer hover:text-white/80"
                   onClick={() => handleSort("createdAt")}
                 >
-                  Time <SortIcon field="createdAt" />
+                  Time <SortIcon field="createdAt" sortBy={sortBy} sortOrder={sortOrder} />
                 </th>
                 <th className="px-5 py-3 text-[11px] font-medium text-white/40 uppercase tracking-wider bg-white/[0.01]">API Key</th>
                 <th className="px-5 py-3 text-[11px] font-medium text-white/40 uppercase tracking-wider bg-white/[0.01]">Route Flow</th>
@@ -196,13 +203,13 @@ export default function FallbackLogsTable({ projectId, apiKeys }: { projectId: s
                   className="px-5 py-3 text-[11px] font-medium text-white/40 uppercase tracking-wider bg-white/[0.01] cursor-pointer hover:text-white/80"
                   onClick={() => handleSort("latencyMs")}
                 >
-                  Latency <SortIcon field="latencyMs" />
+                  Latency <SortIcon field="latencyMs" sortBy={sortBy} sortOrder={sortOrder} />
                 </th>
                 <th 
                   className="px-5 py-3 text-[11px] font-medium text-white/40 uppercase tracking-wider bg-white/[0.01] cursor-pointer hover:text-white/80"
                   onClick={() => handleSort("statusCode")}
                 >
-                  Status <SortIcon field="statusCode" />
+                  Status <SortIcon field="statusCode" sortBy={sortBy} sortOrder={sortOrder} />
                 </th>
               </tr>
             </thead>

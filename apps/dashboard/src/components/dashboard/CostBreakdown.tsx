@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { AlertCircle, TrendingUp, DollarSign } from "lucide-react";
+import { AlertCircle, TrendingUp } from "lucide-react";
+import { ProviderIcon } from "@lobehub/icons";
 
 interface BudgetStatus {
   used: number;
@@ -100,7 +101,8 @@ export function CostBreakdown({ budgetStatus, modelBreakdown }: CostBreakdownPro
                     <span className="text-xs text-gray-200 font-medium truncate max-w-[150px]">
                       {item.model}
                     </span>
-                    <span className="text-[10px] text-gray-500 mt-0.5">
+                    <span className="text-[10px] text-gray-500 mt-0.5 flex items-center gap-1.5">
+                      <ProviderIcon provider={item.provider} size={12} type="color" />
                       {item.provider.charAt(0).toUpperCase() + item.provider.slice(1)} • {item._count.id} reqs
                     </span>
                   </div>

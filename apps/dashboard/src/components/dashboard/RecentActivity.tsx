@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ListIcon } from "lucide-react";
+import { ProviderIcon } from "@lobehub/icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -92,7 +93,8 @@ function LogRow({ log, isExpanded, onToggle }: { log: RequestLog; isExpanded: bo
           <div className="text-xs font-medium text-gray-100 whitespace-nowrap overflow-hidden text-ellipsis">
             {truncateModel(log.model)}
           </div>
-          <div className="text-[10px] text-gray-500 mt-0.5">
+          <div className="text-[10px] text-gray-500 mt-0.5 flex items-center gap-1.5">
+            <ProviderIcon provider={log.provider} size={12} type="color" />
             {formatProvider(log.provider)}
             {log.apiKey && <span className="text-gray-600"> · {log.apiKey.name}</span>}
           </div>

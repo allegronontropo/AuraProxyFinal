@@ -18,7 +18,8 @@ export default async function UsagePage({
 
   // Parse dates or default to last 30 days
   const toDate = to ? new Date(to) : new Date();
-  const fromDate = from ? new Date(from) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+  const fromDate = from ? new Date(from) : new Date(toDate.getTime() - thirtyDaysMs);
 
   // Fetch the usage data for the specified date range
   const usageData = await getUsageByModel(projectId, fromDate, toDate);

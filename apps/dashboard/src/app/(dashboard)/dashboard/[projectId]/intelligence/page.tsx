@@ -6,6 +6,8 @@ import {
   getGatewayTopModels 
 } from "@/lib/queries";
 import { Activity, ShieldCheck, Zap, DollarSign, Clock, Target, Trophy, AlertTriangle } from "lucide-react";
+import { ProviderIcon } from "@lobehub/icons";
+
 
 // ─── Provider Chip ────────────────────────────────────────────────────────────
 
@@ -21,7 +23,8 @@ function ProviderChip({ provider }: { provider: string }) {
   const cfg = map[provider.toLowerCase()] ?? { bg: "bg-white/10", color: "text-gray-400" };
   
   return (
-    <span className={`inline-flex items-center justify-center ${cfg.bg} ${cfg.color} text-[11px] font-bold px-2.5 py-1 rounded-md capitalize tracking-[0.02em]`}>
+    <span className={`inline-flex items-center gap-1.5 ${cfg.bg} ${cfg.color} text-[11px] font-bold px-2.5 py-1 rounded-md capitalize tracking-[0.02em]`}>
+      <ProviderIcon provider={provider} size={12} type="color" />
       {provider}
     </span>
   );
@@ -186,6 +189,7 @@ export default async function GatewayInsightsPage({
                         <div className="flex justify-between items-baseline">
                           <div className="flex items-center gap-2">
                             <span className={`text-xs font-bold ${i === 0 ? "text-amber-400" : "text-gray-500"}`}>#{i + 1}</span>
+                            <ProviderIcon provider={prov.provider} size={12} type="color" />
                             <span className="text-[13px] font-semibold text-gray-100 capitalize">{prov.provider}</span>
                           </div>
                           <span className="text-[13px] font-bold text-white">{formatMs(prov.avgLatencyMs)}</span>

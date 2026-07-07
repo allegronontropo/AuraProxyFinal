@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getCacheStats } from "@/lib/queries";
+import { ProviderIcon } from "@lobehub/icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,8 +17,6 @@ interface TimeSeriesEntry {
   cacheHits: number;
   cacheMisses: number;
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 // ─── Area Chart SVG ───────────────────────────────────────────────────────────
 
@@ -46,11 +45,12 @@ function AreaChart({ data }: { data: { label: string; hits: number; misses: numb
   const ticks = data.filter((_, i) => i % 4 === 0 || i === data.length - 1);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ overflow: "visible" }}>
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} className="overflow-visible">
       <defs>
         <linearGradient id="cache-grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.3" />
-          <stop offset="100%" stopColor="#7c3aed" stopOpacity="0" />
+          {/* Aura Violet */}
+          <stop offset="0%" stopColor="#7c5cfc" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="#7c5cfc" stopOpacity="0" />
         </linearGradient>
       </defs>
 
@@ -60,8 +60,8 @@ function AreaChart({ data }: { data: { label: string; hits: number; misses: numb
         return (
           <g key={frac}>
             <line x1={PAD.left} y1={y} x2={PAD.left + cW} y2={y}
-              stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-            <text x={PAD.left - 6} y={y + 4} fill="#4b5563" fontSize="9" textAnchor="end">
+              className="stroke-white/[0.04]" strokeWidth="1" />
+            <text x={PAD.left - 6} y={y + 4} fill="#6b7280" fontSize="9" textAnchor="end">
               {Math.round(maxVal * frac)}
             </text>
           </g>
@@ -72,21 +72,21 @@ function AreaChart({ data }: { data: { label: string; hits: number; misses: numb
       <path d={areaPath} fill="url(#cache-grad)" />
 
       {/* Line */}
-      <path d={linePath} fill="none" stroke="#7c3aed" strokeWidth="2"
+      <path d={linePath} fill="none" stroke="#7c5cfc" strokeWidth="2"
         strokeLinecap="round" strokeLinejoin="round" />
 
       {/* End dot */}
       <circle
         cx={scaleX(data.length - 1)}
         cy={scaleY(data[data.length - 1].hits)}
-        r="3.5" fill="#7c3aed"
+        r="3.5" fill="#7c5cfc"
       />
 
       {/* X axis labels */}
       {ticks.map((t) => {
         const i = data.indexOf(t);
         return (
-          <text key={i} x={scaleX(i)} y={H - 6} fill="#4b5563" fontSize="9" textAnchor="middle">
+          <text key={i} x={scaleX(i)} y={H - 6} fill="#6b7280" fontSize="9" textAnchor="middle">
             {t.label}
           </text>
         );
@@ -109,15 +109,15 @@ function BarChart({ data }: { data: { label: string; hits: number; misses: numbe
   const maxVal = Math.max(...last7.map((d) => d.hits + d.misses), 1);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} style={{ overflow: "visible" }}>
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} className="overflow-visible">
       {/* guide */}
       {[0, 0.5, 1].map((frac) => {
         const y = PAD.top + cH - frac * cH;
         return (
           <g key={frac}>
             <line x1={PAD.left} y1={y} x2={PAD.left + cW} y2={y}
-              stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-            <text x={PAD.left - 4} y={y + 4} fill="#4b5563" fontSize="8" textAnchor="end">
+              className="stroke-white/[0.04]" strokeWidth="1" />
+            <text x={PAD.left - 4} y={y + 4} fill="#6b7280" fontSize="8" textAnchor="end">
               {Math.round(maxVal * frac)}
             </text>
           </g>
@@ -131,19 +131,19 @@ function BarChart({ data }: { data: { label: string; hits: number; misses: numbe
         const baseY = PAD.top + cH;
         return (
           <g key={i}>
-            {/* hits bar (green) */}
+            {/* hits bar (Aura Success) */}
             <rect
               x={cx - barW - 1} y={baseY - hitH}
               width={barW} height={Math.max(hitH, 1)}
-              fill="#34d399" opacity="0.8" rx="2"
+              fill="#22c55e" opacity="0.8" rx="2"
             />
-            {/* misses bar (red) */}
+            {/* misses bar (Aura Error) */}
             <rect
               x={cx + 1} y={baseY - missH}
               width={barW} height={Math.max(missH, 1)}
               fill="#ef4444" opacity="0.7" rx="2"
             />
-            <text x={cx} y={H - 6} fill="#4b5563" fontSize="8.5" textAnchor="middle">
+            <text x={cx} y={H - 6} fill="#6b7280" fontSize="8.5" textAnchor="middle">
               {d.label}
             </text>
           </g>
@@ -157,25 +157,18 @@ function BarChart({ data }: { data: { label: string; hits: number; misses: numbe
 
 function ProviderChip({ provider }: { provider: string }) {
   const map: Record<string, { bg: string; color: string }> = {
-    openai:    { bg: "rgba(16,163,127,0.15)", color: "#10a37f" },
-    anthropic: { bg: "rgba(210,105,30,0.15)", color: "#d2691e" },
-    google:    { bg: "rgba(66,133,244,0.15)", color: "#4285f4" },
-    groq:      { bg: "rgba(167,139,250,0.15)", color: "#a78bfa" },
-    azure:     { bg: "rgba(0,120,212,0.15)",   color: "#0078d4" },
-    cohere:    { bg: "rgba(52,211,153,0.15)",  color: "#34d399" },
+    openai:    { bg: "bg-emerald-500/15", color: "text-emerald-500" },
+    anthropic: { bg: "bg-amber-500/15", color: "text-amber-500" },
+    google:    { bg: "bg-blue-500/15", color: "text-blue-500" },
+    groq:      { bg: "bg-violet-500/15", color: "text-violet-500" },
+    azure:     { bg: "bg-sky-500/15",   color: "text-sky-500" },
+    cohere:    { bg: "bg-teal-500/15",  color: "text-teal-500" },
   };
-  const cfg = map[provider.toLowerCase()] ?? { bg: "rgba(255,255,255,0.08)", color: "#9ca3af" };
+  const cfg = map[provider.toLowerCase()] ?? { bg: "bg-white/10", color: "text-gray-400" };
+  
   return (
-    <span style={{
-      display: "inline-block",
-      background: cfg.bg,
-      color: cfg.color,
-      fontSize: 10,
-      fontWeight: 600,
-      padding: "2px 7px",
-      borderRadius: 5,
-      textTransform: "capitalize",
-    }}>
+    <span className={`inline-flex items-center gap-1.5 ${cfg.bg} ${cfg.color} text-[10px] font-bold px-2.5 py-1 rounded-md capitalize tracking-[0.02em]`}>
+      <ProviderIcon provider={provider} size={12} type="color" />
       {provider}
     </span>
   );
@@ -243,109 +236,83 @@ export default async function CacheAnalyticsPage({
   const isEmpty = raw.timeSeries.length === 0 && (raw.byModel as CacheByModel[]).length === 0;
 
   return (
-    <>
+    <div className="flex-1 flex flex-col overflow-hidden">
       {/* TopBar */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 22px", height: 52, flexShrink: 0,
-        background: "rgba(13,13,15,0.8)",
-        borderBottom: "1px solid rgba(255,255,255,0.05)",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 16, fontWeight: 600, color: "#f9fafb" }}>Cache Analytics</span>
-          <span style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.25)",
-            borderRadius: 20, padding: "3px 10px", fontSize: 11, color: "#34d399",
-          }}>
-            <span style={{
-              width: 5, height: 5, borderRadius: "50%", background: "#34d399",
-              display: "inline-block", animation: "pulse 1.8s infinite",
-            }} />
+      <div className="flex items-center justify-between px-5 h-[52px] border-b border-white/5 shrink-0 bg-[#0D0D0F]/80">
+        <div className="flex items-center gap-3">
+          <span className="text-[16px] font-semibold text-white/90">Cache Analytics</span>
+          <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_currentColor]" />
             {hitRate}% Hit Rate
           </span>
           {isEmpty && (
-            <span style={{ fontSize: 11, color: "#6b7280" }}>Demo data shown</span>
+            <span className="text-[11px] text-gray-500">Demo data shown</span>
           )}
         </div>
-        <button
-          style={{
-            display: "flex", alignItems: "center", gap: 6,
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            borderRadius: 7, color: "#9ca3af", fontSize: 12,
-            padding: "6px 12px", cursor: "pointer", transition: "all 0.13s",
-          }}
-        >
+        <button className="flex items-center gap-1.5 bg-white/[0.03] border border-white/10 rounded-md text-gray-400 text-xs px-3 py-1.5 cursor-pointer transition-all hover:bg-white/[0.06] hover:text-white">
           ↻ Refresh
         </button>
       </div>
 
       {/* Content */}
-      <div style={{
-        flex: 1, overflowY: "auto", padding: 22,
-        display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20,
-        alignContent: "start",
-      }}>
+      <div className="flex-1 overflow-y-auto p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         {/* ── Left column ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className="flex flex-col gap-6">
 
           {/* Area Chart Card */}
-          <div style={{
-            background: "rgba(255,255,255,0.015)",
-            border: "1px solid rgba(255,255,255,0.07)",
-            borderRadius: 11, padding: "18px 20px",
-          }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>
+          <div className="group relative bg-white/[0.015] border border-white/[0.08] rounded-[11px] p-6 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
+            {/* Aura Shader Gradient Glow */}
+            <div 
+              className="absolute -top-16 -right-16 w-[200px] h-[200px] rounded-full blur-[60px] opacity-[0.12] pointer-events-none transition-opacity duration-500 group-hover:opacity-20"
+              style={{ background: "#7c5cfc" }} 
+            />
+            
+            <div className="relative z-10 text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-4">
               Cache Hits Over Time
             </div>
-            <AreaChart data={chartData} />
+            
+            <div className="relative z-10">
+              <AreaChart data={chartData} />
+            </div>
 
             {/* Stats row below chart */}
-            <div style={{
-              display: "flex", gap: 0,
-              marginTop: 16, borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 14,
-            }}>
-              <div style={{ flex: 1, textAlign: "center" }}>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#34d399" }}>
+            <div className="relative z-10 flex border-t border-white/5 pt-4 mt-4">
+              <div className="flex-1 text-center">
+                <div className="text-xl font-bold text-emerald-400">
                   {todayHits.toLocaleString()}
                 </div>
-                <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>hits (latest period)</div>
+                <div className="text-[11px] text-gray-500 mt-1">hits (latest)</div>
               </div>
-              <div style={{ width: 1, background: "rgba(255,255,255,0.06)" }} />
-              <div style={{ flex: 1, textAlign: "center" }}>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#ef4444" }}>
+              <div className="w-px bg-white/[0.06]" />
+              <div className="flex-1 text-center">
+                <div className="text-xl font-bold text-red-400">
                   {todayMisses.toLocaleString()}
                 </div>
-                <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>misses (latest period)</div>
+                <div className="text-[11px] text-gray-500 mt-1">misses (latest)</div>
               </div>
-              <div style={{ width: 1, background: "rgba(255,255,255,0.06)" }} />
-              <div style={{ flex: 1, textAlign: "center" }}>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#f9fafb" }}>
+              <div className="w-px bg-white/[0.06]" />
+              <div className="flex-1 text-center">
+                <div className="text-xl font-bold text-white">
                   {totalHits.toLocaleString()}
                 </div>
-                <div style={{ fontSize: 11, color: "#6b7280", marginTop: 2 }}>total hits (7d)</div>
+                <div className="text-[11px] text-gray-500 mt-1">total hits (7d)</div>
               </div>
             </div>
           </div>
 
           {/* Bar Chart Card */}
-          <div style={{
-            background: "rgba(255,255,255,0.015)",
-            border: "1px solid rgba(255,255,255,0.07)",
-            borderRadius: 11, padding: "18px 20px",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                Hits vs Misses — Last 7 Periods
+          <div className="group bg-white/[0.015] border border-white/[0.08] rounded-[11px] p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
+                Hits vs Misses — Last 7
               </span>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 10, color: "#6b7280" }}>
-                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: 2, background: "#34d399", display: "inline-block" }} />
+              <div className="flex items-center gap-3 text-[10px] text-gray-500">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-sm bg-emerald-400" />
                   Hits
                 </span>
-                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: 2, background: "#ef4444", display: "inline-block" }} />
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-sm bg-red-400" />
                   Misses
                 </span>
               </div>
@@ -355,123 +322,125 @@ export default async function CacheAnalyticsPage({
         </div>
 
         {/* ── Right column ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className="flex flex-col gap-6">
 
           {/* Big hit rate card */}
-          <div style={{
-            background: "rgba(52,211,153,0.05)",
-            border: "1px solid rgba(52,211,153,0.2)",
-            borderRadius: 11, padding: "24px 20px",
-            display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
-          }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: "#34d399", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>
+          <div className="group relative bg-emerald-500/[0.03] border border-emerald-500/20 rounded-[11px] p-8 flex flex-col items-center text-center overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-500/30">
+            {/* Aura Shader Gradient Glow */}
+            <div 
+              className="absolute inset-0 m-auto w-[150px] h-[150px] rounded-full blur-[60px] opacity-20 pointer-events-none transition-opacity duration-500 group-hover:opacity-[0.25]"
+              style={{ background: "#22c55e" }} 
+            />
+            
+            <div className="relative z-10 text-[11px] font-semibold text-emerald-400 uppercase tracking-widest mb-3">
               Cache Hit Rate
             </div>
-            <div style={{ fontSize: 56, fontWeight: 800, color: "#34d399", lineHeight: 1 }}>
+            <div className="relative z-10 text-6xl font-extrabold text-emerald-400 leading-none">
               {hitRate}%
             </div>
-            <div style={{ fontSize: 12, color: "#6b7280", marginTop: 8 }}>
+            <div className="relative z-10 text-xs text-gray-500 mt-3 font-medium">
               requests served from cache
             </div>
-            <div style={{ display: "flex", gap: 24, marginTop: 20 }}>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 16, fontWeight: 700, color: "#f9fafb" }}>{totalHits.toLocaleString()}</div>
-                <div style={{ fontSize: 10, color: "#6b7280", marginTop: 2 }}>Total Hits</div>
+            <div className="relative z-10 flex gap-8 mt-6">
+              <div className="text-center">
+                <div className="text-lg font-bold text-white">{totalHits.toLocaleString()}</div>
+                <div className="text-[10px] text-gray-500 mt-1 uppercase tracking-wider font-semibold">Total Hits</div>
               </div>
-              <div style={{ width: 1, background: "rgba(255,255,255,0.06)" }} />
-              <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 16, fontWeight: 700, color: "#f9fafb" }}>{totalMisses.toLocaleString()}</div>
-                <div style={{ fontSize: 10, color: "#6b7280", marginTop: 2 }}>Total Misses</div>
+              <div className="w-px bg-white/[0.06]" />
+              <div className="text-center">
+                <div className="text-lg font-bold text-white">{totalMisses.toLocaleString()}</div>
+                <div className="text-[10px] text-gray-500 mt-1 uppercase tracking-wider font-semibold">Total Misses</div>
               </div>
             </div>
           </div>
 
           {/* Model breakdown table */}
-          <div style={{
-            background: "rgba(255,255,255,0.015)",
-            border: "1px solid rgba(255,255,255,0.07)",
-            borderRadius: 11, overflow: "hidden",
-          }}>
-            <div style={{ padding: "14px 18px 0" }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          <div className="group bg-white/[0.015] border border-white/[0.08] rounded-[11px] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
+            <div className="pt-5 px-5">
+              <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
                 Model Breakdown
               </div>
             </div>
-            <div style={{ overflowX: "auto", marginTop: 12 }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <div className="overflow-x-auto mt-4">
+              <table className="w-full border-collapse">
                 <thead>
-                  <tr style={{ background: "rgba(255,255,255,0.03)" }}>
-                    {["MODEL", "PROVIDER", "ENTRIES", "TOTAL HITS"].map((h) => (
-                      <th key={h} style={{
-                        padding: "8px 18px", textAlign: "left",
-                        fontSize: 10, fontWeight: 600, color: "#6b7280",
-                        textTransform: "uppercase", letterSpacing: "0.06em",
-                        whiteSpace: "nowrap",
-                      }}>{h}</th>
-                    ))}
+                  <tr className="bg-white/[0.02]">
+                    <th className="px-5 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-widest whitespace-nowrap">Model</th>
+                    <th className="px-5 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-widest whitespace-nowrap">Provider</th>
+                    <th className="px-5 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-widest whitespace-nowrap">Entries</th>
+                    <th className="px-5 py-3 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-widest whitespace-nowrap">Total Hits</th>
                   </tr>
                 </thead>
                 <tbody>
                   {byModel.map((row, i) => (
-                    <tr key={i} style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-                      <td style={{ padding: "10px 18px", fontSize: 12, fontWeight: 500, color: "#f9fafb" }}>
+                    <tr key={i} className="border-t border-white/[0.04]">
+                      <td className="px-5 py-3.5 text-xs font-medium text-gray-100">
                         {row.model}
                       </td>
-                      <td style={{ padding: "10px 18px" }}>
+                      <td className="px-5 py-3.5">
                         <ProviderChip provider={row.provider} />
                       </td>
-                      <td style={{ padding: "10px 18px", fontSize: 12, color: "#9ca3af" }}>
+                      <td className="px-5 py-3.5 text-xs text-gray-400">
                         {row._count.id.toLocaleString()}
                       </td>
-                      <td style={{ padding: "10px 18px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: "#34d399" }}>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-semibold text-emerald-400">
                             {(row._sum.hitCount ?? 0).toLocaleString()}
                           </span>
-                          {/* mini bar */}
-                          <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 2, maxWidth: 60 }}>
-                            <div style={{
-                              height: "100%", borderRadius: 2, background: "#34d399",
-                              width: `${Math.round(((row._sum.hitCount ?? 0) / Math.max(totalCacheHitCount, 1)) * 100)}%`,
-                            }} />
+                          <div className="flex-1 h-1 bg-white/[0.06] rounded-full max-w-[60px] overflow-hidden">
+                            <div 
+                              className="h-full bg-emerald-400 rounded-full"
+                              style={{ width: `${Math.round(((row._sum.hitCount ?? 0) / Math.max(totalCacheHitCount, 1)) * 100)}%` }}
+                            />
                           </div>
                         </div>
                       </td>
                     </tr>
                   ))}
+                  {byModel.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="px-5 py-8 text-center text-xs text-gray-500">
+                        No model data available.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
 
           {/* Cache efficiency card */}
-          <div style={{
-            background: "rgba(255,255,255,0.015)",
-            border: "1px solid rgba(255,255,255,0.07)",
-            borderRadius: 11, padding: "18px 20px",
-          }}>
-            <div style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>
+          <div className="group relative bg-white/[0.015] border border-white/[0.08] rounded-[11px] p-6 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
+            {/* Aura Shader Gradient Glow */}
+            <div 
+              className="absolute -bottom-16 -right-16 w-[150px] h-[150px] rounded-full blur-[60px] opacity-10 pointer-events-none transition-opacity duration-500 group-hover:opacity-[0.15]"
+              style={{ background: "#7c5cfc" }} 
+            />
+            
+            <div className="relative z-10 text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-5">
               Cache Efficiency
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: 12, color: "#9ca3af" }}>Avg hits per cached entry</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#f9fafb" }}>{avgHitsPerEntry}</span>
+            
+            <div className="relative z-10 flex flex-col gap-3.5">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-400 font-medium">Avg hits per cached entry</span>
+                <span className="text-[13px] font-semibold text-gray-100">{avgHitsPerEntry}</span>
               </div>
-              <div style={{ height: 1, background: "rgba(255,255,255,0.05)" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: 12, color: "#9ca3af" }}>Most popular model</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#a78bfa", fontFamily: "monospace" }}>{topModel}</span>
+              <div className="h-px bg-white/[0.05]" />
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-400 font-medium">Most popular model</span>
+                <span className="text-xs font-semibold text-violet-400 font-mono tracking-tight bg-violet-500/10 px-2 py-0.5 rounded">{topModel}</span>
               </div>
-              <div style={{ height: 1, background: "rgba(255,255,255,0.05)" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: 12, color: "#9ca3af" }}>Total cached entries</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#f9fafb" }}>{totalEntries.toLocaleString()}</span>
+              <div className="h-px bg-white/[0.05]" />
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-400 font-medium">Total cached entries</span>
+                <span className="text-[13px] font-semibold text-gray-100">{totalEntries.toLocaleString()}</span>
               </div>
-              <div style={{ height: 1, background: "rgba(255,255,255,0.05)" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: 12, color: "#9ca3af" }}>Bandwidth saved (est.)</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: "#34d399" }}>
+              <div className="h-px bg-white/[0.05]" />
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-400 font-medium">Bandwidth saved (est.)</span>
+                <span className="text-[13px] font-bold text-emerald-400 flex items-center gap-1.5">
                   ~${(totalHits * 0.0004).toFixed(2)}
                 </span>
               </div>
@@ -479,6 +448,6 @@ export default async function CacheAnalyticsPage({
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

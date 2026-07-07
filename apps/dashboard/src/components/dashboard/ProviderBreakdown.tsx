@@ -1,6 +1,7 @@
 "use client";
 
 import { Server } from "lucide-react";
+import { ProviderIcon } from "@lobehub/icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -137,14 +138,14 @@ export default function ProviderBreakdown({ providers }: ProviderBreakdownProps)
                 <div className="flex items-center gap-2.5">
                   {/* Icon */}
                   <div
-                    className="w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold shrink-0"
+                    className="w-6 h-6 rounded-md flex items-center justify-center shrink-0"
                     style={{
                       background: meta.bg,
                       border: `1px solid ${meta.border}`,
                       color: meta.color,
                     }}
                   >
-                    {meta.initial}
+                    <ProviderIcon provider={p.provider} size={16} type="color" />
                   </div>
                   <div>
                     <div className="text-xs font-semibold text-gray-100">

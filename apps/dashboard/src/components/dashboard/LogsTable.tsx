@@ -4,6 +4,7 @@ import { useState, useCallback, useTransition } from "react";
 import { fetchLogs } from "@/actions/logs";
 import type { LogFilter } from "@/lib/queries";
 import CustomSelect from "@/components/ui/CustomSelect";
+import { ProviderIcon } from "@lobehub/icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -273,10 +274,12 @@ function FilterPill({
   label,
   active,
   onClick,
+  icon,
 }: {
   label: string;
   active: boolean;
   onClick: () => void;
+  icon?: React.ReactNode;
 }) {
   const [hover, setHover] = useState(false);
   return (
@@ -301,9 +304,13 @@ function FilterPill({
         cursor: "pointer",
         transition: "all 0.13s",
         whiteSpace: "nowrap",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
       }}
     >
-      {label}
+      {icon}
+      <span>{label}</span>
     </button>
   );
 }
@@ -892,6 +899,7 @@ export default function LogsTable({
               <FilterPill
                 key={p}
                 label={p === "all" ? "All Providers" : p.charAt(0).toUpperCase() + p.slice(1)}
+                icon={p !== "all" ? <ProviderIcon provider={p} size={14} type="color" /> : undefined}
                 active={filters.provider === p}
                 onClick={() => handleFilterChange("provider", p)}
               />
@@ -1251,7 +1259,9 @@ function TableRow({
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span
             style={{
-              display: "inline-block",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
               padding: "2px 8px",
               borderRadius: 4,
               fontSize: 11,
@@ -1262,6 +1272,7 @@ function TableRow({
               whiteSpace: "nowrap",
             }}
           >
+            <ProviderIcon provider={log.provider} size={12} type="color" />
             {log.provider}
           </span>
           {log.metadata?.fallback_provider && (

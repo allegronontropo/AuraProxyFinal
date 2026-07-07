@@ -4,6 +4,7 @@ import React, { useState, useTransition } from "react";
 import { saveProviderCredential, deleteProviderCredential } from "@/actions/credentials";
 import { useRouter } from "next/navigation";
 import CustomSelect from "@/components/ui/CustomSelect";
+import { ProviderIcon } from "@lobehub/icons";
 
 type Credential = {
   id: string;
@@ -47,6 +48,16 @@ export default function ProviderCredentialsSection({
   const [loading, setLoading] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const providerOptions = PROVIDERS.map((p) => ({
+    value: p.value,
+    label: (
+      <div className="flex items-center gap-2">
+        <ProviderIcon provider={p.value} size={14} type="color" />
+        <span>{p.label}</span>
+      </div>
+    ),
+  }));
 
   const showMessage = (type: "success" | "error", text: string) => {
     setMessage({ type, text });
@@ -129,7 +140,7 @@ export default function ProviderCredentialsSection({
               <CustomSelect
                 value={provider}
                 onChange={(val) => setProvider(val)}
-                options={PROVIDERS}
+                options={providerOptions}
                 className="w-full"
                 buttonClassName="!py-2 !px-3 border-white/10"
               />

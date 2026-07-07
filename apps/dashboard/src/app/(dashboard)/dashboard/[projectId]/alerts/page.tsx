@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getProjectAlerts } from "@/actions/alerts";
-import AlertQueueClient from "@/components/dashboard/AlertQueueClient";
+import AlertQueueClient, { type Alert } from "@/components/dashboard/AlertQueueClient";
 
 export default async function AlertQueuePage({
   params,
@@ -18,7 +18,8 @@ export default async function AlertQueuePage({
   const formattedAlerts = alerts.map((a) => ({
     ...a,
     timestamp: a.createdAt.toISOString(),
+    provider: a.metadata?.primary_provider || a.metadata?.fallback_provider || null,
   }));
 
-  return <AlertQueueClient initialAlerts={formattedAlerts as any} />;
+  return <AlertQueueClient initialAlerts={formattedAlerts as Alert[]} />;
 }
