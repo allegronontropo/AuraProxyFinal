@@ -5,6 +5,13 @@ import { ConfigService } from '@nestjs/config';
 import type { ChatResponse } from '@aura/shared';
 import * as crypto from 'crypto';
 
+export interface CacheLookupResult {
+  hit: boolean;
+  kind: 'exact' | 'semantic' | 'miss';
+  similarityScore?: number;
+  response?: ChatResponse | null;
+}
+
 export interface CacheLookupInput {
   projectId: string;
   provider: string;
@@ -48,7 +55,7 @@ export class CacheService implements OnModuleInit {
    * 1. Exact Match (Fast path)
    * 2. Semantic Similarity using pgvector (AI path)
    */
-  async find(input: CacheLookupInput): Promise<ChatResponse | null> {
+  async find(input: CacheLookupInput): Promise<CacheLookupResult> {
     const promptHash = this.hashPrompt(input.prompt);
 
     // 1. FAST PATH: Exact Match (No embedding needed)
@@ -67,7 +74,11 @@ export class CacheService implements OnModuleInit {
     if (exactMatch && exactMatch.expiresAt > new Date()) {
       this.logger.log(`CACHE HIT (Exact Match) for model ${input.model} in project ${input.projectId}`);
       this.updateHitCount(exactMatch.id);
-      return exactMatch.response as unknown as ChatResponse;
+      return {
+        hit: true,
+        kind: 'exact',
+        response: exactMatch.response as unknown as ChatResponse,
+      };
     }
 
     // 2. AI PATH: Semantic Similarity (Needs embedding generation)
@@ -98,9 +109,43 @@ export class CacheService implements OnModuleInit {
 
         if (results.length > 0) {
           const semanticHit = results[0];
-          this.logger.log(`CACHE HIT (Semantic: ${semanticHit.similarity.toFixed(4)}) for model ${input.model}`);
+          const similarityScore = Number(semanticHit.similarity ?? 0);
+          this.logger.log(`CACHE HIT (Semantic: ${similarityScore.toFixed(4)}) for model ${input.model}`);
           this.updateHitCount(semanticHit.id);
-          return semanticHit.response as unknown as ChatResponse;
+          return {
+            hit: true,
+            kind: 'semantic',
+            similarityScore,
+            response: semanticHit.response as unknown as ChatResponse,
+          };
+        }
+        // If no result passed the threshold, optionally log the top similarity
+        // for debugging purposes when the env var CACHE_DEBUG_LOG_SIMILARITY=1
+        if (process.env.CACHE_DEBUG_LOG_SIMILARITY === '1') {
+          try {
+            const top = await this.prisma.client.$queryRaw<any[]>`
+              SELECT
+                id,
+                response,
+                1 - (embedding <=> ${vectorString}::vector) as similarity
+              FROM semantic_cache
+              WHERE project_id = ${input.projectId}
+                AND provider = ${input.provider}
+                AND model = ${input.model}
+                AND expires_at > NOW()
+              ORDER BY similarity DESC
+              LIMIT 1
+            `;
+
+            if (top && top.length > 0) {
+              const topSim = Number(top[0].similarity ?? 0);
+              this.logger.log(`Semantic top similarity (dev-debug): ${topSim.toFixed(4)} for project ${input.projectId}`);
+            } else {
+              this.logger.log(`Semantic debug: no candidates found for project ${input.projectId}`);
+            }
+          } catch (err: any) {
+            this.logger.warn(`Failed to fetch top semantic similarity for debug: ${err.message}`);
+          }
         }
       } catch (err: any) {
         this.logger.warn(`Semantic cache lookup failed: ${err.message}`);
@@ -110,7 +155,7 @@ export class CacheService implements OnModuleInit {
     }
 
     this.logger.log(`CACHE MISS for model ${input.model} in project ${input.projectId}`);
-    return null;
+    return { hit: false, kind: 'miss' };
   }
 
   /**

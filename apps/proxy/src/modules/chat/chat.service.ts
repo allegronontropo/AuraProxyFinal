@@ -44,18 +44,18 @@ export class ChatService {
     };
 
     const cacheStart = performance.now();
-    const cachedResponse = await this.cache.find(cacheInput).catch((err) => {
+    const cacheLookup = await this.cache.find(cacheInput).catch((err) => {
       this.logger.warn(`Cache lookup skipped: ${err.message}`);
-      return null;
+      return { hit: false, kind: 'miss' as const, response: null } as ReturnType<CacheService['find']> extends Promise<infer T> ? T : never;
     });
     const cacheLatencyMs = Math.round(performance.now() - cacheStart);
 
-    if (cachedResponse) {
+    if (cacheLookup.hit && cacheLookup.response) {
       this.logger.log(`Cache hit for model ${request.model}`);
 
-      const response = { ...cachedResponse, cached: true };
+      const response = { ...cacheLookup.response, cached: true };
 
-      this.logCacheHit(request, project, response, cacheLatencyMs, Math.round(performance.now() - start)).catch(err =>
+      this.logCacheHit(request, project, response, cacheLatencyMs, Math.round(performance.now() - start), cacheLookup.kind, cacheLookup.similarityScore).catch(err =>
         this.logger.error(`Failed to log cache hit: ${err.message}`)
       );
       this.budget.recordCacheEvent(project.id, true).catch(err =>
@@ -325,6 +325,8 @@ export class ChatService {
     response: any,
     cacheLatencyMs: number,
     latencyMs: number,
+    cacheHitKind: 'exact' | 'semantic' | 'miss',
+    similarityScore?: number,
   ): Promise<void> {
     if (!request.apiKeyId) return;
 
@@ -343,6 +345,10 @@ export class ChatService {
         latencyMs,
         statusCode: 200,
         cached: true,
+        metadata: {
+          cache_hit_type: cacheHitKind,
+          ...(cacheHitKind === 'semantic' && similarityScore != null ? { cache_similarity_score: similarityScore } : {}),
+        },
       },
     });
   }

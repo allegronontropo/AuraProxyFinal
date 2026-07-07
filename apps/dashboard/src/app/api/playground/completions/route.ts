@@ -32,8 +32,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Server configuration error" }, { status: 500 });
     }
 
+    const proxyUrl = process.env.PROXY_URL;
+    if (!proxyUrl) {
+      console.error('PROXY_URL is not configured for dashboard playground forwarding.');
+      return NextResponse.json({ message: 'Server configuration error' }, { status: 500 });
+    }
+
+    // Normalize proxy URL by trimming trailing slashes to avoid parser issues
+    let normalizedProxyUrl = proxyUrl;
+    while (normalizedProxyUrl.endsWith("/")) {
+      normalizedProxyUrl = normalizedProxyUrl.slice(0, -1);
+    }
+    const proxyEndpoint = `${normalizedProxyUrl}/v1/chat/completions`;
+
     // Forward the request to the Aura Proxy
-    const proxyRes = await fetch("http://localhost:3000/v1/chat/completions", {
+    const proxyRes = await fetch(proxyEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

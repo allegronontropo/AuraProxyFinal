@@ -184,29 +184,21 @@ export async function getRecentLogs(projectId: string, limit = 20) {
 // ─── Cache Analytics ──────────────────────────────────────────────────────────
 
 export async function getCacheStats(projectId: string) {
-  const [byModel, topEntries, timeSeries, cacheEntriesForSavings] = await Promise.all([
-    // Cache breakdown by model
-    prisma.semanticCache.groupBy({
-      by: ["model", "provider"],
+  const [requestLogs, cacheEntriesForSavings] = await Promise.all([
+    prisma.requestLog.findMany({
       where: { projectId },
-      _count: { id: true },
-      _sum: { hitCount: true },
-      orderBy: { _sum: { hitCount: "desc" } },
-    }),
-    // Top cached prompts (highest hit count)
-    prisma.semanticCache.findMany({
-      where: { projectId },
-      orderBy: { hitCount: "desc" },
-      take: 10,
-    }),
-    // Cache hits over time from usage records
-    prisma.usageRecord.findMany({
-      where: {
-        projectId,
-        period: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-        granularity: "HOURLY",
+      orderBy: { createdAt: "desc" },
+      take: 200,
+      select: {
+        id: true,
+        provider: true,
+        model: true,
+        latencyMs: true,
+        statusCode: true,
+        cached: true,
+        metadata: true,
+        createdAt: true,
       },
-      orderBy: { period: "asc" },
     }),
     prisma.semanticCache.findMany({
       where: { projectId },
@@ -214,11 +206,90 @@ export async function getCacheStats(projectId: string) {
     }),
   ]);
 
+  const now = new Date();
+  const start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const buckets = Array.from({ length: 24 }, (_, index) => ({
+    period: new Date(now.getTime() - (23 - index) * 60 * 60 * 1000),
+    cacheHits: 0,
+    cacheMisses: 0,
+    exactHits: 0,
+    semanticHits: 0,
+  }));
+
+  let exactHits = 0;
+  let semanticHits = 0;
+  let misses = 0;
+  let totalSimilarityScore = 0;
+  let semanticSimilarityCount = 0;
+
+  const recentEvents = requestLogs.slice(0, 12).map((log) => {
+    const metadata = (log.metadata ?? {}) as Record<string, unknown>;
+    const cacheHitType =
+      typeof metadata.cache_hit_type === "string"
+        ? metadata.cache_hit_type
+        : log.cached
+          ? "exact"
+          : "miss";
+    const similarityScore =
+      typeof metadata.cache_similarity_score === "number"
+        ? metadata.cache_similarity_score
+        : null;
+
+    return {
+      id: log.id,
+      createdAt: log.createdAt,
+      provider: log.provider,
+      model: log.model,
+      latencyMs: log.latencyMs,
+      statusCode: log.statusCode,
+      cached: log.cached,
+      cacheHitType,
+      similarityScore,
+    };
+  });
+
+  for (const log of requestLogs) {
+    if (log.createdAt < start) continue;
+
+    const ageHours = Math.floor((now.getTime() - log.createdAt.getTime()) / (60 * 60 * 1000));
+    const bucketIndex = Math.max(0, Math.min(23, 23 - ageHours));
+
+    if (log.cached) {
+      buckets[bucketIndex].cacheHits += 1;
+      const hitType = ((log.metadata as Record<string, unknown> | null)?.cache_hit_type as string | undefined) ?? "exact";
+      if (hitType === "semantic") {
+        buckets[bucketIndex].semanticHits += 1;
+        semanticHits += 1;
+        const score = (log.metadata as Record<string, unknown> | null)?.cache_similarity_score;
+        if (typeof score === "number") {
+          totalSimilarityScore += score;
+          semanticSimilarityCount += 1;
+        }
+      } else {
+        buckets[bucketIndex].exactHits += 1;
+        exactHits += 1;
+      }
+    } else {
+      buckets[bucketIndex].cacheMisses += 1;
+      misses += 1;
+    }
+  }
+
   const estimatedBandwidthSavedBytes = cacheEntriesForSavings.reduce((sum, entry) => {
     return sum + estimateJsonBytes(entry.response) * Math.max(entry.hitCount, 0);
   }, 0);
 
-  return { byModel, topEntries, timeSeries, estimatedBandwidthSavedBytes };
+  const avgSemanticSimilarity = semanticSimilarityCount > 0 ? totalSimilarityScore / semanticSimilarityCount : 0;
+
+  return {
+    timeSeries: buckets,
+    exactHits,
+    semanticHits,
+    misses,
+    avgSemanticSimilarity,
+    recentEvents,
+    estimatedBandwidthSavedBytes,
+  };
 }
 
 // ─── API Keys ─────────────────────────────────────────────────────────────────
