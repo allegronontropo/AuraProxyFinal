@@ -231,9 +231,9 @@ const MOCK_LOGS: LogRow[] = [
 
 // ─── Utility helpers ──────────────────────────────────────────────────────────
 
-function formatRelativeTime(date: Date | string): string {
+function formatRelativeTime(date: Date | string, now: number): string {
   const d = typeof date === "string" ? new Date(date) : date;
-  const diff = Date.now() - d.getTime();
+  const diff = now - d.getTime();
   const secs = Math.floor(diff / 1000);
   if (secs < 60) return `${secs}s ago`;
   const mins = Math.floor(secs / 60);
@@ -716,6 +716,7 @@ export default function LogsTable({
   const [pages, setPages] = useState(useMock ? 1 : initialPages);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
+  const [now] = useState(() => Date.now());
 
   const [filters, setFilters] = useState<{
     provider: string;
@@ -1119,6 +1120,7 @@ export default function LogsTable({
                     key={log.id}
                     log={log}
                     selected={selectedLog?.id === log.id}
+                    now={now}
                     onClick={() =>
                       setSelectedLog(
                         selectedLog?.id === log.id ? null : log
@@ -1204,14 +1206,17 @@ export default function LogsTable({
 function TableRow({
   log,
   selected,
+  now,
   onClick,
 }: {
   log: LogRow;
   selected: boolean;
+  now?: number;
   onClick: () => void;
 }) {
   const [hover, setHover] = useState(false);
   const providerColor = PROVIDER_COLORS[log.provider] ?? "#6b7280";
+  const [currentNow] = useState(() => now ?? Date.now());
 
   return (
     <tr
@@ -1232,7 +1237,7 @@ function TableRow({
       {/* Time */}
       <td style={{ padding: "10px 12px" }}>
         <span style={{ fontSize: 12, color: "#6b7280", whiteSpace: "nowrap" }}>
-          {formatRelativeTime(log.createdAt)}
+          {formatRelativeTime(log.createdAt, currentNow)}
         </span>
       </td>
 

@@ -33,10 +33,7 @@ export default async function RequestLogsPage({
             {initialLogsData.total.toLocaleString()}
           </div>
         </div>
-        <button className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium text-gray-400 hover:text-gray-100 hover:bg-white/5 transition-colors">
-          <Download className="w-3.5 h-3.5" />
-          Export
-        </button>
+        
       </header>
 
       {/* Content */}
