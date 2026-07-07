@@ -52,7 +52,7 @@ export default function FallbackLogsTable({ projectId, apiKeys }: { projectId: s
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalLogs, setTotalLogs] = useState(0);
-  const limit = 15;
+  const limit = 6;
   const [apiKeyId, setApiKeyId] = useState("all");
   const [sortBy, setSortBy] = useState<"createdAt" | "latencyMs" | "statusCode">("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -141,7 +141,6 @@ export default function FallbackLogsTable({ projectId, apiKeys }: { projectId: s
       <div className="px-5 py-4 border-b border-white/[0.05] flex flex-wrap items-center justify-between bg-white/[0.01] gap-4">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <Repeat className="w-4 h-4 text-purple-400" />
             <h3 className="text-[13px] font-medium text-white/90">Fallback Traces</h3>
           </div>
           <button 

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useMemo } from "react";
 import { generateApiKey, revokeApiKey, rotateApiKey, deleteApiKey } from "@/actions/apikeys";
 import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type ApiKey = {
   id: string;
@@ -37,6 +38,16 @@ export default function ApiKeysTable({
   const [rotatedKey, setRotatedKey] = useState<{ id: string; key: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [, startTransition] = useTransition();
+
+  // Pagination
+  const LIMIT = 7;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(initialKeys.length / LIMIT));
+
+  const paginatedKeys = useMemo(() => {
+    const start = (page - 1) * LIMIT;
+    return initialKeys.slice(start, start + LIMIT);
+  }, [initialKeys, page]);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,7 +161,7 @@ export default function ApiKeysTable({
                 </tr>
               </thead>
               <tbody className="text-[13px] text-white/80">
-                {initialKeys.map((key) => (
+                {paginatedKeys.map((key) => (
                   <tr key={key.id} className="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors">
                     <td className="px-6 py-4 font-medium text-white/90">{key.name}</td>
                     <td className="px-6 py-4 font-mono text-white/60">{key.keyPrefix}...</td>
@@ -233,6 +244,30 @@ export default function ApiKeysTable({
                 ))}
               </tbody>
             </table>
+          )}
+
+          {initialKeys.length > LIMIT && (
+            <div className="px-5 py-3 border-t border-white/[0.05] flex items-center justify-between bg-white/[0.01]">
+              <span className="text-[12px] text-white/40">
+                Page {page} of {totalPages}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 text-[12px] font-medium text-white/80 bg-white/5 hover:bg-white/10 rounded-md disabled:opacity-50 transition-colors flex items-center gap-1.5 cursor-pointer border-none"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" /> Previous
+                </button>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 text-[12px] font-medium text-white/80 bg-white/5 hover:bg-white/10 rounded-md disabled:opacity-50 transition-colors flex items-center gap-1.5 cursor-pointer border-none"
+                >
+                  Next <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>

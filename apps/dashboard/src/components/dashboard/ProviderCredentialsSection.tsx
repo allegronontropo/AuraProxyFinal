@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useMemo } from "react";
 import { saveProviderCredential, deleteProviderCredential } from "@/actions/credentials";
 import { useRouter } from "next/navigation";
 import CustomSelect from "@/components/ui/CustomSelect";
 import { ProviderIcon } from "@lobehub/icons";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Credential = {
   id: string;
@@ -48,6 +49,16 @@ export default function ProviderCredentialsSection({
   const [loading, setLoading] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Pagination
+  const CRED_LIMIT = 7;
+  const [credPage, setCredPage] = useState(1);
+  const totalCredPages = Math.max(1, Math.ceil(credentials.length / CRED_LIMIT));
+
+  const paginatedCredentials = useMemo(() => {
+    const start = (credPage - 1) * CRED_LIMIT;
+    return credentials.slice(start, start + CRED_LIMIT);
+  }, [credentials, credPage]);
 
   const providerOptions = PROVIDERS.map((p) => ({
     value: p.value,
@@ -211,7 +222,7 @@ export default function ProviderCredentialsSection({
               </tr>
             </thead>
             <tbody>
-              {credentials.map((cred) => {
+              {paginatedCredentials.map((cred) => {
                 const chip = PROVIDER_COLORS[cred.provider] ?? {
                   bg: "rgba(255,255,255,0.08)",
                   color: "#9ca3af",
@@ -276,6 +287,30 @@ export default function ProviderCredentialsSection({
               })}
             </tbody>
           </table>
+
+          {credentials.length > CRED_LIMIT && (
+            <div className="px-5 py-3 border-t border-white/[0.05] flex items-center justify-between bg-white/[0.01]">
+              <span className="text-[12px] text-white/40">
+                Page {credPage} of {totalCredPages}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCredPage((p) => Math.max(1, p - 1))}
+                  disabled={credPage === 1}
+                  className="px-3 py-1.5 text-[12px] font-medium text-white/80 bg-white/5 hover:bg-white/10 rounded-md disabled:opacity-50 transition-colors flex items-center gap-1.5 cursor-pointer border-none"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" /> Previous
+                </button>
+                <button
+                  onClick={() => setCredPage((p) => Math.min(totalCredPages, p + 1))}
+                  disabled={credPage === totalCredPages}
+                  className="px-3 py-1.5 text-[12px] font-medium text-white/80 bg-white/5 hover:bg-white/10 rounded-md disabled:opacity-50 transition-colors flex items-center gap-1.5 cursor-pointer border-none"
+                >
+                  Next <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </section>
