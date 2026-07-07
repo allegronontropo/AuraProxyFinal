@@ -184,7 +184,7 @@ interface DemoProps {
   isHit: boolean;
 }
 
-const CacheDemo: React.FC<DemoProps> = ({ t, isMiss, isHit }) => (
+const CacheDemo: React.FC<DemoProps> = ({ isMiss, isHit }) => (
   <div className="flex flex-col h-full justify-between">
     <div className="flex items-center justify-between mb-2">
       <span className="text-[9px] font-mono tracking-widest text-white/30 uppercase">Semantic Waveform</span>
@@ -303,7 +303,6 @@ const GuardrailsDemo: React.FC<{ t: number }> = ({ t }) => {
   const cycle = (t % 3200) / 3200;
   const incoming = cycle < 0.4;
   const blocked  = cycle >= 0.4 && cycle < 0.75;
-  const reset    = cycle >= 0.75;
   return (
     <div className="flex flex-col h-full justify-between">
       <div className="flex items-center justify-between mb-2">

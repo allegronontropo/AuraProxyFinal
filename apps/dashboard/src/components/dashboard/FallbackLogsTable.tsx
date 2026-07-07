@@ -30,6 +30,18 @@ function SortIcon({ field, sortBy, sortOrder }: { field: string; sortBy: string;
   return <span className="ml-1 inline-block">{sortOrder === "desc" ? "↓" : "↑"}</span>;
 }
 
+function getMetadataString(metadata: Record<string, unknown>, key: string, fallback = "unknown") {
+  const value = metadata[key];
+
+  return typeof value === "string" && value.length > 0 ? value : fallback;
+}
+
+function getMetadataStringList(metadata: Record<string, unknown>, key: string) {
+  const value = metadata[key];
+
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
 export default function FallbackLogsTable({ projectId, apiKeys }: { projectId: string; apiKeys: ApiKey[] }) {
   const [logs, setLogs] = useState<FallbackLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -215,8 +227,10 @@ export default function FallbackLogsTable({ projectId, apiKeys }: { projectId: s
             </thead>
             <tbody className="divide-y divide-white/[0.03]">
               {logs.map((log) => {
-                const primaryProvider = log.metadata?.primary_provider || "unknown";
-                const fallbackProvider = log.provider;
+                const primaryProvider = getMetadataString(log.metadata, "primary_provider");
+                const fallbackProvider = log.provider || "unknown";
+                const primaryError = getMetadataString(log.metadata, "primary_error", "Unknown error or provider timeout.");
+                const fallbackErrors = getMetadataStringList(log.metadata, "fallback_errors");
                 const isExpanded = expandedRows.has(log.id);
 
                 return (
@@ -254,13 +268,13 @@ export default function FallbackLogsTable({ projectId, apiKeys }: { projectId: s
                       <td className="px-5 py-4">
                         <div className="flex flex-col gap-1.5">
                           <div className="flex items-center gap-2 text-[12px]">
-                            <span className="text-red-400/80 font-medium">{primaryProvider}</span>
+                            <span className="text-red-400/80 font-medium">{String(primaryProvider)}</span>
                             <ArrowRight className="w-3.5 h-3.5 text-white/20" />
-                            <span className="text-emerald-400 font-medium">{fallbackProvider}</span>
+                            <span className="text-emerald-400 font-medium">{String(fallbackProvider)}</span>
                           </div>
                           <div className="flex items-center gap-1.5 text-[11px] text-white/40 font-mono bg-white/[0.03] px-2 py-0.5 rounded-md w-fit border border-white/[0.05]">
                             <Box className="w-3 h-3" />
-                            {log.model}
+                            {String(log.model)}
                           </div>
                         </div>
                       </td>
@@ -299,20 +313,20 @@ export default function FallbackLogsTable({ projectId, apiKeys }: { projectId: s
                               <div className="space-y-3">
                                 {/* Primary Error */}
                                 <div className="flex flex-col gap-1 text-[12px]">
-                                  <span className="text-white/40 uppercase tracking-wider text-[10px] font-medium">Why did <span className="text-red-400">{primaryProvider}</span> fail?</span>
+                                  <span className="text-white/40 uppercase tracking-wider text-[10px] font-medium">Why did <span className="text-red-400">{String(primaryProvider)}</span> fail?</span>
                                   <span className="text-red-300 font-mono bg-red-500/10 px-2 py-1.5 rounded border border-red-500/20">
-                                    {log.metadata?.primary_error || "Unknown error or provider timeout."}
+                                    {primaryError}
                                   </span>
                                 </div>
 
                                 {/* Intermediate Fallback Errors */}
-                                {log.metadata?.fallback_errors && Array.isArray(log.metadata.fallback_errors) && log.metadata.fallback_errors.length > 0 && (
+                                {fallbackErrors.length > 0 && (
                                   <div className="flex flex-col gap-1 text-[12px] mt-2">
                                     <span className="text-white/40 uppercase tracking-wider text-[10px] font-medium">Intermediate Failures</span>
                                     <div className="flex flex-col gap-1">
-                                      {log.metadata.fallback_errors.map((err: string, i: number) => (
+                                      {fallbackErrors.map((err, i) => (
                                         <span key={i} className="text-amber-300/80 font-mono bg-amber-500/10 px-2 py-1.5 rounded border border-amber-500/20">
-                                          {err}
+                                          {String(err)}
                                         </span>
                                       ))}
                                     </div>

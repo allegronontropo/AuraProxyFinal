@@ -3,6 +3,20 @@ import { redirect } from "next/navigation";
 import { getProjectAlerts } from "@/actions/alerts";
 import AlertQueueClient, { type Alert } from "@/components/dashboard/AlertQueueClient";
 
+function asMetadataRecord(metadata: unknown): Record<string, unknown> | undefined {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    return undefined;
+  }
+
+  return metadata as Record<string, unknown>;
+}
+
+function getProviderFromMetadata(metadata: Record<string, unknown> | undefined) {
+  const provider = metadata?.primary_provider || metadata?.fallback_provider;
+
+  return typeof provider === "string" ? provider : undefined;
+}
+
 export default async function AlertQueuePage({
   params,
 }: {
@@ -14,12 +28,21 @@ export default async function AlertQueuePage({
 
   const alerts = await getProjectAlerts(projectId);
 
-  // Note: we can map or adapt the Prisma Alert to match the client exactly, but they should be compatible.
-  const formattedAlerts = alerts.map((a) => ({
-    ...a,
-    timestamp: a.createdAt.toISOString(),
-    provider: a.metadata?.primary_provider || a.metadata?.fallback_provider || null,
-  }));
+  const formattedAlerts: Alert[] = alerts.map((a) => {
+    const metadata = asMetadataRecord(a.metadata);
 
-  return <AlertQueueClient initialAlerts={formattedAlerts as Alert[]} />;
+    return {
+      id: a.id,
+      title: a.title,
+      description: a.description,
+      severity: a.severity,
+      status: a.status,
+      source: a.source,
+      metadata,
+      timestamp: a.createdAt.toISOString(),
+      provider: getProviderFromMetadata(metadata),
+    };
+  });
+
+  return <AlertQueueClient initialAlerts={formattedAlerts} />;
 }

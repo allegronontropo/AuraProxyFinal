@@ -36,7 +36,7 @@ export async function getProjectApiKeys(projectId: string) {
 }
 
 export async function getProjectStats(projectId: string) {
-  const [requestStats, cacheStats] = await Promise.all([
+  const [requestStats, cacheHits] = await Promise.all([
     // Total requests, errors, cached count
     prisma.requestLog.aggregate({
       where: { projectId },
@@ -44,19 +44,10 @@ export async function getProjectStats(projectId: string) {
       _sum: { costUsd: true, tokensIn: true, tokensOut: true },
       _avg: { latencyMs: true },
     }),
-    // Cache totals
-    prisma.requestLog.aggregate({
-      where: { projectId },
-      _count: {
-        id: true
-      },
+    prisma.requestLog.count({
+      where: { projectId, cached: true },
     }),
   ]);
-
-  // Total cache hits
-  const cacheHitsStats = await prisma.requestLog.count({
-    where: { projectId, cached: true },
-  });
 
   // Calculate 30-day timeseries on the fly from RequestLog
   const timeSeriesRaw = await prisma.$queryRawUnsafe<
@@ -84,10 +75,7 @@ export async function getProjectStats(projectId: string) {
   const totalRequests = requestStats._count.id;
   const totalCostUsd = requestStats._sum.costUsd ?? 0;
   const avgLatencyMs = requestStats._avg.latencyMs ?? 0;
-  const cacheHits = cacheHitsStats;
-  const cacheMisses = totalRequests - cacheHits;
-  const totalCacheTotal = totalRequests;
-  const cacheHitRate = totalCacheTotal > 0 ? (cacheHits / totalCacheTotal) * 100 : 0;
+  const cacheHitRate = totalRequests > 0 ? (cacheHits / totalRequests) * 100 : 0;
 
   return {
     totalRequests,
