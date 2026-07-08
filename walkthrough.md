@@ -16,7 +16,7 @@ The Playground now intelligently checks if the provider that served the response
 I built a dedicated `FallbackLogsTable` component directly into the bottom of the **Routing** section.
 - This UI queries the database for request logs where the `fallback_provider` metadata exists.
 - It displays a sleek table (in line with the Aura-Brand dark mode aesthetics) showing: Time, API Key used, Route Flow (e.g., `openai -> groq`), Latency, and Status.
-- It uses pristine `lucide-react` icons exclusively (`Repeat`, `ArrowRight`, `Clock`, `Box`, `Key`, `AlertCircle`) — absolutely no emojis or AI-generated symbols.
+- It uses pristine `lucide-react` icons exclusively (`Repeat`, `ArrowRight`, `Clock`, `Box`, `Key`, `AlertCircle`) - absolutely no emojis or AI-generated symbols.
 
 ## How to Verify
 1. **Restart your proxy** (`npm run dev`) to ensure the Redis cache is flushed and the new proxy code is running.
