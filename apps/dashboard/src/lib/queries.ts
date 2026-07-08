@@ -1,5 +1,5 @@
 /**
- * @aura/dashboard — Server-side data access layer
+ * @aura/dashboard - Server-side data access layer
  * All functions are server-only and query Prisma directly.
  */
 import { prisma } from "@aura/db";
@@ -221,8 +221,12 @@ export async function getCacheStats(projectId: string) {
   let misses = 0;
   let totalSimilarityScore = 0;
   let semanticSimilarityCount = 0;
+  let totalCacheLatency = 0;
 
-  const recentEvents = requestLogs.slice(0, 12).map((log) => {
+  const recentEvents = requestLogs
+    .filter((log) => log.cached)
+    .slice(0, 12)
+    .map((log) => {
     const metadata = (log.metadata ?? {}) as Record<string, unknown>;
     const cacheHitType =
       typeof metadata.cache_hit_type === "string"
@@ -256,6 +260,9 @@ export async function getCacheStats(projectId: string) {
 
     if (log.cached) {
       buckets[bucketIndex].cacheHits += 1;
+      if (log.latencyMs != null) {
+        totalCacheLatency += log.latencyMs;
+      }
       const hitType = ((log.metadata as Record<string, unknown> | null)?.cache_hit_type as string | undefined) ?? "exact";
       if (hitType === "semantic") {
         buckets[bucketIndex].semanticHits += 1;
@@ -280,6 +287,8 @@ export async function getCacheStats(projectId: string) {
   }, 0);
 
   const avgSemanticSimilarity = semanticSimilarityCount > 0 ? totalSimilarityScore / semanticSimilarityCount : 0;
+  const totalCacheHits = exactHits + semanticHits;
+  const avgCacheLatency = totalCacheHits > 0 ? totalCacheLatency / totalCacheHits : 0;
 
   return {
     timeSeries: buckets,
@@ -287,6 +296,7 @@ export async function getCacheStats(projectId: string) {
     semanticHits,
     misses,
     avgSemanticSimilarity,
+    avgCacheLatency,
     recentEvents,
     estimatedBandwidthSavedBytes,
   };
