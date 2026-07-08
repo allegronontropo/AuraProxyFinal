@@ -4,7 +4,7 @@ import { getProjectsByUser } from "@/lib/queries";
 import { WorkspaceSelectorClient } from "./WorkspaceSelectorClient";
 
 export const metadata = {
-  title: "Select Workspace — Aura Proxy",
+  title: "Select Workspace - Aura Proxy",
   description: "Choose a workspace to manage your AI routing.",
 };
 

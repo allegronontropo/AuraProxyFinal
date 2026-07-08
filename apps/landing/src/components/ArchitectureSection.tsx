@@ -20,7 +20,7 @@ interface ArchNode {
 const archData: ArchNode[] = [
   {
     id: 1, title: "API Gateway", subtitle: "Entry Point",
-    content: "OpenAI-compatible HTTP endpoint. Drop-in replacement — change one line of code and your app routes through Aura Proxy instantly.",
+    content: "OpenAI-compatible HTTP endpoint. Drop-in replacement - change one line of code and your app routes through Aura Proxy instantly.",
     icon: Globe, relatedIds: [2, 3], energy: 100, color: "#a78bfa",
   },
   {
@@ -50,14 +50,14 @@ const archData: ArchNode[] = [
   },
   {
     id: 7, title: "Policy Engine", subtitle: "Guardrails · PII · Budgets",
-    content: "Content guardrails, PII detection, rate limiting, and spend caps enforced at the gateway — zero application code changes.",
+    content: "Content guardrails, PII detection, rate limiting, and spend caps enforced at the gateway - zero application code changes.",
     icon: Shield, relatedIds: [6, 1], energy: 65, color: "#f59e0b",
   },
 ];
 
 // Right-panel highlight items (shown when nothing is selected)
 const highlights = [
-  { color: "#a78bfa", label: "Drop-in compatible", desc: "OpenAI-spec API — zero app code changes" },
+  { color: "#a78bfa", label: "Drop-in compatible", desc: "OpenAI-spec API - zero app code changes" },
   { color: "#7c5cfc", label: "92% cache hit rate", desc: "Semantic similarity via pgvector embeddings" },
   { color: "#34d399", label: "Full observability", desc: "Every request logged, traced, and billed" },
   { color: "#f59e0b", label: "Policy enforcement", desc: "Guardrails, PII redaction, rate limiting" },
@@ -155,7 +155,7 @@ export default function ArchitectureSection() {
           </p>
         </div>
 
-        {/* Two-column layout: Orbital LEFT — Description RIGHT */}
+        {/* Two-column layout: Orbital LEFT - Description RIGHT */}
         <div style={{
           display: "flex",
           alignItems: "center",

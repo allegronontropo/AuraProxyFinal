@@ -1,5 +1,5 @@
 /**
- * Groq Provider — Strategy Pattern Implementation
+ * Groq Provider - Strategy Pattern Implementation
  *
  * Implements the LLMProvider interface for Groq models using the
  * official OpenAI Node SDK, pointing to Groq's API.

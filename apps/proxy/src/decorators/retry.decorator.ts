@@ -1,5 +1,5 @@
 /**
- * Retry Decorator — Decorator Pattern
+ * Retry Decorator - Decorator Pattern
  *
  * Wraps any LLMProvider to add automatic retry on failure.
  * On first failure: waits 1 second, then retries once.
@@ -72,7 +72,7 @@ export class RetryDecorator extends BaseDecorator {
           );
         }
         yield* this.wrapped.stream(request);
-        return; // Success — exit retry loop
+        return; // Success - exit retry loop
       } catch (err) {
         lastError = err instanceof Error ? err : new Error(String(err));
 

@@ -1,178 +1,282 @@
 import { prisma } from "@aura/db";
+import { Zap, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import Link from "next/link";
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const PROVIDER_COLORS: Record<string, { bg: string; text: string }> = {
+  openai:    { bg: "bg-emerald-500/10", text: "text-emerald-400" },
+  anthropic: { bg: "bg-amber-500/10",   text: "text-amber-400"   },
+  google:    { bg: "bg-blue-500/10",    text: "text-blue-400"    },
+  mistral:   { bg: "bg-orange-500/10",  text: "text-orange-400"  },
+  cohere:    { bg: "bg-teal-500/10",    text: "text-teal-400"    },
+  groq:      { bg: "bg-violet-500/10",  text: "text-violet-400"  },
+};
 
 function timeAgo(date: Date) {
-  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-  let interval = seconds / 31536000;
-  if (interval > 1) return Math.floor(interval) + " years ago";
-  interval = seconds / 2592000;
-  if (interval > 1) return Math.floor(interval) + " months ago";
-  interval = seconds / 86400;
-  if (interval > 1) return Math.floor(interval) + " days ago";
-  interval = seconds / 3600;
-  if (interval > 1) return Math.floor(interval) + " hours ago";
-  interval = seconds / 60;
-  if (interval > 1) return Math.floor(interval) + " minutes ago";
-  if (seconds < 10) return "just now";
-  return Math.floor(seconds) + " seconds ago";
+  const s = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (s < 60) return `${s}s ago`;
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export default async function AdminTracesPage({
-  searchParams,
+function buildUrl(
+  current: Record<string, string | undefined>,
+  updates: Record<string, string | undefined>
+): string {
+  const merged = { ...current, ...updates };
+  const qs = Object.entries(merged)
+    .filter(([, v]) => v !== undefined && v !== "")
+    .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v!)}`)
+    .join("&");
+  return `/admin/traces${qs ? `?${qs}` : ""}`;
+}
+
+function SortIcon({ field, sortBy, sortDir }: { field: string; sortBy: string; sortDir: string }) {
+  if (sortBy !== field) return <ChevronsUpDown size={11} className="text-white/20 ml-1 inline" />;
+  return sortDir === "asc"
+    ? <ChevronUp   size={11} className="text-violet-400 ml-1 inline" />
+    : <ChevronDown size={11} className="text-violet-400 ml-1 inline" />;
+}
+
+function SortTh({
+  label, field, sortBy, sortDir, urlParams,
 }: {
+  label: string; field: string | null;
+  sortBy: string; sortDir: string;
+  urlParams: Record<string, string | undefined>;
+}) {
+  if (!field) {
+    return (
+      <th className="px-3 py-3 text-[11px] font-semibold text-white/25 uppercase tracking-wider whitespace-nowrap">
+        {label}
+      </th>
+    );
+  }
+  const nextDir = sortBy === field && sortDir === "asc" ? "desc" : "asc";
+  const href = buildUrl(urlParams, { sortBy: field, sortDir: nextDir, page: "1" });
+  return (
+    <th className="px-3 py-3 text-[11px] font-semibold text-white/40 uppercase tracking-wider whitespace-nowrap">
+      <Link href={href} className="inline-flex items-center hover:text-white/70 transition-colors no-underline text-inherit">
+        {label}<SortIcon field={field} sortBy={sortBy} sortDir={sortDir} />
+      </Link>
+    </th>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
+
+const PAGE_SIZE = 50;
+
+export default async function AdminTracesPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const params = await searchParams;
+  const raw = await props.searchParams;
+  const params = {
+    model:    (raw.model    as string) || "",
+    status:   (raw.status   as string) || "",
+    project:  (raw.project  as string) || "",
+    provider: (raw.provider as string) || "",
+    cache:    (raw.cache    as string) || "",
+    page:     (raw.page     as string) || "1",
+    sortBy:   (raw.sortBy   as string) || "createdAt",
+    sortDir:  (raw.sortDir  as string) || "desc",
+  };
 
-  // Construct Prisma where clause based on filters
+  const page    = Math.max(1, parseInt(params.page) || 1);
+  const sortDir = (params.sortDir === "asc" ? "asc" : "desc") as "asc" | "desc";
+
+  // ─── Where ────────────────────────────────────────────────────────────────
   const where: import("@prisma/client").Prisma.RequestLogWhereInput = {};
-  if (params.model) {
-    where.model = { contains: params.model as string, mode: "insensitive" };
-  }
-  if (params.status === "200") {
-    where.statusCode = 200;
-  } else if (params.status === "error") {
-    where.statusCode = { not: 200 };
-  }
+  if (params.model)    where.model    = { contains: params.model, mode: "insensitive" };
+  if (params.status === "200")   where.statusCode = 200;
+  else if (params.status === "error") where.statusCode = { not: 200 };
+  if (params.project)  where.project  = { name: { contains: params.project, mode: "insensitive" } };
+  if (params.provider) where.provider = params.provider;
+  if (params.cache === "hit")  where.cached = true;
+  else if (params.cache === "miss") where.cached = false;
 
-  // Fetch the latest 200 traces matching the filters
-  const traces = await prisma.requestLog.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    take: 200,
-    include: {
-      project: { select: { name: true } },
-    }
-  });
+  // ─── Order by ────────────────────────────────────────────────────────────
+  const ORDER_MAP: Record<string, import("@prisma/client").Prisma.RequestLogOrderByWithRelationInput> = {
+    createdAt:  { createdAt:  sortDir },
+    provider:   { provider:   sortDir },
+    model:      { model:      sortDir },
+    latencyMs:  { latencyMs:  sortDir },
+    costUsd:    { costUsd:    sortDir },
+    statusCode: { statusCode: sortDir },
+    cached:     { cached:     sortDir },
+  };
+  const orderBy = ORDER_MAP[params.sortBy] ?? { createdAt: "desc" };
+
+  const [traces, total] = await Promise.all([
+    prisma.requestLog.findMany({
+      where, orderBy,
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+      include: { project: { select: { name: true } } },
+    }),
+    prisma.requestLog.count({ where }),
+  ]);
+
+  const totalPages  = Math.ceil(total / PAGE_SIZE);
+  const showingFrom = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const showingTo   = Math.min(page * PAGE_SIZE, total);
+  const hasFilters  = params.model || params.status || params.project || params.provider || params.cache;
+
+  // URL param map for sort/page link builder (strip page, preserve filters+sort)
+  const urlParams: Record<string, string | undefined> = {
+    ...(params.model    ? { model:    params.model    } : {}),
+    ...(params.status   ? { status:   params.status   } : {}),
+    ...(params.project  ? { project:  params.project  } : {}),
+    ...(params.provider ? { provider: params.provider } : {}),
+    ...(params.cache    ? { cache:    params.cache    } : {}),
+    sortBy:  params.sortBy,
+    sortDir: params.sortDir,
+  };
+
+  const COLS: { label: string; field: string | null }[] = [
+    { label: "Time",     field: "createdAt"  },
+    { label: "Project",  field: null         },
+    { label: "Provider", field: "provider"   },
+    { label: "Model",    field: "model"      },
+    { label: "Auth",     field: null         },
+    { label: "Cache",    field: null         },
+    { label: "LLM",      field: null         },
+    { label: "Total",    field: "latencyMs"  },
+    { label: "Cache Hit",field: "cached"     },
+    { label: "Cost",     field: "costUsd"    },
+    { label: "Status",   field: "statusCode" },
+  ];
 
   return (
-    <div style={{ padding: "40px 48px", maxWidth: 1200 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 600, margin: "0 0 8px 0" }}>System Traces</h1>
-      <p style={{ color: "#9ca3af", fontSize: 14, margin: "0 0 24px 0" }}>
-        Deep observability into proxy latencies, caching, and model routing.
-      </p>
+    <div className="px-10 py-8 max-w-[1400px]">
+      {/* Page header */}
+      <div className="flex items-start justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-semibold text-white tracking-tight mb-1 flex items-center gap-2">
+            <Zap size={20} className="text-white/30" /> System Traces
+          </h1>
+          <p className="text-sm text-white/40">Deep observability into proxy latencies, caching, and model routing.</p>
+        </div>
+      </div>
 
-      {/* Filter Form */}
-      <form method="GET" style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
-        <input 
-          type="text" 
-          name="model" 
-          placeholder="Filter by model (e.g. gpt-4)" 
-          defaultValue={params.model as string || ""} 
-          style={{ padding: "8px 12px", borderRadius: "6px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "white", flex: 1, maxWidth: "300px" }} 
-        />
-        <select 
-          name="status" 
-          defaultValue={params.status as string || ""} 
-          style={{ padding: "8px 12px", borderRadius: "6px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "white", outline: "none" }}
-        >
-          <option value="" style={{ background: "#0a0a0c" }}>All Statuses</option>
-          <option value="200" style={{ background: "#0a0a0c" }}>Success (200)</option>
-          <option value="error" style={{ background: "#0a0a0c" }}>Errors</option>
+      {/* Filter form */}
+      <form method="GET" className="flex gap-2.5 mb-4 flex-wrap">
+        <input type="hidden" name="sortBy"  value={params.sortBy}  />
+        <input type="hidden" name="sortDir" value={params.sortDir} />
+        <input type="text" name="model" placeholder="Filter by model (e.g. gpt-4)" defaultValue={params.model}
+          className="bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-500/50 w-48" />
+        <input type="text" name="project" placeholder="Project name…" defaultValue={params.project}
+          className="bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-500/50 w-40" />
+        <select name="provider" defaultValue={params.provider}
+          className="bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-500/50 transition-colors cursor-pointer">
+          <option value="" className="bg-[#0a0a0c]">All Providers</option>
+          {["openai","anthropic","google","mistral","cohere","groq"].map((p) => (
+            <option key={p} value={p} className="bg-[#0a0a0c]">{p.charAt(0).toUpperCase()+p.slice(1)}</option>
+          ))}
         </select>
-        <button 
-          type="submit" 
-          style={{ padding: "8px 16px", borderRadius: "6px", background: "#8b5cf6", color: "white", fontWeight: 500, border: "none", cursor: "pointer" }}
-        >
+        <select name="cache" defaultValue={params.cache}
+          className="bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-500/50 cursor-pointer">
+          <option value="" className="bg-[#0a0a0c]">All Cache</option>
+          <option value="hit" className="bg-[#0a0a0c]">Cache Hit</option>
+          <option value="miss" className="bg-[#0a0a0c]">Cache Miss</option>
+        </select>
+        <select name="status" defaultValue={params.status}
+          className="bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-500/50 cursor-pointer">
+          <option value="" className="bg-[#0a0a0c]">All Statuses</option>
+          <option value="200" className="bg-[#0a0a0c]">Success (200)</option>
+          <option value="error" className="bg-[#0a0a0c]">Errors</option>
+        </select>
+        <button type="submit"
+          className="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border-none cursor-pointer">
           Filter
         </button>
-        {(params.model || params.status) && (
-          <a href="/admin/traces" style={{ padding: "8px 16px", borderRadius: "6px", background: "rgba(255,255,255,0.1)", color: "white", textDecoration: "none", display: "flex", alignItems: "center", fontSize: "13px" }}>
+        {hasFilters && (
+          <a href="/admin/traces" className="bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-4 py-2 rounded-lg text-sm no-underline flex items-center transition-colors">
             Clear
           </a>
         )}
       </form>
 
-      <div
-        style={{
-          background: "rgba(255,255,255,0.02)",
-          border: "1px solid rgba(255,255,255,0.05)",
-          borderRadius: 12,
-          overflow: "hidden",
-        }}
-      >
-        <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 13 }}>
+      {/* Record count */}
+      <div className="text-[11px] text-white/30 mb-3">
+        Showing {showingFrom.toLocaleString()}–{showingTo.toLocaleString()} of {total.toLocaleString()}
+      </div>
+
+      {/* Table */}
+      <div className="bg-white/[0.015] border border-white/[0.08] rounded-xl overflow-hidden">
+        <table className="w-full text-left text-sm border-collapse">
           <thead>
-            <tr style={{ background: "rgba(255,255,255,0.03)", color: "#9ca3af", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Time</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Project</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Model</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Auth Latency</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Cache Latency</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>LLM Latency</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Total Latency</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Status</th>
+            <tr className="bg-white/[0.03] border-b border-white/[0.05]">
+              {COLS.map(({ label, field }) => (
+                <SortTh key={label} label={label} field={field} sortBy={params.sortBy} sortDir={params.sortDir} urlParams={urlParams} />
+              ))}
             </tr>
           </thead>
           <tbody>
             {traces.map((trace) => {
-              // Calculate latency bars widths
-              const total = trace.latencyMs || 1; // prevent div by zero
-              const authPct = trace.authLatencyMs ? Math.min((trace.authLatencyMs / total) * 100, 100) : 0;
-              const cachePct = trace.cacheLatencyMs ? Math.min((trace.cacheLatencyMs / total) * 100, 100) : 0;
-              const llmPct = trace.llmLatencyMs ? Math.min((trace.llmLatencyMs / total) * 100, 100) : 0;
-
+              const totalLat = trace.latencyMs || 1;
+              const authPct  = trace.authLatencyMs  ? Math.min((trace.authLatencyMs  / totalLat) * 100, 100) : 0;
+              const cachePct = trace.cacheLatencyMs ? Math.min((trace.cacheLatencyMs / totalLat) * 100, 100) : 0;
+              const llmPct   = trace.llmLatencyMs   ? Math.min((trace.llmLatencyMs   / totalLat) * 100, 100) : 0;
+              const provColor = PROVIDER_COLORS[trace.provider] || { bg: "bg-white/5", text: "text-white/50" };
               return (
-                <tr key={trace.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                  <td style={{ padding: "12px 16px", color: "#6b7280", whiteSpace: "nowrap" }}>
-                    {timeAgo(trace.createdAt)}
+                <tr key={trace.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                  <td className="px-3 py-2.5 text-white/40 text-[12px] whitespace-nowrap">{timeAgo(trace.createdAt)}</td>
+                  <td className="px-3 py-2.5 text-white/80 text-[12px] max-w-[110px] truncate">{trace.project?.name || "—"}</td>
+                  <td className="px-3 py-2.5">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide ${provColor.bg} ${provColor.text}`}>
+                      {trace.provider}
+                    </span>
                   </td>
-                  <td style={{ padding: "12px 16px", color: "#f9fafb" }}>
-                    {trace.project?.name || "Unknown"}
-                  </td>
-                  <td style={{ padding: "12px 16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ color: "#d1d5db" }}>{trace.model}</span>
-                      {trace.cached && (
-                        <span style={{ fontSize: 10, background: "rgba(16, 185, 129, 0.1)", color: "#10b981", padding: "2px 6px", borderRadius: 4, fontWeight: 600 }}>
-                          CACHE
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td style={{ padding: "12px 16px", color: "#9ca3af" }}>
-                    {trace.authLatencyMs === null ? (
-                      <span style={{ color: "#4b5563" }}>N/A</span>
-                    ) : (
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ minWidth: 40 }}>{trace.authLatencyMs}ms</span>
-                        <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2 }}>
-                          <div style={{ height: "100%", width: `${authPct}%`, background: "#3b82f6", borderRadius: 2 }} />
+                  <td className="px-3 py-2.5 text-white/80 text-[12px] max-w-[130px] truncate">{trace.model}</td>
+                  {/* Auth latency bar */}
+                  <td className="px-3 py-2.5 text-white/50 text-[12px] min-w-[100px]">
+                    {trace.authLatencyMs == null ? <span className="text-white/20 italic">—</span> : (
+                      <div className="flex items-center gap-1.5">
+                        <span className="min-w-[32px] text-[11px]">{trace.authLatencyMs}ms</span>
+                        <div className="flex-1 h-1 bg-white/[0.06] rounded-full min-w-[24px]">
+                          <div className="h-full bg-blue-500/60 rounded-full" style={{ width: `${authPct}%` }} />
                         </div>
                       </div>
                     )}
                   </td>
-                  <td style={{ padding: "12px 16px", color: "#9ca3af" }}>
-                    {trace.cacheLatencyMs === null ? (
-                      <span style={{ color: "#4b5563" }}>N/A</span>
-                    ) : (
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ minWidth: 40 }}>{trace.cacheLatencyMs}ms</span>
-                        <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2 }}>
-                          <div style={{ height: "100%", width: `${cachePct}%`, background: "#8b5cf6", borderRadius: 2 }} />
+                  {/* Cache latency bar */}
+                  <td className="px-3 py-2.5 text-white/50 text-[12px] min-w-[100px]">
+                    {trace.cacheLatencyMs == null ? <span className="text-white/20 italic">—</span> : (
+                      <div className="flex items-center gap-1.5">
+                        <span className="min-w-[32px] text-[11px]">{trace.cacheLatencyMs}ms</span>
+                        <div className="flex-1 h-1 bg-white/[0.06] rounded-full min-w-[24px]">
+                          <div className="h-full bg-violet-500/60 rounded-full" style={{ width: `${cachePct}%` }} />
                         </div>
                       </div>
                     )}
                   </td>
-                  <td style={{ padding: "12px 16px", color: "#9ca3af" }}>
-                    {trace.llmLatencyMs === null ? (
-                      <span style={{ color: "#4b5563" }}>N/A</span>
-                    ) : (
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ minWidth: 40 }}>{trace.llmLatencyMs}ms</span>
-                        <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2 }}>
-                          <div style={{ height: "100%", width: `${llmPct}%`, background: "#10b981", borderRadius: 2 }} />
+                  {/* LLM latency bar */}
+                  <td className="px-3 py-2.5 text-white/50 text-[12px] min-w-[100px]">
+                    {trace.llmLatencyMs == null ? <span className="text-white/20 italic">—</span> : (
+                      <div className="flex items-center gap-1.5">
+                        <span className="min-w-[32px] text-[11px]">{trace.llmLatencyMs}ms</span>
+                        <div className="flex-1 h-1 bg-white/[0.06] rounded-full min-w-[24px]">
+                          <div className="h-full bg-emerald-500/60 rounded-full" style={{ width: `${llmPct}%` }} />
                         </div>
                       </div>
                     )}
                   </td>
-                  <td style={{ padding: "12px 16px", color: "#f9fafb", fontWeight: 500 }}>
-                    {trace.latencyMs}ms
+                  <td className="px-3 py-2.5 text-white font-medium text-[12px] whitespace-nowrap">{trace.latencyMs}ms</td>
+                  <td className="px-3 py-2.5">
+                    {trace.cached
+                      ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">HIT</span>
+                      : <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-white/5 text-white/30 border border-white/10">MISS</span>}
                   </td>
-                  <td style={{ padding: "12px 16px" }}>
-                    <span style={{
-                      color: trace.statusCode === 200 ? "#10b981" : "#ef4444",
-                      fontWeight: 600
-                    }}>
+                  <td className="px-3 py-2.5 text-emerald-400/80 text-[12px] font-mono">
+                    {trace.costUsd != null ? `$${trace.costUsd.toFixed(6)}` : "—"}
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${trace.statusCode === 200 ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
                       {trace.statusCode}
                     </span>
                   </td>
@@ -181,14 +285,42 @@ export default async function AdminTracesPage({
             })}
             {traces.length === 0 && (
               <tr>
-                <td colSpan={8} style={{ padding: "24px", textAlign: "center", color: "#6b7280" }}>
-                  No traces found matching the filters.
+                <td colSpan={11} className="px-4 py-16 text-center">
+                  <div className="text-white/20 text-4xl mb-3">- -</div>
+                  <div className="text-white/40 text-sm">{hasFilters ? "No traces match the current filters." : "No traces recorded yet."}</div>
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          {page > 1
+            ? <Link href={buildUrl(urlParams, { page: String(page - 1) })} className="bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-4 py-2 rounded-lg text-sm no-underline transition-colors">← Previous</Link>
+            : <span className="bg-white/[0.02] text-white/20 px-4 py-2 rounded-lg text-sm cursor-not-allowed">← Previous</span>}
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
+              .reduce<(number | "…")[]>((acc, p, i, arr) => {
+                if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("…");
+                acc.push(p); return acc;
+              }, [])
+              .map((p, i) => p === "…"
+                ? <span key={`e${i}`} className="text-white/20 px-1 text-sm">…</span>
+                : <Link key={p} href={buildUrl(urlParams, { page: String(p) })}
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm no-underline transition-colors ${p === page ? "bg-violet-600 text-white font-medium" : "bg-white/5 hover:bg-white/10 text-white/60 hover:text-white"}`}>
+                    {p}
+                  </Link>
+              )}
+          </div>
+          {page < totalPages
+            ? <Link href={buildUrl(urlParams, { page: String(page + 1) })} className="bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-4 py-2 rounded-lg text-sm no-underline transition-colors">Next →</Link>
+            : <span className="bg-white/[0.02] text-white/20 px-4 py-2 rounded-lg text-sm cursor-not-allowed">Next →</span>}
+        </div>
+      )}
     </div>
   );
 }

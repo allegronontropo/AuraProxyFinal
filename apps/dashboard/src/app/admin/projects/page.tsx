@@ -1,169 +1,147 @@
 import { prisma } from "@aura/db";
-import ProjectActions from "@/components/admin/ProjectActions";
+import { FolderOpen } from "lucide-react";
+import ProjectsTable from "@/components/admin/ProjectsTable";
+import BulkBudgetControl from "@/components/admin/BulkBudgetControl";
+
+const PAGE_SIZE = 14;
 
 export default async function AdminProjectsPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const searchParams = await props.searchParams;
+  const sp = await props.searchParams;
+  const query   = (sp.query   as string) || "";
+  const sortBy  = (sp.sortBy  as string) || "createdAt";
+  const sortDir = ((sp.sortDir as string) === "asc" ? "asc" : "desc") as "asc" | "desc";
+  const page    = Math.max(1, parseInt((sp.page as string) || "1") || 1);
+
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  // Construct Prisma where clause based on filters
+  // ─── Where ────────────────────────────────────────────────────────────────
   const where: import("@prisma/client").Prisma.ProjectWhereInput = {};
-  if (searchParams.query) {
-    where.name = { contains: searchParams.query as string, mode: "insensitive" };
-  }
+  if (query) where.name = { contains: query, mode: "insensitive" };
 
-  // Fetch projects with their owner and aggregate metrics
-  const projects = await prisma.project.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    include: {
-      tenant: {
-        select: { email: true, name: true }
+  // ─── Order by ─────────────────────────────────────────────────────────────
+  const ORDER_MAP: Record<string, import("@prisma/client").Prisma.ProjectOrderByWithRelationInput> = {
+    name:        { name:        sortDir },
+    email:       { tenant: { email: sortDir } },
+    budgetLimit: { budgetLimit: sortDir },
+    isActive:    { isActive:    sortDir },
+    createdAt:   { createdAt:   sortDir },
+  };
+  const orderBy = ORDER_MAP[sortBy] ?? { createdAt: "desc" };
+
+  const [total, projects] = await Promise.all([
+    prisma.project.count({ where }),
+    prisma.project.findMany({
+      where,
+      orderBy,
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+      include: {
+        tenant: { select: { email: true, name: true } },
+        _count: { select: { apiKeys: true, logs: true } },
       },
-      _count: {
-        select: { apiKeys: true, logs: true }
-      }
-    }
-  });
+    }),
+  ]);
 
-  // Calculate requests and cost over last 30 days
+  // ─── Compute metrics ──────────────────────────────────────────────────────
   const projectsWithMetrics = await Promise.all(
     projects.map(async (project) => {
-      const logs30dAgg = await prisma.requestLog.aggregate({
-        where: { 
-          projectId: project.id,
-          createdAt: { gte: thirtyDaysAgo }
-        },
+      const agg = await prisma.requestLog.aggregate({
+        where: { projectId: project.id, createdAt: { gte: thirtyDaysAgo } },
         _count: true,
-        _sum: { costUsd: true }
+        _sum: { costUsd: true },
       });
-
-      // Calculate budget usage percentage
-      const cost30d = logs30dAgg._sum.costUsd || 0;
-      const budgetLimit = project.budgetLimit || 100; // Default or null handling
+      const cost30d      = agg._sum.costUsd ?? 0;
+      const budgetLimit  = project.budgetLimit ?? 100;
       const usagePercent = Math.min((cost30d / budgetLimit) * 100, 100);
-      
-      let status = "🟢 Healthy";
-      if (!project.isActive) status = "⚫ Suspended";
-      else if (usagePercent > 90) status = "🔴 Over Budget";
-      else if (usagePercent > 75) status = "🟡 Warning";
+
+      let healthLabel: "healthy" | "warning" | "over" | "suspended";
+      if (!project.isActive)       healthLabel = "suspended";
+      else if (usagePercent > 90)  healthLabel = "over";
+      else if (usagePercent > 75)  healthLabel = "warning";
+      else                         healthLabel = "healthy";
 
       return {
-        ...project,
-        requests30d: logs30dAgg._count,
+        id:           project.id,
+        name:         project.name,
+        budgetLimit:  project.budgetLimit,
+        budgetPeriod: project.budgetPeriod,
+        isActive:     project.isActive,
+        createdAt:    project.createdAt.toISOString(),
+        requests30d:  agg._count,
         cost30d,
         usagePercent,
-        status
+        healthLabel,
+        tenant: {
+          email: project.tenant?.email ?? null,
+          name:  project.tenant?.name  ?? null,
+        },
       };
     })
   );
 
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const hasFilters = !!query;
+
+  const urlParams: Record<string, string | undefined> = {
+    ...(query ? { query } : {}),
+    sortBy,
+    sortDir,
+  };
+
   return (
-    <div style={{ padding: "40px 48px", maxWidth: 1200 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 600, margin: "0 0 8px 0" }}>Workspaces Directory</h1>
-      <p style={{ color: "#9ca3af", fontSize: 14, margin: "0 0 24px 0" }}>
-        Complete list of all projects and workspaces across the platform.
-      </p>
+    <div className="px-10 py-8 max-w-[1300px]">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-white tracking-tight mb-1 flex items-center gap-2">
+          <FolderOpen size={20} className="text-white/30" />
+          Workspaces Directory
+          <span className="ml-2 text-xs bg-white/5 text-white/40 px-2 py-0.5 rounded-full">{total}</span>
+        </h1>
+        <p className="text-sm text-white/40">
+          Complete list of all projects and workspaces across the platform.
+        </p>
+      </div>
+
+      {/* Safety Controls */}
+      <div className="mb-6">
+        <div className="text-xs text-white/40 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <span className="text-amber-400">⚠</span> Safety Controls
+        </div>
+        <BulkBudgetControl />
+      </div>
 
       {/* Filter Form */}
-      <form method="GET" style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
-        <input 
-          type="text" 
-          name="query" 
-          placeholder="Search projects by name..." 
-          defaultValue={searchParams.query as string || ""} 
-          style={{ padding: "8px 12px", borderRadius: "6px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "white", flex: 1, maxWidth: "300px" }} 
+      <form method="GET" className="flex gap-3 mb-6 flex-wrap">
+        <input type="hidden" name="sortBy"  value={sortBy}  />
+        <input type="hidden" name="sortDir" value={sortDir} />
+        <input
+          type="text" name="query" placeholder="Search projects by name…"
+          defaultValue={query}
+          className="bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-500/50 transition-colors w-72"
         />
-        <button 
-          type="submit" 
-          style={{ padding: "8px 16px", borderRadius: "6px", background: "#8b5cf6", color: "white", fontWeight: 500, border: "none", cursor: "pointer" }}
-        >
+        <button type="submit"
+          className="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border-none cursor-pointer">
           Search
         </button>
-        {searchParams.query && (
-          <a href="/admin/projects" style={{ padding: "8px 16px", borderRadius: "6px", background: "rgba(255,255,255,0.1)", color: "white", textDecoration: "none", display: "flex", alignItems: "center", fontSize: "13px" }}>
+        {hasFilters && (
+          <a href="/admin/projects" className="bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-4 py-2 rounded-lg text-sm transition-colors no-underline flex items-center">
             Clear
           </a>
         )}
       </form>
 
-      <div
-        style={{
-          background: "rgba(255,255,255,0.02)",
-          border: "1px solid rgba(255,255,255,0.05)",
-          borderRadius: 12,
-          overflow: "hidden",
-        }}
-      >
-        <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 13 }}>
-          <thead>
-            <tr style={{ background: "rgba(255,255,255,0.03)", color: "#9ca3af", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Project Name</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Owner Email</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Budget Limit</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Requests (30d)</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Cost (30d)</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Status</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {projectsWithMetrics.map((project) => (
-              <tr key={project.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                <td style={{ padding: "12px 16px", color: "#f9fafb", fontWeight: 500 }}>
-                  {project.name}
-                </td>
-                <td style={{ padding: "12px 16px", color: "#d1d5db" }}>
-                  {project.tenant?.email || "N/A"}
-                </td>
-                <td style={{ padding: "12px 16px", color: "#9ca3af" }}>
-                  ${project.budgetLimit?.toFixed(2) || "∞"} / {project.budgetPeriod.toLowerCase()}
-                </td>
-                <td style={{ padding: "12px 16px", color: "#9ca3af" }}>
-                  {project.requests30d.toLocaleString()}
-                </td>
-                <td style={{ padding: "12px 16px", color: "#10b981", fontWeight: 500 }}>
-                  ${project.cost30d.toFixed(4)}
-                </td>
-                <td style={{ padding: "12px 16px" }}>
-                  <span style={{
-                    padding: "2px 8px",
-                    borderRadius: 10,
-                    fontSize: 11,
-                    fontWeight: 600,
-                    background: project.status.includes("Healthy") ? "rgba(16, 185, 129, 0.1)" :
-                               project.status.includes("Warning") ? "rgba(245, 158, 11, 0.1)" :
-                               project.status.includes("Suspended") ? "rgba(107, 114, 128, 0.1)" :
-                               "rgba(239, 68, 68, 0.1)",
-                    color: project.status.includes("Healthy") ? "#34d399" :
-                           project.status.includes("Warning") ? "#fbbf24" :
-                           project.status.includes("Suspended") ? "#9ca3af" :
-                           "#f87171"
-                  }}>
-                    {project.status}
-                  </span>
-                </td>
-                <td style={{ padding: "12px 16px" }}>
-                  <ProjectActions 
-                    projectId={project.id} 
-                    isActive={project.isActive} 
-                    currentBudget={project.budgetLimit} 
-                  />
-                </td>
-              </tr>
-            ))}
-            {projectsWithMetrics.length === 0 && (
-              <tr>
-                <td colSpan={7} style={{ padding: "24px", textAlign: "center", color: "#6b7280" }}>
-                  No projects found matching the filters.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <ProjectsTable
+        projects={projectsWithMetrics}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        urlParams={urlParams}
+      />
     </div>
   );
 }

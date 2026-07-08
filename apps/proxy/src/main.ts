@@ -23,7 +23,7 @@ async function bootstrap() {
   // Swagger
   const config = new DocumentBuilder()
     .setTitle('Aura Proxy API')
-    .setDescription('AI Proxy Middleware — Multi-provider LLM gateway with semantic cache, budget control, and real-time analytics')
+    .setDescription('AI Proxy Middleware - Multi-provider LLM gateway with semantic cache, budget control, and real-time analytics')
     .setVersion('1.0')
     .addBearerAuth()
     .addTag('Health', 'Service health checks')

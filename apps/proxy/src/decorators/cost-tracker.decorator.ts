@@ -1,5 +1,5 @@
 /**
- * Cost Tracker Decorator — Decorator Pattern
+ * Cost Tracker Decorator - Decorator Pattern
  *
  * Wraps any LLMProvider to record usage data after each response.
  * Inserts a RequestLog row into PostgreSQL via Prisma with:
@@ -32,7 +32,7 @@ export class CostTrackerDecorator extends BaseDecorator {
     const cacheLatencyMs = request.cacheLatencyMs ?? 0;
     const latencyMs = authLatencyMs + cacheLatencyMs + llmLatencyMs;
 
-    // Record the request log asynchronously — don't block the response
+    // Record the request log asynchronously - don't block the response
     this.recordLog({
       apiKeyId: request.apiKeyId,
       provider: this.name,

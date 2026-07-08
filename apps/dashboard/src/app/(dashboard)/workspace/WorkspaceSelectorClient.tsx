@@ -4,7 +4,7 @@ import { useState, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createProject } from "@/actions/project";
 import { signOut } from "next-auth/react";
-/** Lightweight relative-time formatter — no external dep needed. */
+/** Lightweight relative-time formatter - no external dep needed. */
 function formatRelative(date: Date): string {
   const now = Date.now();
   const diffMs = now - date.getTime();
@@ -1034,7 +1034,7 @@ export function WorkspaceSelectorClient({
               )}
             </div>
 
-            {/* Footer actions — only show continue button if there are workspaces */}
+            {/* Footer actions - only show continue button if there are workspaces */}
             <div
               style={{
                 display: "flex",

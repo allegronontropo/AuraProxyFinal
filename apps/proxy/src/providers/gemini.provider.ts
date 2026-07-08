@@ -1,5 +1,5 @@
 /**
- * Gemini Provider — Strategy Pattern Implementation
+ * Gemini Provider - Strategy Pattern Implementation
  *
  * Implements the LLMProvider interface for Google Gemini models using the
  * @google/generative-ai SDK.

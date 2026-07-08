@@ -1,5 +1,5 @@
 /**
- * Mistral Provider — Strategy Pattern Implementation
+ * Mistral Provider - Strategy Pattern Implementation
  *
  * Implements the LLMProvider interface for Mistral AI models
  * using the official @mistralai/mistralai SDK.

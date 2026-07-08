@@ -1,5 +1,5 @@
 /**
- * Base Decorator — Decorator Pattern
+ * Base Decorator - Decorator Pattern
  *
  * Abstract class that wraps an LLMProvider and delegates all method calls
  * to the wrapped provider. Subclasses override specific methods to add

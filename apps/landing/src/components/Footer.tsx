@@ -84,7 +84,7 @@ export default function Footer() {
             fontFamily: "var(--font-mono)",
           }}
         >
-          © {new Date().getFullYear()} AuraProxy — MIT License
+          © {new Date().getFullYear()} AuraProxy - MIT License
         </div>
       </div>
     </footer>

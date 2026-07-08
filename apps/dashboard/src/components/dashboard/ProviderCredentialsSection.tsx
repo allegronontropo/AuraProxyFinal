@@ -172,7 +172,7 @@ export default function ProviderCredentialsSection({
             <label className="block text-[12px] text-white/50 mb-1.5">
               API Key{" "}
               <span className="text-white/25">
-                — stored encrypted, never shown again
+                - stored encrypted, never shown again
               </span>
             </label>
             <input

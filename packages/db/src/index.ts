@@ -1,5 +1,5 @@
 /**
- * @aura/db — Singleton PrismaClient
+ * @aura/db - Singleton PrismaClient
  *
  * Motif de conception : Singleton
  * Assure qu'un seul pool de connexions à la base de données est partagé par

@@ -1,5 +1,5 @@
 /**
- * Anthropic Provider — Strategy Pattern Implementation
+ * Anthropic Provider - Strategy Pattern Implementation
  *
  * Implements the LLMProvider interface for Anthropic Claude models
  * using the official @anthropic-ai/sdk. Handles the format differences

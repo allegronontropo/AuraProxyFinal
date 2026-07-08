@@ -47,7 +47,7 @@ export class ChoiceDto {
 }
 
 /**
- * DTO for chat completion response — OpenAI-compatible format.
+ * DTO for chat completion response - OpenAI-compatible format.
  */
 export class ChatResponseDto {
   @ApiProperty({ description: 'Unique completion ID', example: 'chatcmpl-abc123', type: String })

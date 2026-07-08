@@ -65,7 +65,7 @@ export class ChatService {
       return response;
     }
 
-    // Cache miss — track it
+    // Cache miss - track it
     this.budget.recordCacheEvent(project.id, false).catch(err =>
       this.logger.error(`Failed to record cache miss counter: ${err.message}`)
     );
@@ -218,7 +218,7 @@ export class ChatService {
           }).catch(e => this.logger.error(e.message));
         }
 
-        // Auth errors: abort the chain — other providers won't fix a wrong key
+        // Auth errors: abort the chain - other providers won't fix a wrong key
         if (isNonRetryableError(err.message)) {
           this.alerts.createAlert({
             projectId: project.id,
@@ -229,7 +229,7 @@ export class ChatService {
             metadata: { error: err.message }
           }).catch(e => this.logger.error(e.message));
 
-          this.logger.warn(`Auth error on "${providerName}" — aborting fallback chain`);
+          this.logger.warn(`Auth error on "${providerName}" - aborting fallback chain`);
           break;
         }
         // Otherwise continue to the next provider in the chain

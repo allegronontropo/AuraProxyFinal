@@ -716,7 +716,7 @@ export default function AuraProxyHeroVisual() {
                   </p>
                 </div>
 
-                {/* Feature tabs — 2×2 grid */}
+                {/* Feature tabs - 2×2 grid */}
                 <div className="grid grid-cols-2 gap-1.5 w-full mt-1">
                   {FEATURES.map(({ id, label, Icon }) => {
                     const isActive = active === id;
@@ -741,7 +741,7 @@ export default function AuraProxyHeroVisual() {
               </div>
             </div>
 
-            {/* ══ DEMO PANEL — below center card ════════════════════════════════ */}
+            {/* ══ DEMO PANEL - below center card ════════════════════════════════ */}
             <div
               className="absolute transition-all duration-400"
               style={{

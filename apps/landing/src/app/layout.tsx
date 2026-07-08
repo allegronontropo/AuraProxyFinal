@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Aura Proxy — Open-Source AI Gateway",
+  title: "Aura Proxy - Open-Source AI Gateway",
   description:
     "Self-hosted AI gateway with semantic caching, intelligent routing, and full observability. Stop paying for the same AI request twice.",
   keywords: [
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "Multi-provider routing",
   ],
   openGraph: {
-    title: "Aura Proxy — Open-Source AI Gateway",
+    title: "Aura Proxy - Open-Source AI Gateway",
     description: "Stop paying for the same AI request twice. Semantic cache, smart routing, full observability.",
     type: "website",
   },

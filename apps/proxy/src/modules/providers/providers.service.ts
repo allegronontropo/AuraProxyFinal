@@ -59,7 +59,7 @@ export class ProvidersService implements OnModuleInit {
     }
 
     if (this.providers.size === 0) {
-      this.logger.warn('No providers registered — set API keys in .env');
+      this.logger.warn('No providers registered - set API keys in .env');
     } else {
       this.logger.log(`${this.providers.size} provider(s) ready`);
     }
@@ -102,7 +102,7 @@ export class ProvidersService implements OnModuleInit {
     // If the shared provider already uses this exact key, return it directly (no extra allocation)
     const shared = this.providers.get(providerName);
     if (shared) {
-      // For env-var providers the key is already embedded — reuse without re-wrapping
+      // For env-var providers the key is already embedded - reuse without re-wrapping
       const envKey = this.credentials['getEnvKey'](providerName);
       if (envKey && envKey === projectApiKey) {
         return shared;

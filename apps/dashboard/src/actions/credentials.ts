@@ -77,7 +77,7 @@ export async function saveProviderCredential(
     return { error: `Invalid provider. Must be one of: ${validProviders.join(", ")}` };
   }
 
-  // Validate API key format (basic check — just ensure it's non-empty)
+  // Validate API key format (basic check - just ensure it's non-empty)
   if (!apiKey || apiKey.trim().length < 8) {
     return { error: "API key must be at least 8 characters." };
   }

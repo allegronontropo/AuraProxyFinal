@@ -1,5 +1,5 @@
 /**
- * @aura/shared — Constants
+ * @aura/shared - Constants
  *
  * Pricing, rate limits, and configuration constants.
  */
@@ -92,7 +92,7 @@ export const REDIS_KEYS = {
 /**
  * Ordered fallback chains per primary provider.
  * When a provider fails, the gateway tries the next one in the list.
- * Auth errors (401/403) skip the fallback — a bad key won't be fixed by retrying.
+ * Auth errors (401/403) skip the fallback - a bad key won't be fixed by retrying.
  */
 export const DEFAULT_FALLBACK_CHAINS: Record<string, string[]> = {
   openai:    ['openai', 'anthropic', 'google', 'groq'],
@@ -104,7 +104,7 @@ export const DEFAULT_FALLBACK_CHAINS: Record<string, string[]> = {
 
 /**
  * Returns true for errors that should NOT trigger a provider fallback.
- * Auth failures mean the key is wrong — trying another provider won't help.
+ * Auth failures mean the key is wrong - trying another provider won't help.
  */
 export function isNonRetryableError(message: string): boolean {
   const lower = message.toLowerCase();

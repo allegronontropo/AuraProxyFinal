@@ -1,5 +1,5 @@
 /**
- * @aura/shared — Core TypeScript Types
+ * @aura/shared - Core TypeScript Types
  *
  * All interfaces and types shared between proxy, dashboard, and workers.
  */
@@ -58,7 +58,7 @@ export interface StreamChunk {
 }
 
 /**
- * LLM Provider Interface — Strategy Pattern
+ * LLM Provider Interface - Strategy Pattern
  * Each provider (OpenAI, Anthropic, etc.) implements this interface.
  */
 export interface LLMProvider {

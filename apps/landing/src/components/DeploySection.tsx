@@ -77,7 +77,7 @@ export default function DeploySection() {
             </p>
             <ul style={{ listStyle: "none", padding: 0, margin: "0 0 2rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               {[
-                "Docker Compose — zero dependencies",
+                "Docker Compose - zero dependencies",
                 "Your API keys stay on your infrastructure",
                 "PostgreSQL + pgvector for semantic cache",
                 "Redis for ultra-fast cache lookups",

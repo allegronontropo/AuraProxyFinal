@@ -46,7 +46,7 @@ export async function createProject(formData: FormData) {
     });
 
     revalidatePath("/workspace");
-    // Return raw key once — never stored again
+    // Return raw key once - never stored again
     return { success: true, projectId: project.id, apiKey: rawKey };
   } catch (error) {
     console.error("createProject error:", error);

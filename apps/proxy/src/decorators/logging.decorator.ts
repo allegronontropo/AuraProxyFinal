@@ -1,5 +1,5 @@
 /**
- * Logging Decorator — Decorator Pattern
+ * Logging Decorator - Decorator Pattern
  *
  * Wraps any LLMProvider to add structured logging for every request.
  * Logs: request start, provider name, model, latency, token count.

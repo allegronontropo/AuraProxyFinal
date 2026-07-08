@@ -12,7 +12,7 @@ import { AlertsService } from '../../modules/alerts/alerts.service';
 
 /**
  * @pattern Decorator
- * RateLimiterGuard — Sliding Window Rate Limiter via Redis sorted sets.
+ * RateLimiterGuard - Sliding Window Rate Limiter via Redis sorted sets.
  *
  * Algorithm:
  * 1. Key = sorted set keyed by apiKeyId (score = timestamp ms)

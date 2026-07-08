@@ -1,5 +1,5 @@
 /**
- * OpenAI Provider — Strategy Pattern Implementation
+ * OpenAI Provider - Strategy Pattern Implementation
  *
  * Implements the LLMProvider interface for OpenAI models using the
  * official OpenAI Node SDK. Supports chat completions and streaming.

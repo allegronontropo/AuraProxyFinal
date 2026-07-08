@@ -1,5 +1,5 @@
 /**
- * @aura/shared — Main Entry Point
+ * @aura/shared - Main Entry Point
  */
 
 export * from './types/index';

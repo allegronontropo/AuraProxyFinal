@@ -1,5 +1,5 @@
 /**
- * @aura/redis — Client Redis Singleton
+ * @aura/redis - Client Redis Singleton
  *
  * Motif de conception : Singleton
  * Assure qu'une seule connexion Redis est partagée dans toute l'application.

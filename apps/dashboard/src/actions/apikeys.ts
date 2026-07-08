@@ -40,7 +40,7 @@ export async function generateApiKey(
     });
 
     revalidatePath(`/dashboard/${projectId}/keys`);
-    // Return raw key once — it is never stored in plaintext
+    // Return raw key once - it is never stored in plaintext
     return { success: true, apiKey: rawKey, keyPrefix };
   } catch (error) {
     console.error("generateApiKey error:", error);

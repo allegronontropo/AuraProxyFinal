@@ -133,7 +133,7 @@ export default function NavBar() {
           ))}
         </nav>
 
-        {/* Right — GitHub + CTA */}
+        {/* Right - GitHub + CTA */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <a
             href="https://github.com/allegronontropo/AuraProxyFinal"

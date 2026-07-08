@@ -36,7 +36,7 @@ export class MessageDto {
 }
 
 /**
- * DTO for POST /v1/chat/completions — compatible with OpenAI API format.
+ * DTO for POST /v1/chat/completions - compatible with OpenAI API format.
  */
 export class ChatRequestDto {
   @ApiProperty({

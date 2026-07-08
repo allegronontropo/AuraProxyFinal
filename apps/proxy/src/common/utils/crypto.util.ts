@@ -1,9 +1,9 @@
 /**
  * AES-256-GCM encryption utility for provider credentials.
- * Uses Node.js built-in crypto — no external dependencies.
+ * Uses Node.js built-in crypto - no external dependencies.
  *
  * Environment variable required:
- *   CREDENTIAL_ENCRYPTION_KEY — 64-character hex string (32 bytes)
+ *   CREDENTIAL_ENCRYPTION_KEY - 64-character hex string (32 bytes)
  *
  * Generate one with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
  */

@@ -14,10 +14,10 @@ export default function HeroSection() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        // NO overflow:hidden — let the visual breathe
+        // NO overflow:hidden - let the visual breathe
       }}
     >
-      {/* Dynamic Wave Canvas — full background */}
+      {/* Dynamic Wave Canvas - full background */}
       <div
         style={{
           position: "absolute",
@@ -29,7 +29,7 @@ export default function HeroSection() {
         <HeroWave />
       </div>
 
-      {/* Radial overlay — blends wave into bg */}
+      {/* Radial overlay - blends wave into bg */}
       <div
         style={{
           position: "absolute",
@@ -214,7 +214,7 @@ export default function HeroSection() {
           </div>
         </div>
 
-        {/* ── ARCHITECTURE VISUAL — direct, no scroll wrapper ── */}
+        {/* ── ARCHITECTURE VISUAL - direct, no scroll wrapper ── */}
         <div
           style={{
             width: "100%",

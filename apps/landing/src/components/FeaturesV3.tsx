@@ -53,9 +53,9 @@ interface Feature {
 const features: Feature[] = [
   {
     id: "cache",
-    tag: "01 — Semantic Cache",
+    tag: "01 - Semantic Cache",
     headline: "Never pay for\nthe same answer twice.",
-    sub: "pgvector embeddings match new queries to cached responses at 92% semantic similarity. Cache hits return in under 5ms — no LLM round-trip.",
+    sub: "pgvector embeddings match new queries to cached responses at 92% semantic similarity. Cache hits return in under 5ms - no LLM round-trip.",
     image: "/features/semantic-cache.png",
     accent: "#7c5cfc",
     textAccent: "#a78bfa",
@@ -88,9 +88,9 @@ const features: Feature[] = [
   },
   {
     id: "routing",
-    tag: "02 — Smart Routing",
+    tag: "02 - Smart Routing",
     headline: "Route every request\nto the winning model.",
-    sub: "Dynamic routing across OpenAI, Anthropic, Gemini, and Mistral. Automatic failover, budget caps, and per-model latency scoring — enforced at the gateway.",
+    sub: "Dynamic routing across OpenAI, Anthropic, Gemini, and Mistral. Automatic failover, budget caps, and per-model latency scoring - enforced at the gateway.",
     image: "/features/smart-routing.png",
     accent: "#818cf8",
     textAccent: "#a5b4fc",
@@ -123,7 +123,7 @@ const features: Feature[] = [
   },
   {
     id: "observability",
-    tag: "03 — Observability",
+    tag: "03 - Observability",
     headline: "See everything.\nBill precisely.",
     sub: "Every request logged with latency, cost, cache outcome, and provider. Real-time dashboards, cost breakdowns per endpoint, and structured trace export.",
     image: "/features/observability.png",
@@ -158,9 +158,9 @@ const features: Feature[] = [
   },
   {
     id: "policy",
-    tag: "04 — Policy Engine",
+    tag: "04 - Policy Engine",
     headline: "Your rules.\nYour infrastructure.",
-    sub: "Content guardrails, PII detection, rate limiting, and spend caps enforced at the gateway layer — without touching a single line of application code.",
+    sub: "Content guardrails, PII detection, rate limiting, and spend caps enforced at the gateway layer - without touching a single line of application code.",
     image: "/features/policy-engine.png",
     accent: "#f59e0b",
     textAccent: "#fcd34d",
@@ -272,7 +272,7 @@ function FeatureCardStack({ feature }: { feature: Feature }) {
   const [c0, c1, c2] = feature.cards;
   return (
     <div className="grid [grid-template-areas:'stack'] place-items-center">
-      {/* Back card — greyed, lifts on hover */}
+      {/* Back card - greyed, lifts on hover */}
       <DisplayCard
         {...c0}
         className={cx(
@@ -296,7 +296,7 @@ function FeatureCardStack({ feature }: { feature: Feature }) {
         )}
       />
 
-      {/* Front card — always coloured */}
+      {/* Front card - always coloured */}
       <DisplayCard
         {...c2}
         className="[grid-area:stack] translate-x-32 translate-y-20 hover:translate-y-10"

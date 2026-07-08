@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* =============================================
-   AURA PROXY — Design System v1
+   AURA PROXY - Design System v1
    ============================================= */
 
 :root {
@@ -17,7 +17,7 @@
   --aura-text-secondary: #8b8b96;
   --aura-text-muted:     #4a4a55;
 
-  /* ─── Accent — Violet ───────────────────────── */
+  /* ─── Accent - Violet ───────────────────────── */
   --aura-accent:         #7c5cfc;
   --aura-accent-hover:   #8f72fd;
   --aura-accent-glow:    rgba(124, 92, 252, 0.18);
