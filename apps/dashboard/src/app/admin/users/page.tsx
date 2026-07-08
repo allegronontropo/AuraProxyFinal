@@ -1,175 +1,155 @@
 import { prisma } from "@aura/db";
-import UserActions from "@/components/admin/UserActions";
+import { Users } from "lucide-react";
+import UsersTable from "@/components/admin/UsersTable";
+
+const PAGE_SIZE = 14;
 
 export default async function AdminUsersPage(props: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const searchParams = await props.searchParams;
-  // Construct Prisma where clause based on filters
+  const sp = await props.searchParams;
+  const query   = (sp.query   as string) || "";
+  const status  = (sp.status  as string) || "";
+  const sortBy  = (sp.sortBy  as string) || "createdAt";
+  const sortDir = ((sp.sortDir as string) === "asc" ? "asc" : "desc") as "asc" | "desc";
+  const page    = Math.max(1, parseInt((sp.page as string) || "1") || 1);
+
+  // ─── Where clause ─────────────────────────────────────────────────────────
   const where: import("@prisma/client").Prisma.UserWhereInput = {};
-  if (searchParams.query) {
+  if (query) {
     where.OR = [
-      { email: { contains: searchParams.query as string, mode: "insensitive" } },
-      { name: { contains: searchParams.query as string, mode: "insensitive" } }
+      { email: { contains: query, mode: "insensitive" } },
+      { name:  { contains: query, mode: "insensitive" } },
     ];
   }
-  if (searchParams.status === "active") where.isActive = true;
-  if (searchParams.status === "suspended") where.isActive = false;
+  if (status === "active")    where.isActive = true;
+  if (status === "suspended") where.isActive = false;
 
-  // Fetch users and their projects with aggregate counts
-  const users = await prisma.user.findMany({
-    where,
-    orderBy: { created_at: "desc" },
-    include: {
-      _count: {
-        select: { projects: true }
+  // ─── Order by ─────────────────────────────────────────────────────────────
+  const ORDER_MAP: Record<string, import("@prisma/client").Prisma.UserOrderByWithRelationInput> = {
+    name:      { name:       sortDir },
+    email:     { email:      sortDir },
+    plan:      { plan:       sortDir },
+    isActive:  { isActive:   sortDir },
+    createdAt: { created_at: sortDir },
+    projects:  { projects: { _count: sortDir } },
+  };
+  const orderBy = ORDER_MAP[sortBy] ?? { created_at: "desc" };
+
+  // ─── Fetch data ────────────────────────────────────────────────────────────
+  // If sorting by cost, we fetch all matching users to sort them in-memory
+  const [total, allOrPageUsers] = await Promise.all([
+    prisma.user.count({ where }),
+    prisma.user.findMany({
+      where,
+      orderBy: sortBy === "cost" ? undefined : orderBy,
+      skip: sortBy === "cost" ? undefined : (page - 1) * PAGE_SIZE,
+      take: sortBy === "cost" ? undefined : PAGE_SIZE,
+      include: {
+        _count: { select: { projects: true } },
+        projects: {
+          include: { _count: { select: { apiKeys: true, logs: true } } },
+        },
       },
-      projects: {
-        include: {
-          _count: {
-            select: { apiKeys: true, logs: true }
-          }
-        }
-      }
+    }),
+  ]);
+
+  // ─── Optimize cost calculation ──────────────────────────────────────────────
+  const projectCosts = await prisma.requestLog.groupBy({
+    by: ["projectId"],
+    _sum: { costUsd: true },
+  });
+  const costMap = new Map(projectCosts.map(p => [p.projectId, p._sum.costUsd || 0]));
+
+  // ─── Compute per-user metrics ─────────────────────────────────────────────
+  let usersWithMetrics = allOrPageUsers.map((user) => {
+    let totalCost = 0, totalRequests = 0, totalApiKeys = 0;
+    for (const project of user.projects) {
+      totalRequests += project._count.logs;
+      totalApiKeys  += project._count.apiKeys;
+      totalCost += costMap.get(project.id) || 0;
     }
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      plan: user.plan,
+      isActive: user.isActive,
+      created_at: user.created_at.toISOString(),
+      totalCost,
+      totalRequests,
+      totalApiKeys,
+      _count: user._count,
+    };
   });
 
-  // Calculate total requests and total cost per user in code since Prisma doesn't support nested _sum natively easily
-  const usersWithMetrics = await Promise.all(
-    users.map(async (user) => {
-      let totalCost = 0;
-      let totalRequests = 0;
-      let totalApiKeys = 0;
+  if (sortBy === "cost") {
+    usersWithMetrics.sort((a, b) => {
+      return sortDir === "asc" ? a.totalCost - b.totalCost : b.totalCost - a.totalCost;
+    });
+    usersWithMetrics = usersWithMetrics.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  }
 
-      for (const project of user.projects) {
-        totalRequests += project._count.logs;
-        totalApiKeys += project._count.apiKeys;
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const hasFilters = !!(query || status);
 
-        // Fetch sum of cost for this project
-        const costAgg = await prisma.requestLog.aggregate({
-          where: { projectId: project.id },
-          _sum: { costUsd: true }
-        });
-        totalCost += costAgg._sum.costUsd || 0;
-      }
-
-      return {
-        ...user,
-        totalCost,
-        totalRequests,
-        totalApiKeys
-      };
-    })
-  );
+  // Pass current URL params to table for building sort/page hrefs
+  const urlParams: Record<string, string | undefined> = {
+    ...(query  ? { query  } : {}),
+    ...(status ? { status } : {}),
+    sortBy,
+    sortDir,
+  };
 
   return (
-    <div style={{ padding: "40px 48px", maxWidth: 1200 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 600, margin: "0 0 8px 0" }}>Users Directory</h1>
-      <p style={{ color: "#9ca3af", fontSize: 14, margin: "0 0 24px 0" }}>
-        Complete list of all users registered on the platform.
-      </p>
+    <div className="px-10 py-8 max-w-[1300px]">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-white tracking-tight mb-1 flex items-center gap-2">
+          <Users size={20} className="text-white/30" />
+          Users Directory
+          <span className="ml-2 text-xs bg-white/5 text-white/40 px-2 py-0.5 rounded-full">{total}</span>
+        </h1>
+        <p className="text-sm text-white/40">
+          Complete list of all users registered on the platform.
+        </p>
+      </div>
 
       {/* Filter Form */}
-      <form method="GET" style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
-        <input 
-          type="text" 
-          name="query" 
-          placeholder="Search users by name or email..." 
-          defaultValue={searchParams.query as string || ""} 
-          style={{ padding: "8px 12px", borderRadius: "6px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "white", flex: 1, maxWidth: "300px" }} 
+      <form method="GET" className="flex gap-3 mb-6 flex-wrap items-center">
+        <input type="hidden" name="sortBy"  value={sortBy}  />
+        <input type="hidden" name="sortDir" value={sortDir} />
+        <input
+          type="text" name="query" placeholder="Search by name or email…"
+          defaultValue={query}
+          className="bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-500/50 transition-colors w-72"
         />
-        <select 
-          name="status" 
-          defaultValue={searchParams.status as string || ""} 
-          style={{ padding: "8px 12px", borderRadius: "6px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "white", outline: "none" }}
-        >
-          <option value="" style={{ background: "#0a0a0c" }}>All Statuses</option>
-          <option value="active" style={{ background: "#0a0a0c" }}>Active</option>
-          <option value="suspended" style={{ background: "#0a0a0c" }}>Suspended</option>
+        <select name="status" defaultValue={status}
+          className="bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-500/50 transition-colors cursor-pointer">
+          <option value="" className="bg-[#0a0a0c]">All Statuses</option>
+          <option value="active" className="bg-[#0a0a0c]">Active</option>
+          <option value="suspended" className="bg-[#0a0a0c]">Suspended</option>
         </select>
-        <button 
-          type="submit" 
-          style={{ padding: "8px 16px", borderRadius: "6px", background: "#8b5cf6", color: "white", fontWeight: 500, border: "none", cursor: "pointer" }}
-        >
+        <button type="submit"
+          className="bg-violet-600 hover:bg-violet-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors border-none cursor-pointer">
           Search
         </button>
-        {(searchParams.query || searchParams.status) && (
-          <a href="/admin/users" style={{ padding: "8px 16px", borderRadius: "6px", background: "rgba(255,255,255,0.1)", color: "white", textDecoration: "none", display: "flex", alignItems: "center", fontSize: "13px" }}>
+        {hasFilters && (
+          <a href="/admin/users" className="bg-white/5 hover:bg-white/10 text-white/70 hover:text-white px-4 py-2 rounded-lg text-sm transition-colors no-underline">
             Clear
           </a>
         )}
       </form>
 
-      <div
-        style={{
-          background: "rgba(255,255,255,0.02)",
-          border: "1px solid rgba(255,255,255,0.05)",
-          borderRadius: 12,
-          overflow: "hidden",
-        }}
-      >
-        <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 13 }}>
-          <thead>
-            <tr style={{ background: "rgba(255,255,255,0.03)", color: "#9ca3af", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Name</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Email</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Status</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Plan</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Projects</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Requests</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Total Cost</th>
-              <th style={{ padding: "12px 16px", fontWeight: 500 }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {usersWithMetrics.map((user) => (
-              <tr key={user.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                <td style={{ padding: "12px 16px", color: "#f9fafb" }}>{user.name || "N/A"}</td>
-                <td style={{ padding: "12px 16px", color: "#d1d5db" }}>{user.email}</td>
-                <td style={{ padding: "12px 16px" }}>
-                  <span style={{ 
-                    background: user.isActive ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)", 
-                    color: user.isActive ? "#10b981" : "#ef4444", 
-                    padding: "2px 8px", 
-                    borderRadius: 10, 
-                    fontSize: 11, 
-                    fontWeight: 600 
-                  }}>
-                    {user.isActive ? "ACTIVE" : "SUSPENDED"}
-                  </span>
-                </td>
-                <td style={{ padding: "12px 16px" }}>
-                  <span style={{ 
-                    background: "rgba(124,58,237,0.1)", 
-                    color: "#a78bfa", 
-                    padding: "2px 8px", 
-                    borderRadius: 10, 
-                    fontSize: 11, 
-                    fontWeight: 600 
-                  }}>
-                    {user.plan}
-                  </span>
-                </td>
-                <td style={{ padding: "12px 16px", color: "#9ca3af" }}>{user._count.projects}</td>
-                <td style={{ padding: "12px 16px", color: "#9ca3af" }}>{user.totalRequests.toLocaleString()}</td>
-                <td style={{ padding: "12px 16px", color: "#10b981", fontWeight: 500 }}>
-                  ${user.totalCost.toFixed(4)}
-                </td>
-                <td style={{ padding: "12px 16px" }}>
-                  <UserActions userId={user.id} isActive={user.isActive} />
-                </td>
-              </tr>
-            ))}
-            {usersWithMetrics.length === 0 && (
-              <tr>
-                <td colSpan={8} style={{ padding: "24px", textAlign: "center", color: "#6b7280" }}>
-                  No users found matching the filters.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <UsersTable
+        users={usersWithMetrics}
+        sortBy={sortBy}
+        sortDir={sortDir}
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        urlParams={urlParams}
+      />
     </div>
   );
 }
