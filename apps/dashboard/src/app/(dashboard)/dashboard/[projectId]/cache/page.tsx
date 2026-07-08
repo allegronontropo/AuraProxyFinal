@@ -250,6 +250,7 @@ export default async function CacheAnalyticsPage({
 
   const recentEvents = raw.recentEvents as RecentEvent[];
   const avgSemanticSimilarity = raw.avgSemanticSimilarity as number;
+  const avgCacheLatency = raw.avgCacheLatency as number;
   const estimatedBandwidthSaved = formatBytes(raw.estimatedBandwidthSavedBytes);
 
   const hitRateColor =
@@ -268,7 +269,7 @@ export default async function CacheAnalyticsPage({
             <span className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">{hitRate}% Hit Rate</span>
           </div>
           {!hasData && (
-            <span className="text-[11px] text-gray-600">— No data yet</span>
+            <span className="text-[11px] text-gray-600">- No data yet</span>
           )}
         </div>
       </div>
@@ -341,7 +342,7 @@ export default async function CacheAnalyticsPage({
               </div>
               <div className="relative z-10">
                 <div className="text-[26px] font-bold tracking-tight leading-tight text-emerald-400">
-                  ~{estimatedBandwidthSaved}
+                  {estimatedBandwidthSaved}
                 </div>
                 <div className="text-[11px] text-gray-500 font-medium mt-1">estimated</div>
               </div>
@@ -408,6 +409,11 @@ export default async function CacheAnalyticsPage({
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-gray-400 font-medium">Avg semantic similarity</span>
                     <span className="text-[13px] font-semibold text-gray-100">{formatSimilarity(avgSemanticSimilarity)}</span>
+                  </div>
+                  <div className="h-px bg-white/[0.05]" />
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-gray-400 font-medium">Avg cache latency</span>
+                    <span className="text-[13px] font-semibold text-sky-400">{avgCacheLatency > 0 ? `${Math.round(avgCacheLatency)}ms` : "—"}</span>
                   </div>
                 </div>
               </div>
