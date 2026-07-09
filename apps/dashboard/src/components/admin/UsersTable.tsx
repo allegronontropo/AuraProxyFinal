@@ -11,7 +11,7 @@ import UserActions from "@/components/admin/UserActions";
 export interface UserRow {
   id: string;
   name: string | null;
-  email: string;
+  email: string | null;
   plan: string;
   isActive: boolean;
   created_at: Date | string;
