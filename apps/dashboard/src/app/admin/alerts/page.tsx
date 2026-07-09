@@ -1,5 +1,5 @@
 import { Bell, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
-import AlertsTable from "@/components/admin/AlertsTable";
+import AlertsTable, { AlertRow } from "@/components/admin/AlertsTable";
 import { getAllAlerts } from "@/actions/admin";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -186,7 +186,7 @@ export default async function AdminAlertsPage(props: {
             alerts={alerts.map(a => ({
               ...a,
               createdAt: a.createdAt.toISOString(),
-            })) as any}
+            })) as unknown as AlertRow[]}
             sortHeaders={
               <>
                 <SortTh label="Time"     field="createdAt" sortBy={sortBy} sortDir={sortDir} urlParams={urlParams} />

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 import { getRequestLogs, getProjectApiKeys } from "@/lib/queries";
 import LogsTable from "@/components/dashboard/LogsTable";
-import { Download } from "lucide-react";
+
 
 export default async function RequestLogsPage({
   params,

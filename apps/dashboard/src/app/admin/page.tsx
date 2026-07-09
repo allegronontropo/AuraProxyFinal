@@ -192,9 +192,9 @@ export default async function AdminOverviewPage() {
     if (v === 0) return [0, 0, 0, 0, 0, 0, 0];
     let current = v;
     const trend = [current];
-    // Work backwards to generate previous 6 days with slight random variance (+/- 15%)
+    // Work backwards to generate previous 6 days with slight variance
     for (let i = 0; i < 6; i++) {
-      current = current * (1 + (Math.random() * 0.3 - 0.15));
+      current = current * (1 + (Math.sin(i * 123.45) * 0.15));
       trend.unshift(Math.max(0, current));
     }
     return trend;

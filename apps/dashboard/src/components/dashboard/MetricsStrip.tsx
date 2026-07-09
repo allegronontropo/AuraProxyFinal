@@ -153,7 +153,7 @@ export default function MetricsStrip({
     let current = v;
     const trend = [current];
     for (let i = 0; i < 6; i++) {
-      current = current * (1 + (Math.random() * 0.3 - 0.15));
+      current = current * (1 + (Math.sin(i * 123.45) * 0.15));
       trend.unshift(Math.max(0, current));
     }
     return trend;
@@ -178,7 +178,7 @@ export default function MetricsStrip({
   }, [usageTimeSeries, cacheHitRate]);
 
   const latencySeries = useMemo(() => {
-    const raw = usageTimeSeries.map((u) => (u as any).avgLatencyMs || u.totalRequests);
+    const raw = usageTimeSeries.map((u) => (u as { avgLatencyMs?: number }).avgLatencyMs || u.totalRequests);
     return raw.length >= 2 ? raw.slice(-7) : generateTrend(avgLatencyMs);
   }, [usageTimeSeries, avgLatencyMs]);
 
