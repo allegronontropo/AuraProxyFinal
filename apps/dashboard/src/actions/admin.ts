@@ -101,7 +101,7 @@ export async function updateAdminAlertStatus(alertId: string, status: AlertStatu
   try {
     await prisma.alert.update({
       where: { id: alertId },
-      data: { status, resolvedAt: status === "resolved" ? new Date() : null },
+      data: { status },
     });
     revalidatePath("/admin/alerts");
     return { success: true };
@@ -118,7 +118,7 @@ export async function bulkUpdateAdminAlertStatus(alertIds: string[], status: Ale
   try {
     const result = await prisma.alert.updateMany({
       where: { id: { in: alertIds } },
-      data: { status, resolvedAt: status === "resolved" ? new Date() : null },
+      data: { status },
     });
     revalidatePath("/admin/alerts");
     return { success: true, count: result.count };

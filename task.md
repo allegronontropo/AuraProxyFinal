@@ -1,7 +1,0 @@
-- [x] Backend: Update `CostTrackerDecorator` to pass `metadata` to `RequestLog`
-- [x] Backend: Ensure `chat()` method extracts `fallback_provider` and passes it to the `recordLog` function.
-- [x] Frontend: Update `PlaygroundClient.tsx` to display a subtle, beautiful fallback badge (using Lucide icons) when a fallback occurs.
-- [x] Frontend: Create `actions/fallback-logs.ts` to fetch fallback logs.
-- [x] Frontend: Create `FallbackLogsTable.tsx` with a premium dark-mode design (Aura-Brand) and Lucide icons.
-- [x] Frontend: Integrate `FallbackLogsTable` into `RoutingSection.tsx`.
-- [x] Testing: Restart proxy and verify the frontend displays the new table and badges correctly.
