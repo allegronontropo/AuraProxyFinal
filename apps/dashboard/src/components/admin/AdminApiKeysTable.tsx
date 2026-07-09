@@ -13,7 +13,7 @@ export interface ApiKeyRow {
   createdAt: Date;
   project: {
     name: string;
-    tenant: { email: string } | null;
+    tenant: { email: string | null } | null;
   };
 }
 
