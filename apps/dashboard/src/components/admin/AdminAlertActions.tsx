@@ -42,16 +42,14 @@ export default function AdminAlertActions({ alertId, currentStatus }: Props) {
           Ack
         </button>
       )}
-      {status !== "resolved" && (
-        <button
-          disabled={isPending}
-          onClick={() => handle("resolved")}
-          className="text-[11px] font-medium px-2.5 py-1 rounded-md cursor-pointer transition-colors disabled:opacity-40
-            bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20"
-        >
-          Resolve
-        </button>
-      )}
+      <button
+        disabled={isPending}
+        onClick={() => handle("resolved")}
+        className="text-[11px] font-medium px-2.5 py-1 rounded-md cursor-pointer transition-colors disabled:opacity-40
+          bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20"
+      >
+        Resolve
+      </button>
     </div>
   );
 }
