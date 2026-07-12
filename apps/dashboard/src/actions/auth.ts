@@ -144,6 +144,47 @@ export async function resetPassword(formData: FormData, token: string) {
       return { error: "Token has expired." };
     }
 
+    // Get user to check current password and reset count
+    const user = await prisma.user.findUnique({
+      where: { email: existingToken.email },
+    });
+
+    if (!user) {
+      return { error: "User not found." };
+    }
+
+    // Check if trying to set the same password
+    if (user.password_hash) {
+      const isSamePassword = await bcrypt.compare(password, user.password_hash);
+      if (isSamePassword) {
+        return { error: "New password must be different from the current password." };
+      }
+    }
+
+    // Check password reset limit (3 per week)
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const recentResets = await prisma.passwordResetToken.count({
+      where: {
+        email: existingToken.email,
+        expires: { gte: oneWeekAgo },
+      },
+    });
+
+    // Also count successful password updates in the last week
+    const recentPasswordUpdates = await prisma.user.findMany({
+      where: {
+        email: existingToken.email,
+        updated_at: { gte: oneWeekAgo },
+      },
+      select: { password_hash: true },
+    });
+
+    const totalRecentChanges = recentResets + recentPasswordUpdates.filter(u => u.password_hash).length;
+    
+    if (totalRecentChanges >= 3) {
+      return { error: "Password reset limit reached. Please try again in 24 hours." };
+    }
+
     const password_hash = await bcrypt.hash(password, 10);
 
     await prisma.user.update({

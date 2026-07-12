@@ -358,6 +358,7 @@ function AuthForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isResetSuccess, setIsResetSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({ name: "", email: "", password: "", confirmPassword: "" });
@@ -483,7 +484,8 @@ function AuthForm() {
         setErrors({ general: result.error });
       } else {
         setActiveTab("login");
-        setErrors({ general: "Password successfully updated! Please log in." });
+        setSuccessMessage("Password successfully updated! Please log in.");
+        setErrors({});
       }
     } catch {
       setErrors({ general: "An error occurred" });
@@ -582,6 +584,11 @@ function AuthForm() {
           {errors.general && (
             <div className="bg-red-500/10 border-b border-red-500/20 p-3 text-center">
               <p className="text-sm text-red-400 font-medium">{errors.general}</p>
+            </div>
+          )}
+          {successMessage && (
+            <div className="bg-green-500/10 border-b border-green-500/20 p-3 text-center">
+              <p className="text-sm text-green-400 font-medium">{successMessage}</p>
             </div>
           )}
 
@@ -726,8 +733,8 @@ function AuthForm() {
                       {errors.password && <p className="text-xs text-red-400">{errors.password}</p>}
                     </div>
 
-                    <div className="flex justify-end">
-                      <button type="button" onClick={() => { setActiveTab("reset"); setErrors({}); }} className="text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                    <div className="flex justify-end mt-4">
+                      <button type="button" onClick={() => { setActiveTab("reset"); setErrors({}); setSuccessMessage(null); }} className="text-sm text-purple-400 hover:text-purple-300 transition-colors">
                         Forgot password?
                       </button>
                     </div>
