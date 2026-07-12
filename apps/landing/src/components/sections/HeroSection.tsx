@@ -1,7 +1,7 @@
 "use client";
 
 import HeroWave from "@/components/animations/HeroWave";
-import AuraProxyHeroVisual from "@/components/animations/AuraProxyHeroVisual";
+import AuraHero from "@/components/animations/AuraHero";
 
 export default function HeroSection() {
   return (
@@ -222,7 +222,7 @@ export default function HeroSection() {
             animation: "fadeInUp 0.9s 0.15s var(--ease-out) both",
           }}
         >
-          <AuraProxyHeroVisual />
+          <AuraHero />
         </div>
       </div>
 
