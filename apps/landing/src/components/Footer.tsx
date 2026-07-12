@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 export default function Footer() {
   return (
     <footer
@@ -22,17 +24,19 @@ export default function Footer() {
       >
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.625rem" }}>
-          <svg viewBox="0 0 200 200" width="28" height="28" fill="none">
-            <defs>
-              <linearGradient id="footer-grad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#00D2FF" />
-                <stop offset="100%" stopColor="#0045FF" />
-              </linearGradient>
-            </defs>
-            <circle cx="100" cy="100" r="92" fill="#020712" stroke="#0055FF" strokeWidth="3" />
-            <path d="M 100,50 L 138,135 H 115 L 100,100 L 85,135 H 62 Z" fill="url(#footer-grad)" />
-            <path d="M 75,115 Q 100,90 125,115" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" fill="none" />
-          </svg>
+          <div style={{
+            width: "28px", height: "28px",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            overflow: "hidden",
+          }}>
+            <Image
+              src="/AURA_LOGO.png"
+              alt="Aura Proxy"
+              width={20}
+              height={20}
+              style={{ objectFit: "contain", width: "auto", height: "auto" }}
+            />
+          </div>
           <span style={{ fontWeight: 700, color: "#f1f5f9", fontSize: "1rem" }}>
             Aura<span style={{ color: "#00d2ff" }}>Proxy</span>
           </span>

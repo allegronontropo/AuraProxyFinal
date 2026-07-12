@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import {
   ArrowRight, Zap, Database, Server, Shield,
@@ -213,11 +214,15 @@ export default function ArchitectureSection() {
                 display: "flex", alignItems: "center", justifyContent: "center",
                 boxShadow: "0 0 40px rgba(124,92,252,0.5), 0 0 80px rgba(124,92,252,0.2)",
                 animation: "pulse 3s ease-in-out infinite",
+                overflow: "hidden",
               }}>
-                <svg viewBox="0 0 40 40" width="34" height="34" fill="none">
-                  <path d="M20 4 L34 34 H26 L20 20 L14 34 H6 Z" fill="white" />
-                  <path d="M12 26 Q20 19 28 26" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                </svg>
+                <Image
+                  src="/AURA_LOGO.png"
+                  alt="Aura Proxy"
+                  width={40}
+                  height={40}
+                  style={{ objectFit: "contain", width: "auto", height: "auto" }}
+                />
               </div>
               <span style={{
                 fontSize: "0.5rem", fontFamily: "var(--font-mono)", fontWeight: 700,

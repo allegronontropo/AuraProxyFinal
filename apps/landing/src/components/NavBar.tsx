@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -56,45 +57,47 @@ export default function NavBar() {
           }}
         >
           {/* Logo mark */}
-          <svg viewBox="0 0 32 32" width="28" height="28" fill="none">
-            <rect width="32" height="32" rx="8" fill="rgba(124,92,252,0.15)" />
-            <path
-              d="M16 5 L26 26 H21 L16 15 L11 26 H6 Z"
-              fill="#7c5cfc"
-            />
-            <path
-              d="M10 21 Q16 16 22 21"
-              stroke="#a78bfa"
-              strokeWidth="2"
-              strokeLinecap="round"
-              fill="none"
-            />
-          </svg>
-          <div style={{ lineHeight: 1.15 }}>
-            <span
-              style={{
-                display: "block",
-                fontFamily: "var(--font-display)",
-                fontWeight: 700,
-                fontSize: "0.9375rem",
-                color: "var(--aura-text-primary)",
-                letterSpacing: "-0.02em",
-              }}
-            >
-              AURA
-            </span>
-            <span
-              style={{
-                display: "block",
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.5rem",
-                color: "rgba(124,92,252,0.8)",
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-              }}
-            >
-              PROXY
-            </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+            <div style={{
+              width: "28px", height: "28px", borderRadius: "6px",
+              background: "rgba(124,92,252,0.15)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              overflow: "hidden",
+            }}>
+              <Image
+                src="/AURA_LOGO.png"
+                alt="Aura Proxy"
+                width={20}
+                height={20}
+                style={{ objectFit: "contain", width: "auto", height: "auto" }}
+              />
+            </div>
+            <div style={{ lineHeight: 1.15 }}>
+              <span
+                style={{
+                  display: "block",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  fontSize: "0.9375rem",
+                  color: "var(--aura-text-primary)",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                AURA
+              </span>
+              <span
+                style={{
+                  display: "block",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.5rem",
+                  color: "rgba(124,92,252,0.8)",
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                }}
+              >
+                PROXY
+              </span>
+            </div>
           </div>
         </Link>
 

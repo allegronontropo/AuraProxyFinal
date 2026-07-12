@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createProject } from "@/actions/project";
@@ -817,11 +818,16 @@ export function WorkspaceSelectorClient({
             alignItems: "center",
             justifyContent: "center",
             margin: "0 auto 16px",
-            fontSize: 22,
-            color: "#a78bfa",
+            overflow: "hidden",
           }}
         >
-          ◈
+          <Image
+            src="/AURA_LOGO.png"
+            alt="Aura Proxy"
+            width={36}
+            height={36}
+            style={{ objectFit: "contain", width: "auto", height: "auto" }}
+          />
         </div>
         {view === "select" && (
           <>

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRef, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence, animate, useMotionValue, useTransform } from "framer-motion";
 import { Globe, Smartphone, Server, Zap, Navigation, Activity, Shield } from "lucide-react";
@@ -586,9 +587,17 @@ useEffect(() => {
                   border: "1px solid rgba(124,77,255,0.55)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   boxShadow: "0 0 32px rgba(124,77,255,0.35)",
+                  overflow: "hidden",
                 }}
               >
-                <span style={{ fontSize: 24, fontWeight: 700, color: C.glow, letterSpacing: "-1px" }}>A</span>
+                <Image
+                  src="/AURA_LOGO.png"
+                  alt="Aura Proxy"
+                  width={48}
+                  height={48}
+                  style={{ objectFit: "contain", width: "auto", height: "auto" }}
+                  priority
+                />
               </motion.div>
             </div>
 

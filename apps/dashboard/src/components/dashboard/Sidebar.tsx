@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { 
@@ -15,8 +16,7 @@ import {
   Settings, 
   ShieldCheck, 
   ArrowLeftRight,
-  LogOut,
-  Hexagon
+  LogOut
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -58,10 +58,16 @@ export default function Sidebar({
   return (
     <div className="w-[240px] bg-[#0D0D0F] border-r border-white/5 flex flex-col shrink-0 h-screen sticky top-0">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 pt-4 pb-3.5 border-b border-white/5">
+<div className="flex items-center gap-3 px-4 pt-4 pb-3.5 border-b border-white/5">
         <Link href="/workspace" className="flex items-center gap-2.5 no-underline group">
-          <div className="w-8 h-8 rounded-md bg-violet-500/25 flex items-center justify-center text-violet-400 shrink-0 group-hover:bg-violet-500/30 transition-colors">
-            <Hexagon size={18} />
+          <div className="w-8 h-8 rounded-md bg-violet-500/25 flex items-center justify-center text-violet-400 shrink-0 group-hover:bg-violet-500/30 transition-colors overflow-hidden">
+            <Image
+              src="/AURA_LOGO.png"
+              alt="Aura Proxy"
+              width={20}
+              height={20}
+              className="object-contain"
+            />
           </div>
           <div>
             <div className="text-sm font-bold text-white tracking-tight">
