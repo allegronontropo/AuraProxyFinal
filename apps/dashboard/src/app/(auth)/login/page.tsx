@@ -806,7 +806,7 @@ function AuthForm() {
                     </div>
                   </CardContent>
 
-                  <CardFooter className="px-6 pb-6 pt-0">
+                  <CardFooter className="px-6 pb-6 pt-4">
                     <Button type="submit" disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-500 text-white h-9 text-base shadow-lg shadow-purple-600/20 transition-all">
                       {isLoading ? "Signing in..." : "Sign In"}
                     </Button>
@@ -834,7 +834,7 @@ function AuthForm() {
                     <div className="space-y-2">
                       <Label htmlFor="signup-name" className="text-zinc-300">Name</Label>
                       <Input
-                        id="signup-name" type="text" placeholder="John Doe"
+                        id="signup-name" type="text" placeholder="Your name"
                         value={signupData.name} onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
                         className={`h-9 bg-zinc-950/50 border-${errors.name ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
                       />
@@ -891,7 +891,7 @@ function AuthForm() {
                     </div>
                   </CardContent>
 
-                  <CardFooter className="px-6 pb-6 pt-0">
+                  <CardFooter className="px-6 pb-6 pt-4">
                     <Button type="submit" disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-500 text-white h-9 text-base shadow-lg shadow-purple-600/20 transition-all">
                       {isLoading ? "Creating account..." : "Create Account"}
                     </Button>
