@@ -18,6 +18,7 @@ const t = {
   textMuted:    "#4a4a55",
   accent:       "#7c5cfc",
   accentHover:  "#9b82fd",
+  accentFaint:  "rgba(124,92,252,0.08)",
 }
 
 // ─── Inline link ──────────────────────────────────────────────────────────────
@@ -47,7 +48,7 @@ const privacyPolicySections = [
     body: (
       <>
         <div className="callout">
-          This Privacy Policy describes how Aura Proxy, Inc. ("Aura", "we", "us", or "our") collects, uses, and
+          This Privacy Policy describes how Aura Proxy, Inc. (&quot;Aura&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) collects, uses, and
           shares information about you when you use our AI gateway platform, APIs, and related services (collectively,
           the "Services").
         </div>
@@ -180,7 +181,7 @@ const termsOfServiceSections = [
     heading: "Acceptance of Terms",
     body: (
       <div className="callout">
-        By accessing or using Aura Proxy's platform, APIs, or any associated services, you agree to be bound by
+        By accessing or using Aura Proxy&apos;s platform, APIs, or any associated services, you agree to be bound by
         these Terms of Service. If you are using the Services on behalf of an organization, you represent that you
         have authority to bind that organization.
       </div>
@@ -241,7 +242,7 @@ const termsOfServiceSections = [
     heading: "Limitation of Liability",
     body: (
       <p>
-        To the maximum extent permitted by law, Aura's total liability to you for any claim arising from or related
+        To the maximum extent permitted by law, Aura&apos;s total liability to you for any claim arising from or related
         to these Terms shall not exceed the amounts you paid in the 12 months preceding the claim. Aura is not
         liable for indirect, incidental, or consequential damages.
       </p>
@@ -278,10 +279,10 @@ const cookiePolicySections = [
     body: (
       <>
         <p>
-          This Cookie Policy explains how Aura Proxy, Inc. ("Aura Proxy", "we", "us", or "our") uses cookies and
+          This Cookie Policy explains how Aura Proxy, Inc. (&quot;Aura Proxy&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) uses cookies and
           similar tracking technologies when you visit our website at{" "}
           <A href="#">auraproxy.dev</A> and when you use our AI gateway platform and associated services
-          (collectively, the "Services"). It explains what these technologies are, why we use them, and your rights
+          (collectively, the &quot;Services&quot;). It explains what these technologies are, why we use them, and your rights
           to control our use of them.
         </p>
         <p>
@@ -301,12 +302,12 @@ const cookiePolicySections = [
           your experience, and to provide information to website operators.
         </p>
         <p>
-          Cookies can be "persistent" , remaining on your device until deleted manually or until they reach an
-          expiry date , or "session" cookies, which expire as soon as you close your browser.
+          Cookies can be &quot;persistent&quot; , remaining on your device until deleted manually or until they reach an
+          expiry date , or &quot;session&quot; cookies, which expire as soon as you close your browser.
         </p>
         <p>
           We also use similar technologies such as pixel tags, web beacons, and local storage. In this policy, we
-          refer to all such technologies collectively as "cookies."
+          refer to all such technologies collectively as &quot;cookies.&quot;
         </p>
       </>
     ),
@@ -441,7 +442,7 @@ const cookiePolicySections = [
         </p>
         <p>
           For more information on managing cookies in your browser, visit{" "}
-          <A href="#">allaboutcookies.org</A> or your browser's own help documentation.
+          <A href="#">allaboutcookies.org</A> or your browser&apos;s own help documentation.
         </p>
         <h3>Dashboard Privacy Controls</h3>
         <p>
@@ -459,7 +460,7 @@ const cookiePolicySections = [
       <>
         <p>
           We may update this Cookie Policy periodically to reflect changes in technology, regulation, or our
-          business practices. The "Last updated" date at the top of this page will be revised accordingly.
+          business practices. The &quot;Last updated&quot; date at the top of this page will be revised accordingly.
         </p>
         <p>
           For material changes that affect your rights or the way we use cookies, we will provide advance notice
@@ -568,6 +569,7 @@ export default function LegalClient({ initialSlug }: { initialSlug: string }) {
   const [pageId, setPageId] = useState(initialSlug)
   
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPageId(initialSlug);
   }, [initialSlug]);
 
