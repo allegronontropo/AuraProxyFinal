@@ -80,8 +80,7 @@ export async function forgotPassword(formData: FormData) {
     });
 
     if (!user) {
-      // Return success even if user doesn't exist for security
-      return { success: "If an account exists, a reset link was sent." };
+      return { error: "No account found with this email address." };
     }
 
     const token = crypto.randomBytes(32).toString("hex");
@@ -127,7 +126,7 @@ export async function forgotPassword(formData: FormData) {
       html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`,
     });
 
-    return { success: "If an account exists, a reset link was sent." };
+    return { success: "A password reset link has been sent to your email." };
   } catch (error) {
     console.error("Forgot password error:", error);
     return { error: "Failed to send reset email." };
