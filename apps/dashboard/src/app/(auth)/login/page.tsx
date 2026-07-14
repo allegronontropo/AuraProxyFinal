@@ -712,7 +712,7 @@ function AuthForm() {
                       setResetData({ email: "" });
                     }}
                     variant="outline"
-                    className="w-full border-purple-500/30 bg-purple-950/20 text-purple-200 hover:bg-purple-900/40 hover:text-white transition-all h-11"
+                    className="w-full border-purple-500/30 bg-purple-950/20 text-purple-200 hover:bg-purple-900/40 hover:text-white transition-all h-9"
                   >
                     Send Another Link
                   </Button>
@@ -723,7 +723,7 @@ function AuthForm() {
                       setLoginData({ email: "", password: "" });
                     }}
                     variant="ghost"
-                    className="w-full text-zinc-400 hover:text-white hover:bg-white/5 transition-all h-11"
+                    className="w-full text-zinc-400 hover:text-white hover:bg-white/5 transition-all h-9"
                   >
                     Connect with another account
                   </Button>
@@ -732,8 +732,8 @@ function AuthForm() {
             </>
           ) : (
             <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as "login" | "signup" | "reset" | "new-password"); setErrors({}); }} className="w-full">
-              <CardHeader className="space-y-6 pt-8 pb-4">
-                <TabsList className="grid w-full grid-cols-2 bg-zinc-950/50 border border-purple-500/20 p-1 rounded-xl h-12">
+              <CardHeader className="space-y-3 pt-6 pb-2">
+                <TabsList className="grid w-full grid-cols-2 bg-zinc-950/50 border border-purple-500/20 p-1 rounded-xl h-10">
                   <TabsTrigger value="login" className="data-[state=active]:bg-purple-600/30 data-[state=active]:text-purple-100 rounded-lg transition-all h-full text-sm font-medium">
                     Sign In
                   </TabsTrigger>
@@ -742,7 +742,7 @@ function AuthForm() {
                   </TabsTrigger>
                 </TabsList>
                 <div className="text-center space-y-2">
-                  <CardTitle className="text-3xl font-bold tracking-tight">
+                  <CardTitle className="text-2xl font-bold tracking-tight">
                     {activeTab === "login" ? "Welcome back" : activeTab === "signup" ? "Create account" : "Reset password"}
                   </CardTitle>
                   <CardDescription className="text-zinc-400 text-base">
@@ -757,12 +757,12 @@ function AuthForm() {
 
               <TabsContent value="login" className="mt-0">
                 <form onSubmit={handleLoginSubmit}>
-                  <CardContent className="space-y-3 px-8">
+                  <CardContent className="space-y-2 px-6">
                     <div className="grid grid-cols-2 gap-3">
-                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("github")} className="h-11 border-purple-500/20 bg-zinc-950/50 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all">
+                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("github")} className="h-9 border-purple-500/20 bg-zinc-950/50 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all">
                         <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg> GitHub
                       </Button>
-                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("google")} className="h-11 border-purple-500/20 bg-zinc-950/50 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all">
+                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("google")} className="h-9 border-purple-500/20 bg-zinc-950/50 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all">
                         <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg> Google
                       </Button>
                     </div>
@@ -779,7 +779,7 @@ function AuthForm() {
                         <Input
                           id="login-email" type="email" placeholder="you@example.com"
                           value={loginData.email} onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                          className={`pl-10 h-11 bg-zinc-950/50 border-${errors.email ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
+                          className={`pl-10 h-9 bg-zinc-950/50 border-${errors.email ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
                         />
                       </div>
                       {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email}</p>}
@@ -796,7 +796,7 @@ function AuthForm() {
                         <Input
                           id="login-password" type={showPassword ? "text" : "password"} placeholder="••••••••"
                           value={loginData.password} onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                          className={`pr-10 h-11 bg-zinc-950/50 border-${errors.password ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
+                          className={`pr-10 h-9 bg-zinc-950/50 border-${errors.password ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
                         />
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors">
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -806,8 +806,8 @@ function AuthForm() {
                     </div>
                   </CardContent>
 
-                  <CardFooter className="px-8 pb-8 pt-2">
-                    <Button type="submit" disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-500 text-white h-11 text-base shadow-lg shadow-purple-600/20 transition-all">
+                  <CardFooter className="px-6 pb-6 pt-0">
+                    <Button type="submit" disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-500 text-white h-9 text-base shadow-lg shadow-purple-600/20 transition-all">
                       {isLoading ? "Signing in..." : "Sign In"}
                     </Button>
                   </CardFooter>
@@ -816,12 +816,12 @@ function AuthForm() {
 
               <TabsContent value="signup" className="mt-0">
                 <form onSubmit={handleSignupSubmit}>
-                  <CardContent className="space-y-3 px-8">
+                  <CardContent className="space-y-2 px-6">
                     <div className="grid grid-cols-2 gap-3">
-                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("github")} className="h-11 border-purple-500/20 bg-zinc-950/50 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all">
+                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("github")} className="h-9 border-purple-500/20 bg-zinc-950/50 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all">
                         <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg> GitHub
                       </Button>
-                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("google")} className="h-11 border-purple-500/20 bg-zinc-950/50 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all">
+                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("google")} className="h-9 border-purple-500/20 bg-zinc-950/50 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all">
                         <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg> Google
                       </Button>
                     </div>
@@ -836,7 +836,7 @@ function AuthForm() {
                       <Input
                         id="signup-name" type="text" placeholder="John Doe"
                         value={signupData.name} onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
-                        className={`h-11 bg-zinc-950/50 border-${errors.name ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
+                        className={`h-9 bg-zinc-950/50 border-${errors.name ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
                       />
                       {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name}</p>}
                     </div>
@@ -848,7 +848,7 @@ function AuthForm() {
                         <Input
                           id="signup-email" type="email" placeholder="you@example.com"
                           value={signupData.email} onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                          className={`pl-10 h-11 bg-zinc-950/50 border-${errors.email ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
+                          className={`pl-10 h-9 bg-zinc-950/50 border-${errors.email ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
                         />
                       </div>
                       {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email}</p>}
@@ -860,7 +860,7 @@ function AuthForm() {
                         <Input
                           id="signup-password" type={showPassword ? "text" : "password"} placeholder="••••••••"
                           value={signupData.password} onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                          className={`pr-10 h-11 bg-zinc-950/50 border-${errors.password ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
+                          className={`pr-10 h-9 bg-zinc-950/50 border-${errors.password ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
                         />
                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors">
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -881,7 +881,7 @@ function AuthForm() {
                         <Input
                           id="signup-confirm" type={showConfirmPassword ? "text" : "password"} placeholder="••••••••"
                           value={signupData.confirmPassword} onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
-                          className={`pr-10 h-11 bg-zinc-950/50 border-${errors.confirmPassword ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
+                          className={`pr-10 h-9 bg-zinc-950/50 border-${errors.confirmPassword ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
                         />
                         <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors">
                           {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -891,8 +891,8 @@ function AuthForm() {
                     </div>
                   </CardContent>
 
-                  <CardFooter className="px-8 pb-8 pt-2">
-                    <Button type="submit" disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-500 text-white h-11 text-base shadow-lg shadow-purple-600/20 transition-all">
+                  <CardFooter className="px-6 pb-6 pt-0">
+                    <Button type="submit" disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-500 text-white h-9 text-base shadow-lg shadow-purple-600/20 transition-all">
                       {isLoading ? "Creating account..." : "Create Account"}
                     </Button>
                   </CardFooter>
