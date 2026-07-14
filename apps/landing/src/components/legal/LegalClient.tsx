@@ -665,30 +665,6 @@ export default function LegalClient({ initialSlug }: { initialSlug: string }) {
             ))}
           </nav>
 
-          <div
-            style={{
-              marginTop: 24,
-              height: 1,
-              background: t.border,
-            }}
-          />
-
-          {/* Divider before resources */}
-          <p
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              letterSpacing: "0.07em",
-              textTransform: "uppercase",
-              color: t.textMuted,
-              margin: "20px 0 8px",
-            }}
-          >
-            Resources
-          </p>
-          {["Security Overview", "DPA", "Subprocessors"].map((label) => (
-            <SideLink key={label} label={label} onClick={() => {}} />
-          ))}
         </aside>
 
         {/* ── Main content ── */}
@@ -806,7 +782,7 @@ export default function LegalClient({ initialSlug }: { initialSlug: string }) {
         </aside>
       </div>
 
-      <Footer />
+      <Footer hideCTA />
     </div>
   )
 }

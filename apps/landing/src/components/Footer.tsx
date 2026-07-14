@@ -29,7 +29,6 @@ const footerLinks = {
   ],
   Resources: [
     { label: "GitHub Repository", href: "https://github.com/allegronontropo/AuraProxyFinal" },
-    { label: "Documentation", href: "#" },
   ],
 };
 
@@ -59,126 +58,128 @@ const dotGrid: CSSProperties = {
   backgroundSize: "28px 28px",
 };
 
-export default function Footer() {
+export default function Footer({ hideCTA }: { hideCTA?: boolean }) {
   const [btnHovered, setBtnHovered] = useState(false);
 
   return (
     <footer style={{ background: c.bgDeep, ...dotGrid }}>
       {/* CTA band */}
-      <div
-        style={{
-          borderTop: "1px solid rgba(255,255,255,0.06)",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        {/* CTA glow */}
+      {!hideCTA && (
         <div
           style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%,-50%)",
-            width: 700,
-            height: 400,
-            background: "radial-gradient(ellipse, rgba(124,92,252,0.14) 0%, transparent 70%)",
-            pointerEvents: "none",
-          }}
-        />
-        <motion.div
-          {...fadeUp}
-          transition={{ duration: 0.6 }}
-          style={{
+            borderTop: "1px solid rgba(255,255,255,0.06)",
             position: "relative",
-            zIndex: 1,
-            maxWidth: 640,
-            margin: "0 auto",
-            padding: "96px 24px 80px",
-            textAlign: "center",
+            overflow: "hidden",
           }}
         >
-          <p
+          {/* CTA glow */}
+          <div
             style={{
-              margin: "0 0 16px",
-              fontSize: "0.72rem",
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              color: c.purple,
-              fontWeight: 600,
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%,-50%)",
+              width: 700,
+              height: 400,
+              background: "radial-gradient(ellipse, rgba(124,92,252,0.14) 0%, transparent 70%)",
+              pointerEvents: "none",
+            }}
+          />
+          <motion.div
+            {...fadeUp}
+            transition={{ duration: 0.6 }}
+            style={{
+              position: "relative",
+              zIndex: 1,
+              maxWidth: 640,
+              margin: "0 auto",
+              padding: "96px 24px 80px",
+              textAlign: "center",
             }}
           >
-            Get started
-          </p>
-          <h2
-            style={{
-              fontSize: "clamp(2rem, 5vw, 3.25rem)",
-              fontWeight: 700,
-              color: c.textPrimary,
-              margin: "0 0 20px",
-              letterSpacing: "-0.035em",
-              lineHeight: 1.1,
-            }}
-          >
-            Ready to scale your AI?
-          </h2>
-          <p style={{ margin: "0 0 36px", fontSize: "1.05rem", color: c.textMuted, lineHeight: 1.7 }}>
-            Join hundreds of engineering teams who trust Aura Proxy to handle their LLM infrastructure at scale.
-          </p>
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <a
-              href={process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3001"}
-              onMouseEnter={() => setBtnHovered(true)}
-              onMouseLeave={() => setBtnHovered(false)}
+            <p
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "13px 28px",
-                background: btnHovered
-                  ? "linear-gradient(135deg, #9370ff, #6b4fe8)"
-                  : "linear-gradient(135deg, #7c5cfc, #5b3fd8)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 10,
-                fontSize: "0.95rem",
+                margin: "0 0 16px",
+                fontSize: "0.72rem",
+                letterSpacing: "0.15em",
+                textTransform: "uppercase",
+                color: c.purple,
                 fontWeight: 600,
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                boxShadow: btnHovered
-                  ? "0 8px 40px rgba(124,92,252,0.45)"
-                  : "0 4px 24px rgba(124,92,252,0.30)",
-                transform: btnHovered ? "translateY(-1px)" : "none",
               }}
             >
-              Get Started for Free
-              <ArrowRight size={16} />
-            </a>
-            <a
-              href="https://github.com/allegronontropo/AuraProxyFinal"
-              target="_blank"
-              rel="noreferrer"
+              Get started
+            </p>
+            <h2
               style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "13px 24px",
-                background: "transparent",
-                color: c.textMuted,
-                border: "1px solid rgba(255,255,255,0.10)",
-                borderRadius: 10,
-                fontSize: "0.95rem",
-                fontWeight: 500,
-                cursor: "pointer",
-                textDecoration: "none",
-                transition: "border-color 0.2s, color 0.2s",
+                fontSize: "clamp(2rem, 5vw, 3.25rem)",
+                fontWeight: 700,
+                color: c.textPrimary,
+                margin: "0 0 20px",
+                letterSpacing: "-0.035em",
+                lineHeight: 1.1,
               }}
             >
-              <ExternalLink size={15} />
-              View GitHub
-            </a>
-          </div>
-        </motion.div>
-      </div>
+              Ready to scale your AI?
+            </h2>
+            <p style={{ margin: "0 0 36px", fontSize: "1.05rem", color: c.textMuted, lineHeight: 1.7 }}>
+              Join hundreds of engineering teams who trust Aura Proxy to handle their LLM infrastructure at scale.
+            </p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+              <a
+                href={process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3001"}
+                onMouseEnter={() => setBtnHovered(true)}
+                onMouseLeave={() => setBtnHovered(false)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "13px 28px",
+                  background: btnHovered
+                    ? "linear-gradient(135deg, #9370ff, #6b4fe8)"
+                    : "linear-gradient(135deg, #7c5cfc, #5b3fd8)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 10,
+                  fontSize: "0.95rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  boxShadow: btnHovered
+                    ? "0 8px 40px rgba(124,92,252,0.45)"
+                    : "0 4px 24px rgba(124,92,252,0.30)",
+                  transform: btnHovered ? "translateY(-1px)" : "none",
+                }}
+              >
+                Get Started for Free
+                <ArrowRight size={16} />
+              </a>
+              <a
+                href="https://github.com/allegronontropo/AuraProxyFinal"
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "13px 24px",
+                  background: "transparent",
+                  color: c.textMuted,
+                  border: "1px solid rgba(255,255,255,0.10)",
+                  borderRadius: 10,
+                  fontSize: "0.95rem",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  textDecoration: "none",
+                  transition: "border-color 0.2s, color 0.2s",
+                }}
+              >
+                <ExternalLink size={15} />
+                View GitHub
+              </a>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Links grid */}
       <div
