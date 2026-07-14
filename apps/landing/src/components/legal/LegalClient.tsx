@@ -50,7 +50,7 @@ const privacyPolicySections = [
         <div className="callout">
           This Privacy Policy describes how Aura Proxy, Inc. (&quot;Aura&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) collects, uses, and
           shares information about you when you use our AI gateway platform, APIs, and related services (collectively,
-          the "Services").
+          the &quot;Services&quot;).
         </div>
         <p>
           By using our Services, you agree to the collection and use of information in accordance with this policy.
