@@ -19,7 +19,7 @@ export class AlertsService {
 
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {
     const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
+    const pass = process.env.SMTP_PASSWORD;
 
     if (user && pass) {
       this.transporter = nodemailer.createTransport({
@@ -28,7 +28,7 @@ export class AlertsService {
       });
       this.logger.log('Gmail SMTP Transporter initialized successfully.');
     } else {
-      this.logger.warn('SMTP_USER or SMTP_PASS not found in .env. Email notifications are disabled.');
+      this.logger.warn('SMTP_USER or SMTP_PASSWORD not found in .env. Email notifications are disabled.');
     }
   }
 
