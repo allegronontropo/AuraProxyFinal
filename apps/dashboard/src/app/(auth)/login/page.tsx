@@ -619,13 +619,13 @@ function AuthForm() {
         <NavBar />
       </div>
 
-      <div className="relative z-10 hidden lg:flex w-1/2 flex-col justify-center items-start px-20 border-r border-white/5 bg-zinc-950/40 backdrop-blur-sm">
+      <div className="relative z-10 hidden lg:flex w-1/2 flex-col justify-center items-start px-20">
         <div className="w-16 h-16 bg-zinc-900/80 border border-purple-500/30 rounded-2xl flex items-center justify-center mb-8 shadow-[0_0_40px_-10px_rgba(168,85,247,0.5)]">
            <img src="/logo_aura_proxy.png" alt="Aura Proxy" className="w-10 h-10 object-contain" />
         </div>
         <h1 className="text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-6">
           The Intelligent <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">AI Gateway</span>
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-500">AI Gateway</span>
         </h1>
         <p className="text-zinc-400 text-lg max-w-md leading-relaxed mb-10">
           Optimize your LLM infrastructure. Effortlessly route traffic, manage costs, and monitor performance in real-time with Aura Proxy.
@@ -644,7 +644,7 @@ function AuthForm() {
         </div>
       </div>
 
-      <div className="relative z-10 w-full lg:w-1/2 flex items-center justify-center p-4 pt-32 lg:p-12 min-h-screen lg:min-h-0">
+      <div className="relative z-10 w-full lg:w-1/2 flex items-center justify-center p-4 pt-24 pb-12 lg:p-12 lg:pt-24 lg:pb-12 h-screen overflow-y-auto no-scrollbar">
         <Card className="w-full max-w-md border-purple-500/20 bg-zinc-900/60 backdrop-blur-2xl supports-[backdrop-filter]:bg-zinc-900/40 shadow-[0_0_80px_-20px_rgba(168,85,247,0.15)] overflow-hidden">
           {errors.general && (
             <div className="bg-red-500/10 border-b border-red-500/20 p-3 flex items-center justify-center gap-2">
