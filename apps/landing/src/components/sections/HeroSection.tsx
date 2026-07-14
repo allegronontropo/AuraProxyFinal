@@ -140,7 +140,7 @@ export default function HeroSection() {
             }}
           >
             <a
-              href="http://localhost:3001"
+              href={process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3001"}
               style={{
                 display: "inline-flex",
                 alignItems: "center",

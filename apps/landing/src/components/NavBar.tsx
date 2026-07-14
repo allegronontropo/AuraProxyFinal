@@ -158,7 +158,7 @@ export default function NavBar() {
           </a>
 
           <a
-            href="http://localhost:3001"
+            href={process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3001"}
             style={{
               padding: "0.5rem 1.125rem",
               background: "linear-gradient(135deg, #7c5cfc, #5b3fd8)",

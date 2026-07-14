@@ -48,7 +48,7 @@ export default function NavBar() {
       >
         {/* Logo */}
         <Link
-          href="/"
+          href={process.env.NEXT_PUBLIC_LANDING_URL || "/"}
           style={{
             display: "flex",
             alignItems: "center",
