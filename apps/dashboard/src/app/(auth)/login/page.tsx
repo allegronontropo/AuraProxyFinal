@@ -223,9 +223,26 @@ function PlasmaWeb({
 
   useEffect(() => {
     if (!ctnDom.current) return;
+
+    // Early check to gracefully fail without triggering OGL's internal console.error
+    try {
+      const testCanvas = document.createElement("canvas");
+      const testCtx = testCanvas.getContext("webgl") || testCanvas.getContext("experimental-webgl");
+      if (!testCtx) return;
+    } catch (e) {
+      return;
+    }
+
     const ctn = ctnDom.current;
-    const renderer = new Renderer({ alpha: transparent, premultipliedAlpha: false });
-    const gl = renderer.gl;
+    let renderer;
+    let gl;
+    try {
+      renderer = new Renderer({ alpha: transparent, premultipliedAlpha: false });
+      gl = renderer.gl;
+      if (!gl) return;
+    } catch (e) {
+      return;
+    }
 
     if (transparent) {
       gl.enable(gl.BLEND);
@@ -377,8 +394,29 @@ function AuthForm() {
   const validateSignup = () => {
     const newErrors: Record<string, string> = {};
     if (!signupData.name) newErrors.name = "Name is required";
-    if (!signupData.email) newErrors.email = "Email is required";
-    if (!signupData.password) newErrors.password = "Password is required";
+    
+    if (!signupData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signupData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    if (!signupData.password) {
+      newErrors.password = "Password is required";
+    } else {
+      if (signupData.password.length < 8) {
+        newErrors.password = "Password must be at least 8 characters";
+      } else if (!/[A-Z]/.test(signupData.password)) {
+        newErrors.password = "Password must contain at least one uppercase letter";
+      } else if (!/[a-z]/.test(signupData.password)) {
+        newErrors.password = "Password must contain at least one lowercase letter";
+      } else if (!/[0-9]/.test(signupData.password)) {
+        newErrors.password = "Password must contain at least one number";
+      } else if (!/[^A-Za-z0-9]/.test(signupData.password)) {
+        newErrors.password = "Password must contain at least one special character";
+      }
+    }
+
     if (signupData.password !== signupData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
@@ -800,7 +838,10 @@ function AuthForm() {
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
-                      {errors.password && <p className="text-xs text-red-400">{errors.password}</p>}
+                      <p className="text-xs text-zinc-500 mt-1">
+                        Must contain at least 8 characters, one uppercase, one lowercase, one number, and one special character.
+                      </p>
+                      {errors.password && <p className="text-xs text-red-400 mt-1">{errors.password}</p>}
                     </div>
 
                     <div className="space-y-2">

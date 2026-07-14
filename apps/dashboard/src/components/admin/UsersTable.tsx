@@ -14,6 +14,7 @@ export interface UserRow {
   email: string | null;
   plan: string;
   isActive: boolean;
+  sendAlerts: boolean;
   created_at: Date | string;
   totalRequests: number;
   totalCost: number;
@@ -104,15 +105,16 @@ export default function UsersTable({
     buildAdminUrl("/admin/users", urlParams, { page: String(p) });
 
   const COLUMNS: { label: string; field: string | null }[] = [
-    { label: "Name",     field: "name"     },
-    { label: "Email",    field: "email"    },
-    { label: "Status",   field: "isActive" },
-    { label: "Plan",     field: "plan"     },
-    { label: "Projects", field: "projects" },
-    { label: "Requests", field: null       }, // computed, not server-sortable
-    { label: "Cost",     field: "cost"     }, 
-    { label: "Joined",   field: "createdAt"},
-    { label: "Actions",  field: null       },
+    { label: "Name",     field: "name"      },
+    { label: "Email",    field: "email"     },
+    { label: "Status",   field: "isActive"  },
+    { label: "Plan",     field: "plan"      },
+    { label: "Alerts",   field: "sendAlerts"},
+    { label: "Projects", field: "projects"  },
+    { label: "Requests", field: null        },
+    { label: "Cost",     field: "cost"      }, 
+    { label: "Joined",   field: "createdAt" },
+    { label: "Actions",  field: null        },
   ];
 
   return (
@@ -214,38 +216,47 @@ export default function UsersTable({
                   <td className="px-4 py-3 text-white font-medium">{user.name || "—"}</td>
                   <td className="px-4 py-3 text-white/50 font-mono text-[12px]">{user.email}</td>
                   <td className="px-4 py-3">
-                    <span
-                      className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide"
-                      style={user.isActive
-                        ? { background: "rgba(16,185,129,0.1)", color: "#34d399" }
-                        : { background: "rgba(239,68,68,0.1)",  color: "#f87171" }}
-                    >
-                      {user.isActive ? "Active" : "Suspended"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide"
-                      style={{ background: planColors.bg, color: planColors.text }}
-                    >
-                      {user.plan}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-white/40">{user._count.projects}</td>
+                      <span
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide"
+                        style={user.isActive
+                          ? { background: "rgba(16,185,129,0.1)", color: "#34d399" }
+                          : { background: "rgba(239,68,68,0.1)",  color: "#f87171" }}
+                      >
+                        {user.isActive ? "Active" : "Suspended"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide"
+                        style={{ background: planColors.bg, color: planColors.text }}
+                      >
+                        {user.plan}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide ${
+                          user.sendAlerts ? "bg-emerald-500/20 text-emerald-400" : "bg-white/10 text-white/60"
+                        }`}
+                      >
+                        {user.sendAlerts ? "On" : "Off"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-white/40">{user._count.projects}</td>
                   <td className="px-4 py-3 text-white/40">{user.totalRequests.toLocaleString()}</td>
                   <td className="px-4 py-3 text-emerald-400 font-medium">${user.totalCost.toFixed(4)}</td>
                   <td className="px-4 py-3 text-white/30 text-[12px]">
                     {new Date(user.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                   </td>
                   <td className="px-4 py-3">
-                    <UserActions userId={user.id} isActive={user.isActive} />
+                    <UserActions userId={user.id} isActive={user.isActive} sendAlerts={user.sendAlerts} />
                   </td>
                 </tr>
               );
             })}
             {users.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-4 py-16 text-center">
+                <td colSpan={11} className="px-4 py-16 text-center">
                   <div className="text-white/20 text-4xl mb-3">- -</div>
                   <div className="text-white/40 text-sm">No users found.</div>
                 </td>

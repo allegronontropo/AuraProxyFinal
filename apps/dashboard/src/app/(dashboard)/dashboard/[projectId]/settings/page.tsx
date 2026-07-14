@@ -42,6 +42,7 @@ export default async function SettingsPage({
         image: user?.image || session.user.image || "",
         plan: user?.plan || "FREE",
         hasPassword: Boolean(user?.password_hash),
+        sendAlerts: user?.sendAlerts ?? true,
       }}
     />
   );

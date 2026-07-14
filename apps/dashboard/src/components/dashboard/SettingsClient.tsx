@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { updateProject, deleteProject } from "@/actions/project";
-import { updatePassword } from "@/actions/auth";
+import { updatePassword, toggleEmailAlerts } from "@/actions/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -21,6 +21,7 @@ type UserData = {
   image: string;
   plan: string;
   hasPassword: boolean;
+  sendAlerts: boolean;
 };
 
 export default function SettingsClient({
@@ -39,9 +40,12 @@ export default function SettingsClient({
   
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [alertsLoading, setAlertsLoading] = useState(false);
+  const [sendAlerts, setSendAlerts] = useState(user.sendAlerts);
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [alertMessage, setAlertMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
@@ -70,7 +74,7 @@ export default function SettingsClient({
     }
   };
 
-  const handleDelete = async () => {
+const handleDelete = async () => {
     if (deleteConfirm !== project.name) return;
     setLoading(true);
     const res = await deleteProject(project.id);
@@ -107,6 +111,20 @@ export default function SettingsClient({
       setTimeout(() => setPasswordMessage(null), 3000);
     } else {
       setPasswordMessage({ type: "error", text: res?.error || "Failed to update password." });
+    }
+  };
+
+  const handleToggleAlerts = async () => {
+    setAlertMessage(null);
+    setAlertsLoading(true);
+    const res = await toggleEmailAlerts(!sendAlerts);
+    setAlertsLoading(false);
+    if (res?.success) {
+      setSendAlerts(!sendAlerts);
+      setAlertMessage({ type: "success", text: res.success });
+      setTimeout(() => setAlertMessage(null), 3000);
+    } else {
+      setAlertMessage({ type: "error", text: res?.error || "Failed to update settings." });
     }
   };
 
@@ -273,6 +291,47 @@ export default function SettingsClient({
                 </button>
               </div>
             </form>
+          </section>
+
+          <section>
+            <h2 className="text-sm font-medium text-white/80 mb-4">Notifications</h2>
+            <div className="bg-white/[0.015] border border-white/[0.08] rounded-[11px] p-5 space-y-4">
+              <div>
+                <h3 className="text-[14px] font-medium text-white mb-1">Email Alerts</h3>
+                <p className="text-[13px] text-white/50">
+                  Receive email notifications for critical alerts and system events.
+                </p>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[14px] text-white">{sendAlerts ? "Enabled" : "Disabled"}</span>
+                  {alertMessage && (
+                    <div className={`text-[12px] ${alertMessage.type === "success" ? "text-emerald-400" : "text-red-400"} mt-1`}>
+                      {alertMessage.text}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={handleToggleAlerts}
+                  disabled={alertsLoading}
+                  className={`relative inline-flex items-center gap-2 px-4 py-1.5 text-[13px] font-medium rounded-full transition-all ${
+                    sendAlerts
+                      ? "bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/30"
+                      : "bg-white/10 border border-white/20 text-white/60 hover:bg-white/20"
+                  } disabled:opacity-50`}
+                >
+                  <span className={`w-8 h-4 rounded-full transition-colors ${
+                    sendAlerts ? "bg-emerald-500" : "bg-white/30"
+                  }`}>
+                    <span className={`absolute rounded-full transition-transform ${
+                      sendAlerts ? "translate-x-4" : "translate-x-0.5"
+                    }`}></span>
+                  </span>
+                  {alertsLoading ? "Updating..." : sendAlerts ? "On" : "Off"}
+                </button>
+              </div>
+            </div>
           </section>
 
           <section>

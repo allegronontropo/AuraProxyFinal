@@ -178,6 +178,21 @@ export async function bulkToggleUserSuspension(userIds: string[], isActive: bool
   return { success: true, count: userIds.length };
 }
 
+export async function toggleUserSendAlerts(userId: string, sendAlerts: boolean) {
+  try {
+    await requireAdmin();
+    await prisma.user.update({
+      where: { id: userId },
+      data: { sendAlerts },
+    });
+    revalidatePath("/admin/users");
+    return { success: true };
+  } catch (error: unknown) {
+    console.error("Failed to toggle user sendAlerts:", error);
+    return { error: error instanceof Error ? error.message : "An error occurred." };
+  }
+}
+
 export async function bulkToggleProjectSuspension(projectIds: string[], isActive: boolean) {
   const session = await auth();
   if (session?.user?.role !== "ADMIN") throw new Error("Unauthorized");

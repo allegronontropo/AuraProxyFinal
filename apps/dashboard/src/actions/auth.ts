@@ -7,16 +7,24 @@ import { z } from "zod";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
 
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number")
+  .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
+
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: passwordSchema,
 });
 
 const updatePasswordSchema = z.object({
   currentPassword: z.string().optional(),
-  newPassword: z.string().min(6, "Password must be at least 6 characters"),
-  confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
+  newPassword: passwordSchema,
+  confirmPassword: passwordSchema,
 });
 
 export async function register(formData: FormData) {
@@ -25,7 +33,9 @@ export async function register(formData: FormData) {
     const validatedData = registerSchema.safeParse(data);
 
     if (!validatedData.success) {
-      return { error: "Invalid fields." };
+      // Find the first error message
+      const firstError = validatedData.error.errors[0]?.message || "Invalid fields.";
+      return { error: firstError };
     }
 
     const { name, email, password } = validatedData.data;
@@ -259,4 +269,18 @@ export async function updatePassword(formData: FormData) {
     console.error("Update password error:", error);
     return { error: "Something went wrong." };
   }
+}
+
+export async function toggleEmailAlerts(enabled: boolean) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "You must be signed in to update settings." };
+  }
+
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: { sendAlerts: enabled },
+  });
+
+  return { success: enabled ? "Email alerts enabled." : "Email alerts disabled." };
 }

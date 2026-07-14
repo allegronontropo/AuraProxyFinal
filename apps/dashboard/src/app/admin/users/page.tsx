@@ -31,6 +31,7 @@ export default async function AdminUsersPage(props: {
     email:     { email:      sortDir },
     plan:      { plan:       sortDir },
     isActive:  { isActive:   sortDir },
+    sendAlerts:{ sendAlerts: sortDir },
     createdAt: { created_at: sortDir },
     projects:  { projects: { _count: sortDir } },
   };
@@ -75,6 +76,7 @@ export default async function AdminUsersPage(props: {
       email: user.email,
       plan: user.plan,
       isActive: user.isActive,
+      sendAlerts: user.sendAlerts,
       created_at: user.created_at.toISOString(),
       totalCost,
       totalRequests,
@@ -125,7 +127,7 @@ export default async function AdminUsersPage(props: {
           className="bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-500/50 transition-colors w-72"
         />
         <select name="status" defaultValue={status}
-          className="bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-violet-500/50 transition-colors cursor-pointer">
+          className="bg-white/5 border border-white/10 text-white rounded-lg px-3 py-1.5 text-sm outline-none focus:border-violet-500/50 transition-colors cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236b7280%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpolyline points=%226 9 12 15 18 9%22></3Cpolyline></svg%3E')] bg-no-repeat bg-[right_12px_center] pr-10">
           <option value="" className="bg-[#0a0a0c]">All Statuses</option>
           <option value="active" className="bg-[#0a0a0c]">Active</option>
           <option value="suspended" className="bg-[#0a0a0c]">Suspended</option>
