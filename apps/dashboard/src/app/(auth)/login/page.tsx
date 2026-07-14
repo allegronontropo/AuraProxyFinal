@@ -621,7 +621,7 @@ function AuthForm() {
 
       <div className="relative z-10 hidden lg:flex w-1/2 flex-col justify-center items-start px-20">
         <div className="w-16 h-16 bg-zinc-900/80 border border-purple-500/30 rounded-2xl flex items-center justify-center mb-8 shadow-[0_0_40px_-10px_rgba(168,85,247,0.5)]">
-           <img src="/logo_aura_proxy.png" alt="Aura Proxy" className="w-10 h-10 object-contain" />
+           <img src="/AURA_LOGO.png" alt="Aura Proxy" className="w-10 h-10 object-contain" />
         </div>
         <h1 className="text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-6">
           The Intelligent <br />
@@ -757,7 +757,7 @@ function AuthForm() {
 
               <TabsContent value="login" className="mt-0">
                 <form onSubmit={handleLoginSubmit}>
-                  <CardContent className="space-y-5 px-8">
+                  <CardContent className="space-y-3 px-8">
                     <div className="grid grid-cols-2 gap-3">
                       <Button type="button" variant="outline" onClick={() => handleOAuthLogin("github")} className="h-11 border-purple-500/20 bg-zinc-950/50 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all">
                         <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg> GitHub
@@ -767,7 +767,7 @@ function AuthForm() {
                       </Button>
                     </div>
 
-                    <div className="relative py-2">
+                    <div className="relative py-1">
                       <Separator className="bg-purple-500/20" />
                       <span className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 bg-zinc-900 px-3 text-[10px] uppercase tracking-widest text-zinc-500">or</span>
                     </div>
@@ -816,7 +816,7 @@ function AuthForm() {
 
               <TabsContent value="signup" className="mt-0">
                 <form onSubmit={handleSignupSubmit}>
-                  <CardContent className="space-y-5 px-8">
+                  <CardContent className="space-y-3 px-8">
                     <div className="grid grid-cols-2 gap-3">
                       <Button type="button" variant="outline" onClick={() => handleOAuthLogin("github")} className="h-11 border-purple-500/20 bg-zinc-950/50 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all">
                         <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg> GitHub
@@ -826,7 +826,7 @@ function AuthForm() {
                       </Button>
                     </div>
                     
-                    <div className="relative py-2">
+                    <div className="relative py-1">
                       <Separator className="bg-purple-500/20" />
                       <span className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 bg-zinc-900 px-3 text-[10px] uppercase tracking-widest text-zinc-500">or</span>
                     </div>
