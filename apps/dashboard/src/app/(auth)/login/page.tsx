@@ -234,8 +234,8 @@ function PlasmaWeb({
     }
 
     const ctn = ctnDom.current;
-    let renderer;
-    let gl;
+    let renderer: any;
+    let gl: any;
     try {
       renderer = new Renderer({ alpha: transparent, premultipliedAlpha: false });
       gl = renderer.gl;
@@ -357,7 +357,7 @@ function PlasmaWeb({
     brightness,
   ]);
 
-  return <div ref={ctnDom} className="w-full h-full absolute inset-0" />;
+  return <div ref={ctnDom} className="w-full h-full absolute inset-0 z-0 pointer-events-none" />;
 }
 
 function AuthForm() {
@@ -597,53 +597,80 @@ function AuthForm() {
   }, []);
 
   return (
-    <section className="fixed inset-0 bg-zinc-950 text-zinc-50 overflow-hidden">
-      <PlasmaWeb
-        hueShift={270}
-        density={1.2}
-        glowIntensity={1.0}
-        saturation={0.8}
-        brightness={0.7}
-        energyFlow={1.2}
-        pulseIntensity={0.3}
-        attractionStrength={2.0}
-        mouseAttraction={true}
-        transparent={false}
-      />
+    <section className="min-h-screen bg-zinc-950 text-zinc-50 overflow-hidden flex flex-col lg:flex-row relative">
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <PlasmaWeb
+          hueShift={270}
+          density={1.2}
+          glowIntensity={1.0}
+          saturation={0.8}
+          brightness={0.7}
+          energyFlow={1.2}
+          pulseIntensity={0.3}
+          attractionStrength={2.0}
+          mouseAttraction={true}
+          transparent={true}
+        />
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-30 mix-blend-screen pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none [background:radial-gradient(80%_60%_at_50%_30%,rgba(168,85,247,0.08),transparent_60%)]" />
+      </div>
 
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-30 mix-blend-screen pointer-events-none z-10" />
-      <div className="absolute inset-0 pointer-events-none z-10 [background:radial-gradient(80%_60%_at_50%_30%,rgba(168,85,247,0.08),transparent_60%)]" />
+      <div className="absolute top-0 left-0 w-full z-50">
+        <NavBar />
+      </div>
 
-      {/* The Landing Page Navbar component */}
-      <NavBar />
+      <div className="relative z-10 hidden lg:flex w-1/2 flex-col justify-center items-start px-20 border-r border-white/5 bg-zinc-950/40 backdrop-blur-sm">
+        <div className="w-16 h-16 bg-zinc-900/80 border border-purple-500/30 rounded-2xl flex items-center justify-center mb-8 shadow-[0_0_40px_-10px_rgba(168,85,247,0.5)]">
+           <img src="/logo_aura_proxy.png" alt="Aura Proxy" className="w-10 h-10 object-contain" />
+        </div>
+        <h1 className="text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-6">
+          The Intelligent <br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">AI Gateway</span>
+        </h1>
+        <p className="text-zinc-400 text-lg max-w-md leading-relaxed mb-10">
+          Optimize your LLM infrastructure. Effortlessly route traffic, manage costs, and monitor performance in real-time with Aura Proxy.
+        </p>
+        
+        <div className="flex items-center gap-4">
+          <div className="flex -space-x-3">
+             <div className="w-10 h-10 rounded-full border-2 border-zinc-950 bg-zinc-900 flex items-center justify-center shadow-lg"><img src="/openai.svg" className="w-5 h-5" alt="OpenAI" /></div>
+             <div className="w-10 h-10 rounded-full border-2 border-zinc-950 bg-zinc-900 flex items-center justify-center shadow-lg"><img src="/google-gemini.svg" className="w-5 h-5" alt="Gemini" /></div>
+             <div className="w-10 h-10 rounded-full border-2 border-zinc-950 bg-zinc-900 flex items-center justify-center shadow-lg"><img src="/claude-icon.svg" className="w-5 h-5" alt="Claude" /></div>
+          </div>
+          <div className="flex flex-col justify-center">
+             <span className="text-sm font-semibold text-zinc-200">Integrate Anywhere</span>
+             <span className="text-xs text-purple-400/80">100+ Models Supported</span>
+          </div>
+        </div>
+      </div>
 
-      <div className="h-full w-full grid place-items-center px-4 relative z-20 pt-16">
-        <Card className="w-full max-w-md border-purple-500/20 bg-zinc-900/80 backdrop-blur-xl supports-[backdrop-filter]:bg-zinc-900/70 shadow-2xl shadow-purple-500/10">
+      <div className="relative z-10 w-full lg:w-1/2 flex items-center justify-center p-4 pt-32 lg:p-12 min-h-screen lg:min-h-0">
+        <Card className="w-full max-w-md border-purple-500/20 bg-zinc-900/60 backdrop-blur-2xl supports-[backdrop-filter]:bg-zinc-900/40 shadow-[0_0_80px_-20px_rgba(168,85,247,0.15)] overflow-hidden">
           {errors.general && (
-            <div className="bg-red-500/10 border-b border-red-500/20 p-3 text-center">
-              <p className="text-sm text-red-400 font-medium">{errors.general}</p>
+            <div className="bg-red-500/10 border-b border-red-500/20 p-3 flex items-center justify-center gap-2">
+              <span className="text-sm text-red-400 font-medium">{errors.general}</span>
             </div>
           )}
           {successMessage && (
-            <div className="bg-green-500/10 border-b border-green-500/20 p-3 text-center">
-              <p className="text-sm text-green-400 font-medium">{successMessage}</p>
+            <div className="bg-green-500/10 border-b border-green-500/20 p-3 flex items-center justify-center gap-2">
+              <span className="text-sm text-green-400 font-medium">{successMessage}</span>
             </div>
           )}
 
           {activeTab === "new-password" ? (
              <form onSubmit={handleNewPasswordSubmit}>
-               <CardHeader className="text-center space-y-2">
-                 <CardTitle className="text-2xl font-bold">Set New Password</CardTitle>
+               <CardHeader className="text-center space-y-2 pt-8">
+                 <CardTitle className="text-3xl font-bold tracking-tight">Set New Password</CardTitle>
                  <CardDescription className="text-zinc-400">Enter a secure new password below.</CardDescription>
                </CardHeader>
-               <CardContent className="space-y-4">
+               <CardContent className="space-y-5 px-8 pb-8">
                  <div className="space-y-2">
                    <Label className="text-zinc-300">New Password</Label>
                    <Input
                      type="password"
                      value={newPasswordData.password}
                      onChange={(e) => setNewPasswordData({ ...newPasswordData, password: e.target.value })}
-                     className="bg-zinc-950 border-purple-500/30 text-zinc-50 focus-visible:ring-purple-500/20"
+                     className="bg-zinc-950/50 border-purple-500/30 text-zinc-50 focus-visible:ring-purple-500/50 transition-all h-11"
                    />
                  </div>
                  <div className="space-y-2">
@@ -652,71 +679,73 @@ function AuthForm() {
                      type="password"
                      value={newPasswordData.confirmPassword}
                      onChange={(e) => setNewPasswordData({ ...newPasswordData, confirmPassword: e.target.value })}
-                     className="bg-zinc-950 border-purple-500/30 text-zinc-50 focus-visible:ring-purple-500/20"
+                     className="bg-zinc-950/50 border-purple-500/30 text-zinc-50 focus-visible:ring-purple-500/50 transition-all h-11"
                    />
-                   {errors.confirmPassword && <p className="text-xs text-red-400">{errors.confirmPassword}</p>}
+                   {errors.confirmPassword && <p className="text-xs text-red-400 mt-1">{errors.confirmPassword}</p>}
                  </div>
-               </CardContent>
-               <CardFooter>
-                 <Button type="submit" disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                 <Button type="submit" disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-500 text-white h-11 text-base shadow-lg shadow-purple-600/20 mt-6 transition-all">
                    {isLoading ? "Saving..." : "Reset Password"}
                  </Button>
-               </CardFooter>
+               </CardContent>
              </form>
           ) : activeTab === "reset" && isResetSuccess ? (
             <>
-              <CardHeader className="text-center space-y-4">
+              <CardHeader className="text-center space-y-4 pt-10">
                 <div className="flex justify-center">
-                  <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center">
-                    <CheckCircle className="h-8 w-8 text-purple-400" />
+                  <div className="w-20 h-20 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shadow-[0_0_30px_-5px_rgba(168,85,247,0.3)]">
+                    <CheckCircle className="h-10 w-10 text-purple-400" />
                   </div>
                 </div>
-                <CardTitle className="text-2xl font-bold text-purple-400">Check Your Email</CardTitle>
-                <CardDescription className="text-zinc-400">
-                  We&apos;ve sent a password reset link to <strong className="text-zinc-300">{resetData.email}</strong>
+                <CardTitle className="text-3xl font-bold text-zinc-100 tracking-tight">Check Your Email</CardTitle>
+                <CardDescription className="text-zinc-400 text-base">
+                  We've sent a password reset link to <strong className="text-zinc-200">{resetData.email}</strong>
                 </CardDescription>
               </CardHeader>
-              <CardContent className="text-center space-y-4">
-                <p className="text-sm text-zinc-400">
-                  Click the link in the email to reset your password.
+              <CardContent className="text-center space-y-6 px-8">
+                <p className="text-sm text-zinc-500">
+                  Click the link in the email to securely reset your password. If you don't see it, check your spam folder.
                 </p>
-                <Button
-                  onClick={() => {
-                    setIsResetSuccess(false);
-                    setResetData({ email: "" });
-                  }}
-                  variant="outline"
-                  className="w-full border-purple-500/30 bg-purple-950/30 text-purple-100 hover:bg-purple-900/50"
-                >
-                  Send Another Reset Link
-                </Button>
+                <div className="flex flex-col gap-3">
+                  <Button
+                    onClick={() => {
+                      setIsResetSuccess(false);
+                      setResetData({ email: "" });
+                    }}
+                    variant="outline"
+                    className="w-full border-purple-500/30 bg-purple-950/20 text-purple-200 hover:bg-purple-900/40 hover:text-white transition-all h-11"
+                  >
+                    Send Another Link
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setActiveTab("login");
+                      setIsResetSuccess(false);
+                      setLoginData({ email: "", password: "" });
+                    }}
+                    variant="ghost"
+                    className="w-full text-zinc-400 hover:text-white hover:bg-white/5 transition-all h-11"
+                  >
+                    Connect with another account
+                  </Button>
+                </div>
               </CardContent>
-              <CardFooter className="justify-center">
-                <button
-                  onClick={() => setActiveTab("login")}
-                  className="flex items-center gap-2 text-sm text-zinc-400 hover:text-purple-400 transition-colors"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to Sign In
-                </button>
-              </CardFooter>
             </>
           ) : (
             <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as "login" | "signup" | "reset" | "new-password"); setErrors({}); }} className="w-full">
-              <CardHeader className="space-y-4">
-                <TabsList className="grid w-full grid-cols-2 bg-zinc-800/50 border border-purple-500/20">
-                  <TabsTrigger value="login" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-100">
+              <CardHeader className="space-y-6 pt-8 pb-4">
+                <TabsList className="grid w-full grid-cols-2 bg-zinc-950/50 border border-purple-500/20 p-1 rounded-xl h-12">
+                  <TabsTrigger value="login" className="data-[state=active]:bg-purple-600/30 data-[state=active]:text-purple-100 rounded-lg transition-all h-full text-sm font-medium">
                     Sign In
                   </TabsTrigger>
-                  <TabsTrigger value="signup" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-100">
+                  <TabsTrigger value="signup" className="data-[state=active]:bg-purple-600/30 data-[state=active]:text-purple-100 rounded-lg transition-all h-full text-sm font-medium">
                     Sign Up
                   </TabsTrigger>
                 </TabsList>
-                <div className="text-center">
-                  <CardTitle className="text-2xl font-bold">
+                <div className="text-center space-y-2">
+                  <CardTitle className="text-3xl font-bold tracking-tight">
                     {activeTab === "login" ? "Welcome back" : activeTab === "signup" ? "Create account" : "Reset password"}
                   </CardTitle>
-                  <CardDescription className="text-zinc-400 mt-2">
+                  <CardDescription className="text-zinc-400 text-base">
                     {activeTab === "login"
                       ? "Access your AI gateway dashboard"
                       : activeTab === "signup"
@@ -728,19 +757,19 @@ function AuthForm() {
 
               <TabsContent value="login" className="mt-0">
                 <form onSubmit={handleLoginSubmit}>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-5 px-8">
                     <div className="grid grid-cols-2 gap-3">
-                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("github")} className="border-purple-500/30 bg-purple-950/30 text-purple-100 hover:bg-purple-900/50">
+                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("github")} className="h-11 border-purple-500/20 bg-zinc-950/50 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all">
                         <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg> GitHub
                       </Button>
-                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("google")} className="border-purple-500/30 bg-purple-950/30 text-purple-100 hover:bg-purple-900/50">
+                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("google")} className="h-11 border-purple-500/20 bg-zinc-950/50 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all">
                         <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg> Google
                       </Button>
                     </div>
 
-                    <div className="relative">
+                    <div className="relative py-2">
                       <Separator className="bg-purple-500/20" />
-                      <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-zinc-900/90 px-2 text-xs uppercase tracking-widest text-zinc-500">or</span>
+                      <span className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 bg-zinc-900 px-3 text-[10px] uppercase tracking-widest text-zinc-500">or</span>
                     </div>
 
                     <div className="space-y-2">
@@ -750,37 +779,36 @@ function AuthForm() {
                         <Input
                           id="login-email" type="email" placeholder="you@example.com"
                           value={loginData.email} onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                          className="pl-10 bg-zinc-950 border-purple-500/30 text-zinc-50 focus-visible:ring-purple-500/20"
+                          className={`pl-10 h-11 bg-zinc-950/50 border-${errors.email ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
                         />
                       </div>
-                      {errors.email && <p className="text-xs text-red-400">{errors.email}</p>}
+                      {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email}</p>}
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="login-password" className="text-zinc-300">Password</Label>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="login-password" className="text-zinc-300">Password</Label>
+                        <button type="button" onClick={() => { setActiveTab("reset"); setErrors({}); setSuccessMessage(null); }} className="text-xs text-purple-400 hover:text-purple-300 hover:underline transition-all">
+                          Forgot password?
+                        </button>
+                      </div>
                       <div className="relative">
                         <Input
                           id="login-password" type={showPassword ? "text" : "password"} placeholder="••••••••"
                           value={loginData.password} onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                          className="pr-10 bg-zinc-950 border-purple-500/30 text-zinc-50 focus-visible:ring-purple-500/20"
+                          className={`pr-10 h-11 bg-zinc-950/50 border-${errors.password ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
                         />
-                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-zinc-400 hover:text-zinc-200">
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors">
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
-                      {errors.password && <p className="text-xs text-red-400">{errors.password}</p>}
-                    </div>
-
-                    <div className="flex justify-end mt-4">
-                      <button type="button" onClick={() => { setActiveTab("reset"); setErrors({}); setSuccessMessage(null); }} className="text-sm text-purple-400 hover:text-purple-300 transition-colors">
-                        Forgot password?
-                      </button>
+                      {errors.password && <p className="text-xs text-red-400 mt-1">{errors.password}</p>}
                     </div>
                   </CardContent>
 
-                  <CardFooter>
-                    <Button type="submit" disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-700 text-white">
-                      {isLoading ? "Signing in..." : "Sign in"}
+                  <CardFooter className="px-8 pb-8 pt-2">
+                    <Button type="submit" disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-500 text-white h-11 text-base shadow-lg shadow-purple-600/20 transition-all">
+                      {isLoading ? "Signing in..." : "Sign In"}
                     </Button>
                   </CardFooter>
                 </form>
@@ -788,19 +816,19 @@ function AuthForm() {
 
               <TabsContent value="signup" className="mt-0">
                 <form onSubmit={handleSignupSubmit}>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-5 px-8">
                     <div className="grid grid-cols-2 gap-3">
-                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("github")} className="border-purple-500/30 bg-purple-950/30 text-purple-100 hover:bg-purple-900/50">
+                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("github")} className="h-11 border-purple-500/20 bg-zinc-950/50 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all">
                         <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg> GitHub
                       </Button>
-                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("google")} className="border-purple-500/30 bg-purple-950/30 text-purple-100 hover:bg-purple-900/50">
+                      <Button type="button" variant="outline" onClick={() => handleOAuthLogin("google")} className="h-11 border-purple-500/20 bg-zinc-950/50 text-zinc-300 hover:bg-zinc-800 hover:text-white transition-all">
                         <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="currentColor"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/></svg> Google
                       </Button>
                     </div>
                     
-                    <div className="relative">
+                    <div className="relative py-2">
                       <Separator className="bg-purple-500/20" />
-                      <span className="absolute left-1/2 -translate-x-1/2 -top-3 bg-zinc-900/90 px-2 text-xs uppercase tracking-widest text-zinc-500">or</span>
+                      <span className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 bg-zinc-900 px-3 text-[10px] uppercase tracking-widest text-zinc-500">or</span>
                     </div>
 
                     <div className="space-y-2">
@@ -808,9 +836,9 @@ function AuthForm() {
                       <Input
                         id="signup-name" type="text" placeholder="John Doe"
                         value={signupData.name} onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
-                        className="bg-zinc-950 border-purple-500/30 text-zinc-50 focus-visible:ring-purple-500/20"
+                        className={`h-11 bg-zinc-950/50 border-${errors.name ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
                       />
-                      {errors.name && <p className="text-xs text-red-400">{errors.name}</p>}
+                      {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -820,10 +848,10 @@ function AuthForm() {
                         <Input
                           id="signup-email" type="email" placeholder="you@example.com"
                           value={signupData.email} onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                          className="pl-10 bg-zinc-950 border-purple-500/30 text-zinc-50 focus-visible:ring-purple-500/20"
+                          className={`pl-10 h-11 bg-zinc-950/50 border-${errors.email ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
                         />
                       </div>
-                      {errors.email && <p className="text-xs text-red-400">{errors.email}</p>}
+                      {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -832,16 +860,19 @@ function AuthForm() {
                         <Input
                           id="signup-password" type={showPassword ? "text" : "password"} placeholder="••••••••"
                           value={signupData.password} onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                          className="pr-10 bg-zinc-950 border-purple-500/30 text-zinc-50 focus-visible:ring-purple-500/20"
+                          className={`pr-10 h-11 bg-zinc-950/50 border-${errors.password ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
                         />
-                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-zinc-400 hover:text-zinc-200">
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors">
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
-                      <p className="text-xs text-zinc-500 mt-1">
-                        Must contain at least 8 characters, one uppercase, one lowercase, one number, and one special character.
-                      </p>
-                      {errors.password && <p className="text-xs text-red-400 mt-1">{errors.password}</p>}
+                      {errors.password ? (
+                        <p className="text-xs text-red-400 mt-1">{errors.password}</p>
+                      ) : (
+                        <p className="text-[11px] text-zinc-500 mt-1">
+                          Min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character.
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -850,19 +881,19 @@ function AuthForm() {
                         <Input
                           id="signup-confirm" type={showConfirmPassword ? "text" : "password"} placeholder="••••••••"
                           value={signupData.confirmPassword} onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
-                          className="pr-10 bg-zinc-950 border-purple-500/30 text-zinc-50 focus-visible:ring-purple-500/20"
+                          className={`pr-10 h-11 bg-zinc-950/50 border-${errors.confirmPassword ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
                         />
-                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-zinc-400 hover:text-zinc-200">
+                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors">
                           {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
-                      {errors.confirmPassword && <p className="text-xs text-red-400">{errors.confirmPassword}</p>}
+                      {errors.confirmPassword && <p className="text-xs text-red-400 mt-1">{errors.confirmPassword}</p>}
                     </div>
                   </CardContent>
 
-                  <CardFooter>
-                    <Button type="submit" disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-700 text-white">
-                      {isLoading ? "Creating account..." : "Create account"}
+                  <CardFooter className="px-8 pb-8 pt-2">
+                    <Button type="submit" disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-500 text-white h-11 text-base shadow-lg shadow-purple-600/20 transition-all">
+                      {isLoading ? "Creating account..." : "Create Account"}
                     </Button>
                   </CardFooter>
                 </form>
@@ -870,7 +901,7 @@ function AuthForm() {
 
               <TabsContent value="reset" className="mt-0">
                 <form onSubmit={handleResetSubmit}>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-5 px-8 pt-4 pb-4">
                     <div className="space-y-2">
                       <Label htmlFor="reset-email" className="text-zinc-300">Email Address</Label>
                       <div className="relative">
@@ -878,19 +909,19 @@ function AuthForm() {
                         <Input
                           id="reset-email" type="email" placeholder="you@example.com"
                           value={resetData.email} onChange={(e) => setResetData({ email: e.target.value })}
-                          className="pl-10 bg-zinc-950 border-purple-500/30 text-zinc-50 focus-visible:ring-purple-500/20"
+                          className={`pl-10 h-11 bg-zinc-950/50 border-${errors.email ? 'red-500/50' : 'purple-500/30'} text-zinc-50 focus-visible:ring-purple-500/50 transition-all`}
                         />
                       </div>
-                      {errors.email && <p className="text-xs text-red-400">{errors.email}</p>}
+                      {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email}</p>}
                     </div>
                   </CardContent>
 
-                  <CardFooter className="flex flex-col gap-4">
-                    <Button type="submit" disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                  <CardFooter className="flex flex-col gap-3 px-8 pb-8 pt-4">
+                    <Button type="submit" disabled={isLoading} className="w-full bg-purple-600 hover:bg-purple-500 text-white h-11 text-base shadow-lg shadow-purple-600/20 transition-all">
                       {isLoading ? "Sending link..." : "Send Reset Link"}
                     </Button>
-                    <button type="button" onClick={() => setActiveTab("login")} className="text-sm text-zinc-400 hover:text-purple-400 flex items-center justify-center gap-2">
-                      <ArrowLeft className="h-4 w-4" /> Back to Sign In
+                    <button type="button" onClick={() => setActiveTab("login")} className="text-sm text-zinc-400 hover:text-purple-400 hover:underline transition-all mt-2">
+                      Back to Sign In
                     </button>
                   </CardFooter>
                 </form>
