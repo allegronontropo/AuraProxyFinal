@@ -844,7 +844,7 @@ function ProseBlock({ children }: { children: React.ReactNode }) {
           color: ${t.textSub};
         }
         .prose-block ul li::before {
-          content: "—";
+          content: "-";
           position: absolute;
           left: 0;
           color: ${t.textMuted};
