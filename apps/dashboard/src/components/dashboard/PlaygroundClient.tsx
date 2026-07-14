@@ -97,8 +97,8 @@ export default function PlaygroundClient({ projectId, projectName, availableKeys
   
   // Configuration
   const [selectedKeyId, setSelectedKeyId] = useState(availableKeys[0]?.id || "");
-  const [provider, setProvider] = useState("openai");
-  const [model, setModel] = useState("gpt-4o-mini");
+  const [provider, setProvider] = useState("groq");
+  const [model, setModel] = useState("llama-3.3-70b-versatile");
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(1024);
   const [systemPrompt, setSystemPrompt] = useState("You are a helpful AI assistant.");

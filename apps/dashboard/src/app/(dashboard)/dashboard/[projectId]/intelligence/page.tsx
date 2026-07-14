@@ -20,7 +20,7 @@ import {
   Trophy,
   Zap,
 } from "lucide-react";
-import { ProviderIcon } from "@lobehub/icons";
+import { ProviderIcon } from "@/components/ui/provider-icon";
 
 function ProviderChip({ provider }: { provider: string }) {
   const map: Record<string, { bg: string; color: string }> = {

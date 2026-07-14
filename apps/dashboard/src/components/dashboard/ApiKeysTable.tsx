@@ -187,7 +187,7 @@ export default function ApiKeysTable({
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-white/40">
+                    <td className="px-6 py-4 text-white/40" suppressHydrationWarning>
                       {new Date(key.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right">

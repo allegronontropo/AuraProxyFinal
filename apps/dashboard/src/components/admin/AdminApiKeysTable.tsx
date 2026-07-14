@@ -167,12 +167,12 @@ export default function AdminApiKeysTable({ apiKeys, sortHeaders }: Props) {
                     {key.isActive ? "Active" : "Suspended"}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-white/30 text-[12px]">
+                <td className="px-4 py-3 text-white/30 text-[12px]" suppressHydrationWarning>
                   {key.lastUsedAt
                     ? new Date(key.lastUsedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
                     : "Never"}
                 </td>
-                <td className="px-4 py-3 text-white/30 text-[12px]">
+                <td className="px-4 py-3 text-white/30 text-[12px]" suppressHydrationWarning>
                   {new Date(key.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                 </td>
               </tr>

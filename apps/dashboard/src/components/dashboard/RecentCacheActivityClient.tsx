@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { ProviderIcon } from "@lobehub/icons";
+import { ProviderIcon } from "@/components/ui/provider-icon";
 
 type RecentEvent = {
   id: string;

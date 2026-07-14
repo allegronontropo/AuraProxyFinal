@@ -222,7 +222,7 @@ export default function ProjectsTable({
                       {h.label}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-white/30 text-[12px]">
+                  <td className="px-4 py-3 text-white/30 text-[12px]" suppressHydrationWarning>
                     {new Date(project.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                   </td>
                 </tr>

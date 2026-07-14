@@ -245,7 +245,7 @@ export default function UsersTable({
                     <td className="px-4 py-3 text-white/40">{user._count.projects}</td>
                   <td className="px-4 py-3 text-white/40">{user.totalRequests.toLocaleString()}</td>
                   <td className="px-4 py-3 text-emerald-400 font-medium">${user.totalCost.toFixed(4)}</td>
-                  <td className="px-4 py-3 text-white/30 text-[12px]">
+                  <td className="px-6 py-4 text-white/50 text-[13px]" suppressHydrationWarning>
                     {new Date(user.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                   </td>
                   <td className="px-4 py-3">

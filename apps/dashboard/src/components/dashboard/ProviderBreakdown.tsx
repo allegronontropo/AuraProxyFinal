@@ -1,7 +1,7 @@
 "use client";
 
 import { Server } from "lucide-react";
-import { ProviderIcon } from "@lobehub/icons";
+import { ProviderIcon } from "@/components/ui/provider-icon";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

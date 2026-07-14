@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ListIcon } from "lucide-react";
-import { ProviderIcon } from "@lobehub/icons";
+import { ProviderIcon } from "@/components/ui/provider-icon";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

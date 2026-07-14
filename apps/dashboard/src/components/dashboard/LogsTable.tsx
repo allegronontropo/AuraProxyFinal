@@ -4,7 +4,7 @@ import { useState, useCallback, useTransition } from "react";
 import { fetchLogs } from "@/actions/logs";
 import type { LogFilter } from "@/lib/queries";
 import CustomSelect from "@/components/ui/CustomSelect";
-import { ProviderIcon } from "@lobehub/icons";
+import { ProviderIcon } from "@/components/ui/provider-icon";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

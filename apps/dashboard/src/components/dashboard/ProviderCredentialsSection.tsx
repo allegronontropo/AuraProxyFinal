@@ -4,7 +4,7 @@ import React, { useState, useTransition, useMemo } from "react";
 import { saveProviderCredential, deleteProviderCredential } from "@/actions/credentials";
 import { useRouter } from "next/navigation";
 import CustomSelect from "@/components/ui/CustomSelect";
-import { ProviderIcon } from "@lobehub/icons";
+import { ProviderIcon } from "@/components/ui/provider-icon";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Credential = {
@@ -238,7 +238,7 @@ export default function ProviderCredentialsSection({
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-[13px] text-white/70">{cred.label}</td>
-                    <td className="px-5 py-3.5 text-[12px] text-white/40 font-mono">
+                    <td className="px-5 py-3.5 text-[12px] text-white/40 font-mono" suppressHydrationWarning>
                       {new Date(cred.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-5 py-3.5">

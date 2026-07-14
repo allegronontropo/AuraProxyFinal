@@ -1,6 +1,6 @@
 "use client";
 
-import { ProviderIcon } from "@lobehub/icons";
+import { ProviderIcon } from "@/components/ui/provider-icon";
 import { useState } from "react";
 import { updateAlertStatus } from "@/actions/alerts";
 import type { AlertStatus, AlertSeverity } from "@aura/shared";
