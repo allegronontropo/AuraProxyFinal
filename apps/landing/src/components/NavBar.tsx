@@ -179,7 +179,7 @@ export default function NavBar() {
               e.currentTarget.style.transform = "translateY(0)";
             }}
           >
-            Get Started
+            Dashboard
           </a>
         </div>
       </div>

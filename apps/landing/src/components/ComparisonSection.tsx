@@ -1,186 +1,408 @@
 "use client";
 
-const rows = [
-  { feature: "Semantic Cache", aura: true, manual: false, saas: "Partial" },
-  { feature: "Multi-Provider Routing", aura: true, manual: false, saas: true },
-  { feature: "Self-Hosted", aura: true, manual: true, saas: false },
-  { feature: "Full Observability", aura: true, manual: false, saas: "Limited" },
-  { feature: "Policy Engine", aura: true, manual: false, saas: "Partial" },
-  { feature: "OpenAI Compatible API", aura: true, manual: false, saas: true },
-  { feature: "Zero Vendor Lock-in", aura: true, manual: true, saas: false },
-  { feature: "Budget Guardrails", aura: true, manual: false, saas: "Paid" },
+import { motion } from "framer-motion";
+import {
+  AlertTriangle,
+  Ban,
+  TrendingUp,
+  Zap,
+  CheckCircle2,
+  ArrowRight,
+  Database,
+  Shuffle,
+} from "lucide-react";
+
+// ─── Design tokens ────────────────────────────────────────────────────────────
+const c = {
+  bg: "#0A0A0F",
+  bgDeep: "#020712",
+  surface: "rgba(255,255,255,0.04)",
+  surfaceHover: "rgba(255,255,255,0.07)",
+  border: "1px solid rgba(255,255,255,0.06)",
+  borderStrong: "1px solid rgba(255,255,255,0.12)",
+  purple: "#7c5cfc",
+  purpleDim: "#5b3fd8",
+  purpleFaint: "rgba(124,92,252,0.15)",
+  red: "#f87171",
+  redFaint: "rgba(248,113,113,0.12)",
+  orange: "#fb923c",
+  orangeFaint: "rgba(251,146,60,0.10)",
+  green: "#4ade80",
+  greenFaint: "rgba(74,222,128,0.08)",
+  textPrimary: "#f1f5f9",
+  textMuted: "#94a3b8",
+  textDim: "#475569",
+};
+
+const fadeUp = {
+  initial: { opacity: 0, y: 30 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-50px" },
+};
+
+// ─── Comparison Section ────────────────────────────────────────────────────────
+const chaosCards = [
+  { icon: Ban, color: c.red, bg: c.redFaint, title: "Rate limit exceeded", sub: "OpenAI · 429 Too Many Requests" },
+  { icon: AlertTriangle, color: c.orange, bg: c.orangeFaint, title: "Manual fallback failed", sub: "Unhandled exception in retry logic" },
+  { icon: TrendingUp, color: c.red, bg: c.redFaint, title: "Unexpected $5,412 bill", sub: "No token budget enforcement" },
+  { icon: Zap, color: c.orange, bg: c.orangeFaint, title: "Latency spike: 12.4s", sub: "Cold model, no cache, wrong region" },
 ];
 
-const Cell = ({ val }: { val: boolean | string }) => {
-  if (val === true)
-    return (
-      <span
-        style={{
-          display: "inline-flex",
-          width: "1.25rem",
-          height: "1.25rem",
-          borderRadius: "50%",
-          background: "rgba(16,185,129,0.15)",
-          border: "1px solid rgba(16,185,129,0.3)",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "0.6rem",
-          color: "#10b981",
-        }}
-      >
-        ✓
-      </span>
-    );
-  if (val === false)
-    return (
-      <span
-        style={{
-          display: "inline-flex",
-          width: "1.25rem",
-          height: "1.25rem",
-          borderRadius: "50%",
-          background: "rgba(239,68,68,0.1)",
-          border: "1px solid rgba(239,68,68,0.2)",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "0.6rem",
-          color: "#ef4444",
-        }}
-      >
-        ✗
-      </span>
-    );
+const pipelineCards = [
+  { icon: ArrowRight, label: "Unified API Request", sub: "Single endpoint for all LLM providers", color: c.purple },
+  { icon: Database, label: "Semantic Cache Hit", sub: "5ms · 99.2% similarity match", color: c.green },
+  { icon: Shuffle, label: "Smart Fallback Router", sub: "Automatic failover across providers", color: c.purple },
+];
+
+function ChaosCard({
+  card,
+  index,
+}: {
+  card: (typeof chaosCards)[0]
+  index: number
+}) {
+  const offsets = [
+    { top: 0, left: 0, rotate: -2 },
+    { top: 18, left: 16, rotate: 1.5 },
+    { top: 36, left: 8, rotate: -1 },
+    { top: 54, left: 20, rotate: 2 },
+  ];
+  const o = offsets[index];
+
   return (
-    <span
+    <motion.div
+      initial={{ opacity: 0, x: -20, rotate: o.rotate - 4 }}
+      whileInView={{ opacity: 1, x: 0, rotate: o.rotate }}
+      whileHover={{ scale: 1.05, rotate: o.rotate + 3, zIndex: 50, y: -4 }}
+      transition={{ delay: index * 0.12, duration: 0.5, ease: "easeOut" }}
+      viewport={{ once: true }}
       style={{
-        fontSize: "0.75rem",
-        color: "#64748b",
-        fontFamily: "var(--font-mono)",
+        position: "absolute",
+        top: `${o.top + index * 68}px`,
+        left: `${o.left}px`,
+        right: `${-o.left}px`,
+        background: c.surface,
+        border: c.border,
+        borderLeft: `2px solid ${card.color}`,
+        borderRadius: 10,
+        padding: "14px 16px",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        backdropFilter: "blur(8px)",
+        zIndex: index,
+        boxShadow: `0 4px 24px rgba(0,0,0,0.4), 0 0 0 0.5px rgba(255,255,255,0.03)`,
       }}
     >
-      {val}
-    </span>
+      <div
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 8,
+          background: card.bg,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <card.icon size={16} color={card.color} />
+      </div>
+      <div>
+        <p style={{ margin: 0, fontSize: "0.875rem", fontWeight: 600, color: c.textPrimary }}>{card.title}</p>
+        <p style={{ margin: "2px 0 0", fontSize: "0.75rem", color: c.textMuted }}>{card.sub}</p>
+      </div>
+    </motion.div>
   );
-};
+}
+
+function PipelineCard({
+  card,
+  index,
+  total,
+}: {
+  card: (typeof pipelineCards)[0]
+  index: number
+  total: number
+}) {
+  return (
+    <div style={{ position: "relative", paddingLeft: 32 }}>
+      {index < total - 1 && (
+        <div
+          style={{
+            position: "absolute",
+            left: 15,
+            top: 52,
+            bottom: -24,
+            borderLeft: "1px dashed rgba(255,255,255,0.10)",
+          }}
+        />
+      )}
+      <div
+        style={{
+          position: "absolute",
+          left: 8,
+          top: 18,
+          width: 14,
+          height: 14,
+          borderRadius: "50%",
+          background: card.color === c.green ? c.greenFaint : c.purpleFaint,
+          border: `1.5px solid ${card.color}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1,
+        }}
+      >
+        <div
+          style={{
+            width: 5,
+            height: 5,
+            borderRadius: "50%",
+            background: card.color,
+          }}
+        />
+      </div>
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        whileHover={{ scale: 1.02, x: 5 }}
+        transition={{ delay: index * 0.14, duration: 0.5, ease: "easeOut" }}
+        viewport={{ once: true }}
+        style={{
+          background: c.surface,
+          border: c.border,
+          borderRadius: 10,
+          padding: "14px 16px",
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          marginBottom: 24,
+        }}
+      >
+        <div
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            background: card.color === c.green ? c.greenFaint : c.purpleFaint,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <card.icon size={16} color={card.color} />
+        </div>
+        <div>
+          <p style={{ margin: 0, fontSize: "0.875rem", fontWeight: 600, color: c.textPrimary }}>{card.label}</p>
+          <p style={{ margin: "2px 0 0", fontSize: "0.75rem", color: c.textMuted }}>{card.sub}</p>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
 
 export default function ComparisonSection() {
   return (
-    <section id="comparison" style={{ padding: "6rem 1.5rem" }}>
-      <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+    <section id="compare" style={{ background: c.bg, padding: "8rem 1.5rem", overflow: "hidden" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        {/* Header */}
+        <motion.div {...fadeUp} transition={{ duration: 0.5 }} style={{ textAlign: "center", marginBottom: 72 }}>
+          <p className="section-overline" style={{ marginBottom: "1rem", justifyContent: "center" }}>
+            Comparison
+          </p>
           <h2
             style={{
-              fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)",
-              fontWeight: 800,
+              fontSize: "clamp(2rem, 4vw, 2.75rem)",
+              fontWeight: 700,
+              color: c.textPrimary,
+              margin: 0,
               letterSpacing: "-0.03em",
-              color: "#f1f5f9",
-              margin: "0 0 1rem",
+              lineHeight: 1.15,
             }}
           >
-            How Aura Proxy{" "}
+            The old way vs.{" "}
             <span
               style={{
-                background: "linear-gradient(135deg, #a78bfa, #7c5cfc)",
+                background: `linear-gradient(135deg, ${c.purple}, #a78bfa)`,
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
               }}
             >
-              compares
+              The Aura way
             </span>
           </h2>
-          <p style={{ color: "#64748b", fontSize: "0.9375rem" }}>
-            vs. rolling your own vs. paying for a SaaS gateway
-          </p>
-        </div>
+        </motion.div>
 
+        {/* Columns */}
         <div
           style={{
-            background: "rgba(255,255,255,0.02)",
-            border: "1px solid rgba(255,255,255,0.06)",
-            borderRadius: "1rem",
-            overflow: "hidden",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
+            gap: 32,
           }}
         >
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <th
+          {/* ── Without Aura ── */}
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            viewport={{ once: true }}
+            style={{
+              background: "rgba(15,8,8,0.8)",
+              border: c.border,
+              borderRadius: 16,
+              padding: "32px 28px",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            {/* Chaos glow */}
+            <div
+              style={{
+                position: "absolute",
+                top: -80,
+                right: -60,
+                width: 340,
+                height: 340,
+                background: "radial-gradient(circle, rgba(239,68,68,0.12) 0%, rgba(234,88,12,0.08) 40%, transparent 70%)",
+                pointerEvents: "none",
+              }}
+            />
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28 }}>
+                <div
                   style={{
-                    padding: "1rem 1.25rem",
-                    textAlign: "left",
-                    fontSize: "0.8rem",
-                    fontFamily: "var(--font-mono)",
-                    color: "#475569",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                    fontWeight: 500,
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: c.red,
+                    boxShadow: `0 0 8px ${c.red}`,
                   }}
-                >
-                  Feature
-                </th>
-                {[
-                  { label: "Aura Proxy", highlight: true },
-                  { label: "Manual", highlight: false },
-                  { label: "SaaS Gateway", highlight: false },
-                ].map(({ label, highlight }) => (
-                  <th
-                    key={label}
-                    style={{
-                      padding: "1rem 1.25rem",
-                      textAlign: "center",
-                      fontSize: "0.8rem",
-                      fontFamily: "var(--font-mono)",
-                      color: highlight ? "#00d2ff" : "#475569",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.06em",
-                      fontWeight: highlight ? 700 : 500,
-                      background: highlight ? "rgba(0,114,255,0.05)" : "transparent",
-                    }}
-                  >
-                    {label}
-                  </th>
+                />
+                <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 600, color: c.textMuted }}>
+                  Without Aura Proxy
+                </h3>
+              </div>
+              <div style={{ position: "relative", height: 340 }}>
+                {chaosCards.map((card, i) => (
+                  <ChaosCard key={i} card={card} index={i} />
                 ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, i) => (
-                <tr
-                  key={row.feature}
+              </div>
+              <div
+                style={{
+                  marginTop: 16,
+                  padding: "12px 16px",
+                  background: "rgba(239,68,68,0.06)",
+                  border: "1px solid rgba(239,68,68,0.15)",
+                  borderRadius: 8,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <AlertTriangle size={14} color={c.red} />
+                <p style={{ margin: 0, fontSize: "0.8rem", color: c.red }}>
+                  Fragile, undocumented glue code holding everything together
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ── With Aura ── */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            viewport={{ once: true }}
+            style={{
+              background: "rgba(6,4,18,0.8)",
+              border: "1px solid rgba(124,92,252,0.15)",
+              borderRadius: 16,
+              padding: "32px 28px",
+              position: "relative",
+              overflow: "hidden",
+            }}
+          >
+            {/* Clean glow */}
+            <div
+              style={{
+                position: "absolute",
+                top: -60,
+                left: -40,
+                width: 380,
+                height: 380,
+                background: "radial-gradient(circle, rgba(124,92,252,0.12) 0%, rgba(74,222,128,0.05) 50%, transparent 70%)",
+                pointerEvents: "none",
+              }}
+            />
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28 }}>
+                <div
                   style={{
-                    borderBottom:
-                      i < rows.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
-                    background: i % 2 === 0 ? "rgba(255,255,255,0.01)" : "transparent",
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: c.green,
+                    boxShadow: `0 0 8px ${c.green}`,
+                  }}
+                />
+                <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 600, color: c.textMuted }}>
+                  With Aura Proxy
+                </h3>
+              </div>
+
+              <div style={{ position: "relative" }}>
+                {pipelineCards.map((card, i) => (
+                  <PipelineCard key={i} card={card} index={i} total={pipelineCards.length} />
+                ))}
+              </div>
+
+              {/* Success card */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                viewport={{ once: true }}
+                style={{
+                  background: "linear-gradient(135deg, rgba(74,222,128,0.10), rgba(124,92,252,0.08))",
+                  border: "1px solid rgba(74,222,128,0.25)",
+                  borderRadius: 12,
+                  padding: "16px 20px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  boxShadow: "0 0 32px rgba(74,222,128,0.08)",
+                  marginTop: 8,
+                }}
+              >
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    background: "rgba(74,222,128,0.15)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
                   }}
                 >
-                  <td
-                    style={{
-                      padding: "0.875rem 1.25rem",
-                      fontSize: "0.875rem",
-                      color: "#94a3b8",
-                    }}
-                  >
-                    {row.feature}
-                  </td>
-                  <td
-                    style={{
-                      padding: "0.875rem 1.25rem",
-                      textAlign: "center",
-                      background: "rgba(0,114,255,0.04)",
-                    }}
-                  >
-                    <Cell val={row.aura} />
-                  </td>
-                  <td style={{ padding: "0.875rem 1.25rem", textAlign: "center" }}>
-                    <Cell val={row.manual} />
-                  </td>
-                  <td style={{ padding: "0.875rem 1.25rem", textAlign: "center" }}>
-                    <Cell val={row.saas} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  <CheckCircle2 size={20} color={c.green} />
+                </div>
+                <div>
+                  <p style={{ margin: 0, fontSize: "0.9rem", fontWeight: 700, color: c.green }}>
+                    Response Delivered.
+                  </p>
+                  <p style={{ margin: "2px 0 0", fontSize: "0.78rem", color: c.textMuted }}>
+                    Zero headaches. 99.99% uptime. Bills stay sane.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>

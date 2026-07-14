@@ -3,6 +3,8 @@
 import HeroWave from "@/components/animations/HeroWave";
 import AuraHero from "@/components/animations/AuraHero";
 
+
+
 export default function HeroSection() {
   return (
     <section
@@ -11,145 +13,130 @@ export default function HeroSection() {
         position: "relative",
         background: "var(--aura-bg)",
         minHeight: "100vh",
+        overflow: "hidden",        /* ← kills all horizontal scroll */
         display: "flex",
-        flexDirection: "column",
         alignItems: "center",
-        // NO overflow:hidden - let the visual breathe
       }}
     >
-      {/* Dynamic Wave Canvas - full background */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 0,
-          opacity: 0.4,
-        }}
-      >
+      {/* ── Background layers ── */}
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, opacity: 0.35 }}>
         <HeroWave />
       </div>
-
-      {/* Radial overlay - blends wave into bg */}
       <div
         style={{
           position: "absolute",
           inset: 0,
           zIndex: 1,
           background:
-            "radial-gradient(ellipse 90% 55% at 50% 20%, rgba(5,5,7,0.35) 0%, rgba(5,5,7,0.7) 55%, #050507 100%)",
+            "radial-gradient(ellipse 90% 55% at 50% 20%, rgba(5,5,7,0.3) 0%, rgba(5,5,7,0.65) 55%, #050507 100%)",
           pointerEvents: "none",
         }}
       />
-
-      {/* Ambient violet glow from top */}
+      {/* Violet glow anchored to upper-left */}
       <div
         style={{
           position: "absolute",
-          top: 0,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "900px",
-          height: "500px",
+          top: "-60px",
+          left: "-60px",
+          width: "700px",
+          height: "550px",
           background:
-            "radial-gradient(ellipse at 50% 0%, rgba(124,92,252,0.16) 0%, transparent 70%)",
+            "radial-gradient(ellipse at 20% 10%, rgba(124,92,252,0.16) 0%, transparent 65%)",
           pointerEvents: "none",
           zIndex: 1,
         }}
       />
 
-      {/* ── Content ── */}
+      {/* ── Left gradient mask — behind the visual to keep it 100% clear ── */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 2,
+          background:
+            "linear-gradient(90deg, var(--aura-bg) 30%, rgba(5,5,7,0.8) 45%, rgba(5,5,7,0.1) 60%, transparent 80%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* ── Main Layout Wrapper (Grid overlays text & visual perfectly) ── */}
       <div
         style={{
           position: "relative",
-          zIndex: 2,
+          zIndex: 4,
           width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          paddingTop: "7rem",
-          paddingBottom: "4rem",
-          paddingLeft: "1.5rem",
-          paddingRight: "1.5rem",
-          gap: "3rem",
+          maxWidth: "1280px",
+          margin: "0 auto",
+          display: "grid",
+          gridTemplateColumns: "1fr",
+          alignItems: "center", // Vertically centers both overlapping elements
+          padding: "0 1.5rem",
         }}
       >
-        {/* ── HERO TEXT ── */}
+        {/* ── AuraHero (Visual) ── */}
         <div
           style={{
-            textAlign: "center",
-            maxWidth: "860px",
-            animation: "fadeInUp 0.7s var(--ease-out) both",
+            gridArea: "1 / 1",
+            justifySelf: "end",
+            marginRight: "-40px", // Utilize right-side margin
+            width: "860px",
+            zIndex: 3,
+            pointerEvents: "auto",
+            animation: "heroFadeRight 0.85s 0.15s cubic-bezier(0.22,1,0.36,1) both",
           }}
         >
-          {/* Badge */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              fontSize: "0.6875rem",
-              fontWeight: 600,
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              padding: "0.3rem 0.875rem",
-              borderRadius: "999px",
-              border: "1px solid rgba(124,92,252,0.35)",
-              color: "#a78bfa",
-              background: "rgba(124,92,252,0.08)",
-              marginBottom: "2rem",
-            }}
-          >
-            <span
-              style={{
-                width: "6px",
-                height: "6px",
-                borderRadius: "50%",
-                background: "#22c55e",
-                display: "inline-block",
-                animation: "pulse 2s infinite",
-              }}
-            />
-            Open-source AI Gateway · Self-hosted
+          {/* Scale down to create physical gap between text and visual */}
+          <div style={{ transform: "scale(0.85)", transformOrigin: "right center" }}>
+            <AuraHero />
           </div>
+        </div>
+
+        {/* ── Text content ── */}
+        <div
+          style={{
+            gridArea: "1 / 1",
+            zIndex: 4, // Text is always top
+            maxWidth: "540px", // Restrict width to guarantee a gap between text and scaled schema
+            animation: "heroFadeLeft 0.65s cubic-bezier(0.22,1,0.36,1) both",
+            textShadow: "0 4px 24px rgba(5,5,7,0.8)",
+          }}
+        >
+
 
           {/* Headline */}
           <h1
             style={{
-              fontSize: "var(--text-hero)",
-              fontWeight: 800,
-              letterSpacing: "var(--tracking-tight)",
-              lineHeight: 1.05,
+              fontSize: "clamp(42px, 4.8vw, 76px)",
+              fontWeight: 700,
+              letterSpacing: "-0.035em",
+              lineHeight: 1.06,
               color: "var(--aura-text-primary)",
-              margin: "0 0 1.25rem",
+              margin: "0 0 1.375rem",
             }}
           >
-            Stop paying for the{" "}
-            <span className="gradient-text">same AI request</span>{" "}
-            twice.
+            One proxy. <span className="gradient-text">Every provider.</span> Zero surprises.
           </h1>
 
-          {/* Sub */}
+          {/* Subtext */}
           <p
             style={{
-              fontSize: "var(--text-xl)",
+              fontSize: "1.0625rem",
               color: "var(--aura-text-secondary)",
               lineHeight: 1.7,
-              maxWidth: "560px",
-              margin: "0 auto 2.25rem",
+              maxWidth: "480px",
+              margin: "0 0 2.25rem",
             }}
           >
-            Semantic caching, intelligent routing, full observability.
-            One intelligent layer between your app and any LLM.
+            Aura Proxy is the abstraction layer between your app and every LLM. Route, cache, and control every request from a single endpoint.
           </p>
 
           {/* CTAs */}
           <div
             style={{
               display: "flex",
-              gap: "0.875rem",
-              justifyContent: "center",
+              gap: "0.75rem",
               flexWrap: "wrap",
+              marginBottom: "3rem",
             }}
           >
             <a
@@ -161,7 +148,7 @@ export default function HeroSection() {
                 padding: "0.8125rem 1.875rem",
                 background: "linear-gradient(135deg, #7c5cfc 0%, #5b3fd8 100%)",
                 color: "white",
-                fontWeight: 700,
+                fontWeight: 600,
                 fontSize: "0.9375rem",
                 borderRadius: "var(--radius-md)",
                 textDecoration: "none",
@@ -212,17 +199,7 @@ export default function HeroSection() {
               View on GitHub
             </a>
           </div>
-        </div>
 
-        {/* ── ARCHITECTURE VISUAL - direct, no scroll wrapper ── */}
-        <div
-          style={{
-            width: "100%",
-            maxWidth: "1200px",
-            animation: "fadeInUp 0.9s 0.15s var(--ease-out) both",
-          }}
-        >
-          <AuraHero />
         </div>
       </div>
 
@@ -236,16 +213,9 @@ export default function HeroSection() {
           height: "120px",
           background: "linear-gradient(to top, var(--aura-bg), transparent)",
           pointerEvents: "none",
-          zIndex: 2,
+          zIndex: 5,
         }}
       />
-
-      <style>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(24px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </section>
   );
 }

@@ -1,69 +1,124 @@
 "use client";
 
-const dockerCompose = `version: '3.8'
-services:
-  aura-proxy:
-    image: aura-proxy:latest
-    ports:
-      - "3000:3000"
-    environment:
-      - DATABASE_URL=postgresql://...
-      - REDIS_URL=redis://redis:6379
-      - OPENAI_API_KEY=sk-...
-  postgres:
-    image: pgvector/pgvector:pg16
-    environment:
-      POSTGRES_DB: aura
-  redis:
-    image: redis:7-alpine`;
+import { useEffect, useRef, useState } from "react";
+import { motion, useInView } from "framer-motion";
+import { Copy, Check } from "lucide-react";
+
+const dockerComposeLines = [
+  "version: '3.8'",
+  "services:",
+  "  postgres:",
+  "    image: pgvector/pgvector:pg16",
+  "    environment:",
+  "      POSTGRES_DB: aura",
+  "  redis:",
+  "    image: redis:7-alpine",
+  "  proxy:",
+  "    image: allegronontropo/aura-proxy:latest",
+  "    ports:",
+  "      - \"4000:4000\"",
+  "    environment:",
+  "      - DATABASE_URL=postgresql://...",
+  "      - REDIS_URL=redis://redis:6379",
+  "  dashboard:",
+  "    image: allegronontropo/aura-dashboard:latest",
+  "    ports:",
+  "      - \"3001:3001\"",
+];
+
+const dockerComposeText = dockerComposeLines.join("\n");
 
 export default function DeploySection() {
+  const [copied, setCopied] = useState(false);
+  const termRef = useRef(null);
+  const isInView = useInView(termRef, { once: true, margin: "-100px" });
+  const [displayedText, setDisplayedText] = useState("");
+  const [showCursor, setShowCursor] = useState(true);
+
+  useEffect(() => {
+    if (!isInView) return;
+
+    let currentLine = 0;
+    let currentChar = 0;
+    let text = "";
+    let isTyping = true;
+    let blinkInterval: NodeJS.Timeout;
+
+    const tick = () => {
+      if (!isTyping) return;
+
+      if (currentLine >= dockerComposeLines.length) {
+        isTyping = false;
+        blinkInterval = setInterval(() => {
+          setShowCursor(prev => !prev);
+        }, 500);
+        return;
+      }
+
+      const line = dockerComposeLines[currentLine];
+      if (currentChar < line.length) {
+        text += line[currentChar];
+        setDisplayedText(text);
+        currentChar++;
+        setTimeout(tick, 10);
+      } else {
+        text += "\n";
+        setDisplayedText(text);
+        currentLine++;
+        currentChar = 0;
+        setTimeout(tick, 50);
+      }
+    };
+
+    const timeout = setTimeout(tick, 600);
+    return () => {
+      isTyping = false;
+      clearTimeout(timeout);
+      if (blinkInterval) clearInterval(blinkInterval);
+    };
+  }, [isInView]);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(dockerComposeText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <section id="deploy" style={{ padding: "6rem 1.5rem", background: "rgba(0,0,0,0.2)" }}>
-      <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+    <section id="deploy" style={{ padding: "8rem 1.5rem", position: "relative" }}>
+      <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "4rem",
+            gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
+            gap: "5rem",
             alignItems: "center",
           }}
-          className="deploy-grid"
         >
           {/* Left text */}
-          <div>
-            <span
-              style={{
-                display: "inline-flex",
-                fontSize: "0.75rem",
-                fontWeight: 600,
-                fontFamily: "var(--font-mono)",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                padding: "0.25rem 0.75rem",
-                borderRadius: "999px",
-                border: "1px solid rgba(0,114,255,0.3)",
-                color: "#00d2ff",
-                background: "rgba(0,114,255,0.08)",
-                marginBottom: "1.5rem",
-              }}
-            >
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <p className="section-overline" style={{ marginBottom: "1rem" }}>
               Self-Hosted
-            </span>
+            </p>
             <h2
               style={{
-                fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)",
+                fontSize: "clamp(2rem, 4vw, 3rem)",
                 fontWeight: 800,
                 letterSpacing: "-0.03em",
                 color: "#f1f5f9",
                 margin: "0 0 1rem",
-                lineHeight: 1.15,
+                lineHeight: 1.1,
               }}
             >
               Deploy in{" "}
               <span
                 style={{
-                  background: "linear-gradient(135deg, #a78bfa, #7c5cfc)",
+                  background: "linear-gradient(135deg, #a78bfa 0%, #7c5cfc 100%)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
@@ -72,10 +127,10 @@ export default function DeploySection() {
                 60 Seconds
               </span>
             </h2>
-            <p style={{ color: "#64748b", lineHeight: 1.7, marginBottom: "1.5rem", fontSize: "0.9375rem" }}>
-              Up and running. In one command.
+            <p style={{ color: "#94a3b8", lineHeight: 1.7, marginBottom: "2rem", fontSize: "1.05rem" }}>
+              Aura Proxy runs on your infrastructure. Zero dependencies, maximum privacy.
             </p>
-            <ul style={{ listStyle: "none", padding: 0, margin: "0 0 2rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <ul style={{ listStyle: "none", padding: 0, margin: "0 0 2rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
               {[
                 "Docker Compose - zero dependencies",
                 "Your API keys stay on your infrastructure",
@@ -87,27 +142,26 @@ export default function DeploySection() {
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "0.625rem",
-                    fontSize: "0.875rem",
-                    color: "#94a3b8",
+                    gap: "0.75rem",
+                    fontSize: "0.95rem",
+                    color: "#cbd5e1",
                   }}
                 >
                   <span
                     style={{
-                      width: "1.25rem",
-                      height: "1.25rem",
+                      width: "1.5rem",
+                      height: "1.5rem",
                       borderRadius: "50%",
                       background: "rgba(16,185,129,0.15)",
                       border: "1px solid rgba(16,185,129,0.3)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontSize: "0.6rem",
                       color: "#10b981",
                       flexShrink: 0,
                     }}
                   >
-                    ✓
+                    <Check size={12} strokeWidth={3} />
                   </span>
                   {item}
                 </li>
@@ -135,64 +189,101 @@ export default function DeploySection() {
             >
               View on GitHub →
             </a>
-          </div>
+          </motion.div>
 
-          {/* Right: Code block */}
-          <div
+          {/* Right code block */}
+          <motion.div
+            initial={{ opacity: 0, y: 30, filter: "blur(6px)" }}
+            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
             style={{
-              background: "#020712",
-              border: "1px solid rgba(255,255,255,0.06)",
-              borderRadius: "1rem",
+              position: "relative",
+              background: "#0A0A0F",
+              borderRadius: "16px",
+              border: "1px solid rgba(255,255,255,0.08)",
+              boxShadow: "0 25px 50px -12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)",
               overflow: "hidden",
             }}
+            ref={termRef}
           >
-            {/* Terminal header */}
+            {/* Terminal Header */}
             <div
               style={{
-                padding: "0.75rem 1rem",
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
                 display: "flex",
                 alignItems: "center",
-                gap: "0.5rem",
-                background: "rgba(255,255,255,0.02)",
+                justifyContent: "space-between",
+                padding: "0.85rem 1rem",
+                background: "rgba(255,255,255,0.03)",
+                borderBottom: "1px solid rgba(255,255,255,0.06)",
               }}
             >
-              <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#ff5f57" }} />
-              <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#febc2e" }} />
-              <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#28c840" }} />
-              <span
+              <div style={{ display: "flex", gap: "6px" }}>
+                <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#ff5f56" }} />
+                <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#ffbd2e" }} />
+                <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#27c93f" }} />
+              </div>
+              
+              <div style={{
+                fontSize: "0.75rem",
+                color: "#64748b",
+                fontFamily: "var(--font-mono), monospace",
+                position: "absolute",
+                left: "50%",
+                transform: "translateX(-50%)",
+                fontWeight: 500,
+              }}>
+                docker-compose.yml
+              </div>
+
+              <button
+                onClick={handleCopy}
                 style={{
-                  marginLeft: "0.5rem",
-                  fontSize: "0.75rem",
-                  color: "#475569",
-                  fontFamily: "var(--font-mono)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.375rem",
+                  padding: "0.35rem 0.6rem",
+                  background: copied ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.05)",
+                  border: "1px solid",
+                  borderColor: copied ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.1)",
+                  borderRadius: "6px",
+                  color: copied ? "#10b981" : "#94a3b8",
+                  fontSize: "0.7rem",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
                 }}
               >
-                docker-compose.yml
-              </span>
+                {copied ? <Check size={12} /> : <Copy size={12} />}
+                {copied ? "Copied" : "Copy"}
+              </button>
             </div>
-            <pre
-              style={{
-                margin: 0,
-                padding: "1.25rem",
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.75rem",
-                lineHeight: 1.7,
-                color: "#94a3b8",
-                overflowX: "auto",
-              }}
-            >
-              <code>{dockerCompose}</code>
+
+            {/* Terminal Body */}
+            <pre style={{ margin: 0, padding: "1.5rem", overflowX: "auto" }}>
+              <code
+                style={{
+                  fontFamily: "var(--font-mono), monospace",
+                  fontSize: "0.85rem",
+                  lineHeight: 1.6,
+                  color: "#cbd5e1",
+                }}
+              >
+                {displayedText}
+                <span 
+                  style={{ 
+                    opacity: showCursor ? 1 : 0, 
+                    color: "#7c5cfc",
+                    transition: "opacity 0.1s" 
+                  }}
+                >
+                  ▋
+                </span>
+              </code>
             </pre>
-          </div>
+          </motion.div>
         </div>
       </div>
-
-      <style>{`
-        @media (max-width: 768px) {
-          .deploy-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </section>
   );
 }

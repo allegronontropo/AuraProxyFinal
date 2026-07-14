@@ -1,7 +1,7 @@
 import NavBar from "@/components/NavBar";
 import HeroSection from "@/components/sections/HeroSection";
 import StatsStrip from "@/components/StatsStrip";
-import FeaturesV3 from "@/components/FeaturesV3";
+import FeaturesBento from "@/components/sections/FeaturesBento";
 import ArchitectureSection from "@/components/ArchitectureSection";
 import DeploySection from "@/components/DeploySection";
 import ComparisonSection from "@/components/ComparisonSection";
@@ -14,7 +14,7 @@ export default function Home() {
       <main>
         <HeroSection />
         <StatsStrip />
-        <FeaturesV3 />
+        <FeaturesBento />
         <ArchitectureSection />
         <DeploySection />
         <ComparisonSection />
