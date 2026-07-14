@@ -19,6 +19,18 @@ export const prisma =
       process.env.NODE_ENV === 'development'
         ? ['query', 'warn', 'error']
         : ['warn', 'error'],
+    errorFormat: 'pretty',
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
+    // Increase connection pool for better handling of concurrent requests
+    // Only apply in production or when explicitly set
+    ...(process.env.NODE_ENV === 'production' && {
+      // Pool settings can be controlled via DATABASE_URL query params
+      // ?connection_limit=20&pool_timeout=30
+    }),
   });
 
 if (process.env.NODE_ENV !== 'production') {
