@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Eye, EyeOff, Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, Mail, CheckCircle } from "lucide-react";
 import { Renderer, Program, Mesh, Color, Triangle } from "ogl";
 
 // --- WebGL Shaders & Component ---
@@ -229,18 +229,20 @@ function PlasmaWeb({
       const testCanvas = document.createElement("canvas");
       const testCtx = testCanvas.getContext("webgl") || testCanvas.getContext("experimental-webgl");
       if (!testCtx) return;
-    } catch (e) {
+    } catch {
       return;
     }
 
     const ctn = ctnDom.current;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let renderer: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let gl: any;
     try {
       renderer = new Renderer({ alpha: transparent, premultipliedAlpha: false });
       gl = renderer.gl;
       if (!gl) return;
-    } catch (e) {
+    } catch {
       return;
     }
 
@@ -698,12 +700,12 @@ function AuthForm() {
                 </div>
                 <CardTitle className="text-3xl font-bold text-zinc-100 tracking-tight">Check Your Email</CardTitle>
                 <CardDescription className="text-zinc-400 text-base">
-                  We've sent a password reset link to <strong className="text-zinc-200">{resetData.email}</strong>
+                  We&apos;ve sent a password reset link to <strong className="text-zinc-200">{resetData.email}</strong>
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center space-y-6 px-8">
                 <p className="text-sm text-zinc-500">
-                  Click the link in the email to securely reset your password. If you don't see it, check your spam folder.
+                  Click the link in the email to securely reset your password. If you don&apos;t see it, check your spam folder.
                 </p>
                 <div className="flex flex-col gap-3">
                   <Button
