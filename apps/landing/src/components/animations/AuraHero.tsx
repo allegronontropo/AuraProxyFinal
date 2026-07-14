@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRef, useEffect, useState, useCallback } from "react";
-import { motion, AnimatePresence, animate, useMotionValue, useTransform } from "framer-motion";
+import { motion, AnimatePresence, animate, useMotionValue, useTransform } from "motion/react";
 import { Globe, Smartphone, Server, Zap, Navigation, Activity, Shield } from "lucide-react";
 
 const C = {

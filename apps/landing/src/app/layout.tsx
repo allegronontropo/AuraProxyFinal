@@ -3,8 +3,10 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://auraproxy.dev";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "Aura Proxy - Open-Source AI Gateway",
   description:
     "Self-hosted AI gateway with semantic caching, intelligent routing, and full observability. Stop paying for the same AI request twice.",

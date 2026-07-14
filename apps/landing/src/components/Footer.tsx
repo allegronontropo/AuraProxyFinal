@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { ArrowRight, GitBranch, ExternalLink } from "lucide-react";
 import { useState, type CSSProperties } from "react";
 import Image from "next/image";
@@ -301,10 +301,14 @@ export default function Footer() {
           © 2026 Aura Proxy, Inc. All rights reserved.
         </p>
         <div style={{ display: "flex", gap: 24 }}>
-          {["Terms", "Privacy", "Cookie Policy"].map((item) => (
+          {[
+            { label: "Terms", href: "/legal/terms" },
+            { label: "Privacy", href: "/legal/privacy" },
+            { label: "Cookie Policy", href: "/legal/cookies" },
+          ].map((item) => (
             <a
-              key={item}
-              href="#"
+              key={item.href}
+              href={item.href}
               style={{
                 fontSize: "0.8rem",
                 color: c.textDim,
@@ -312,7 +316,7 @@ export default function Footer() {
                 transition: "color 0.15s",
               }}
             >
-              {item}
+              {item.label}
             </a>
           ))}
         </div>
