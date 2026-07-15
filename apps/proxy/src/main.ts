@@ -33,7 +33,7 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('PROXY_PORT') ?? 3000;
+  const port = configService.get<number>('PORT') ?? configService.get<number>('PROXY_PORT') ?? 3000;
   await app.listen(port, '0.0.0.0');
   console.log(`🚀 Aura Proxy running on http://localhost:${port}`);
   console.log(`📚 Swagger UI: http://localhost:${port}/api/docs`);
