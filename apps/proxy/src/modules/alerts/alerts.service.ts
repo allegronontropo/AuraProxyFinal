@@ -20,19 +20,20 @@ export class AlertsService {
   private readonly DEDUP_WINDOW_MS = 60_000; // 1 minute
 
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASSWORD;
+    const smtpHost = process.env.SMTP_HOST;
+    const smtpPort = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined;
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPassword = process.env.SMTP_PASSWORD;
 
-    if (user && pass) {
+    if (smtpHost && smtpPort && smtpUser && smtpPassword) {
       this.transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
-        auth: { user, pass },
+        host: smtpHost,
+        port: smtpPort,
+        auth: { user: smtpUser, pass: smtpPassword },
       });
-      this.logger.log('Gmail SMTP Transporter initialized successfully.');
+      this.logger.log('SMTP Transporter initialized successfully.');
     } else {
-      this.logger.warn('SMTP_USER or SMTP_PASSWORD not found in .env. Email notifications are disabled.');
+      this.logger.warn('SMTP configuration is incomplete. Please set SMTP_HOST, SMTP_PORT, SMTP_USER and SMTP_PASSWORD. Email notifications are disabled.');
     }
   }
 
