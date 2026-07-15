@@ -100,6 +100,7 @@ export async function updateProject(
 
     revalidatePath(`/dashboard/${projectId}`);
     revalidatePath(`/dashboard/${projectId}/settings`);
+    revalidatePath(`/admin/projects`);
     return { success: true };
   } catch (error) {
     console.error("updateProject error:", error);

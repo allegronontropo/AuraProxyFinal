@@ -3,8 +3,7 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install turbo
-RUN npm install -g turbo
+
 
 # Copy all source files
 COPY . .
@@ -40,9 +39,9 @@ COPY --from=builder /app/apps/proxy/dist ./apps/proxy/dist
 RUN npm install --omit=dev
 
 # Generate prisma client for production
-RUN npm run db:generate
 
-EXPOSE 4000
+
+EXPOSE 3000
 
 # Start the proxy
 CMD ["node", "apps/proxy/dist/src/main.js"]
