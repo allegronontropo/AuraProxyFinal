@@ -1,6 +1,5 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Resend } from 'resend';
 import { AlertSeverity } from '@aura/shared';
 
 export interface CreateAlertDto {
@@ -15,18 +14,19 @@ export interface CreateAlertDto {
 @Injectable()
 export class AlertsService {
   private readonly logger = new Logger(AlertsService.name);
-  private readonly resend: Resend | null = null;
   private readonly recentAlerts = new Map<string, number>(); // key -> last created timestamp
   private readonly DEDUP_WINDOW_MS = 60_000; // 1 minute
+  private readonly dashboardUrl: string | undefined;
+  private readonly internalSecret: string | undefined;
 
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {
-    const resendApiKey = process.env.RESEND_API_KEY;
+    this.dashboardUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.DASHBOARD_URL;
+    this.internalSecret = process.env.SMTP_PASSWORD;
 
-    if (resendApiKey) {
-      this.resend = new Resend(resendApiKey);
-      this.logger.log('Resend API initialized successfully.');
+    if (this.dashboardUrl && this.internalSecret) {
+      this.logger.log('Internal Dashboard Alert Mailer initialized successfully.');
     } else {
-      this.logger.warn('RESEND_API_KEY not found in .env. Email notifications are disabled.');
+      this.logger.warn('DASHBOARD_URL (or NEXT_PUBLIC_APP_URL) and SMTP_PASSWORD must be set on the Proxy to enable email routing.');
     }
   }
 
@@ -67,10 +67,10 @@ export class AlertsService {
 
       this.logger.log(`Created [${dto.severity}] alert for project ${dto.projectId}: ${dto.title}`);
 
-      // 2. Dispatch email if severity is critical and resend is available
-      if (dto.severity === 'critical' && this.resend) {
+      // 2. Dispatch email if severity is critical and the dashboard router is configured
+      if (dto.severity === 'critical' && this.dashboardUrl && this.internalSecret) {
         this.dispatchCriticalEmail(dto).catch(e => 
-          this.logger.error(`Failed to dispatch critical alert email: ${e.message}`)
+          this.logger.error(`Failed to route critical alert email: ${e.message}`)
         );
       }
 
@@ -93,38 +93,51 @@ export class AlertsService {
 
   private async sendCriticalAlertEmail(to: string, dto: CreateAlertDto, projectName: string) {
     try {
-      this.logger.log(`Attempting to send critical alert email to ${to} via Resend...`);
-      const { data, error } = await this.resend!.emails.send({
-        from: 'Aura Proxy Alerts <onboarding@resend.dev>',
-        to: [to],
-        subject: `[CRITICAL] Aura Proxy Alert: ${projectName}`,
-        html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
-            <h2 style="color: #ef4444; margin-top: 0;">Critical Alert Triggered</h2>
-            <p><strong>Project:</strong> ${projectName}</p>
-            <p><strong>Title:</strong> ${dto.title}</p>
-            <p><strong>Source:</strong> ${dto.source}</p>
-            <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
-            <p><strong>Description:</strong></p>
-            <div style="background-color: #f3f4f6; padding: 12px; border-radius: 6px;">
-              <code style="color: #1f2937;">${dto.description}</code>
-            </div>
-            ${dto.metadata ? `
-              <p><strong>Metadata:</strong></p>
-              <pre style="background-color: #f3f4f6; padding: 12px; border-radius: 6px; overflow-x: auto;"><code style="color: #1f2937;">${JSON.stringify(dto.metadata, null, 2)}</code></pre>
-            ` : ''}
-            <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">Log into your Aura Proxy dashboard to review and resolve this alert.</p>
-          </div>
-        `,
-      });
+      this.logger.log(`Attempting to route critical alert email to ${to} via Dashboard API...`);
       
-      if (error) {
-        this.logger.error(`Failed to dispatch critical alert email to ${to}: ${error.message}`);
+      const baseUrl = this.dashboardUrl!.replace(/\/$/, '');
+      const html = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+          <h2 style="color: #ef4444; margin-top: 0;">Critical Alert Triggered</h2>
+          <p><strong>Project:</strong> ${projectName}</p>
+          <p><strong>Title:</strong> ${dto.title}</p>
+          <p><strong>Source:</strong> ${dto.source}</p>
+          <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+          <p><strong>Description:</strong></p>
+          <div style="background-color: #f3f4f6; padding: 12px; border-radius: 6px;">
+            <code style="color: #1f2937;">${dto.description}</code>
+          </div>
+          ${dto.metadata ? `
+            <p><strong>Metadata:</strong></p>
+            <pre style="background-color: #f3f4f6; padding: 12px; border-radius: 6px; overflow-x: auto;"><code style="color: #1f2937;">${JSON.stringify(dto.metadata, null, 2)}</code></pre>
+          ` : ''}
+          <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">Log into your Aura Proxy dashboard to review and resolve this alert.</p>
+        </div>
+      `;
+
+      const response = await fetch(`${baseUrl}/api/internal/alerts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.internalSecret}`
+        },
+        body: JSON.stringify({
+          to,
+          subject: `[CRITICAL] Aura Proxy Alert: ${projectName}`,
+          html
+        })
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        this.logger.error(`Failed to route critical alert email to ${to}: ${data.error || response.statusText}`);
         return;
       }
-      this.logger.log(`Email dispatched successfully to ${to} (Message ID: ${data?.id})`);
+      
+      this.logger.log(`Email dispatched successfully to ${to} via Dashboard (Message ID: ${data.messageId})`);
     } catch (err: any) {
-      this.logger.error(`Failed to dispatch critical alert email to ${to}: ${err.message}`);
+      this.logger.error(`Failed to route critical alert email to ${to}: ${err.message}`);
     }
   }
 }
