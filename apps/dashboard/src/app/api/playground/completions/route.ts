@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Server configuration error" }, { status: 500 });
     }
 
-    const proxyUrl = process.env.PROXY_URL;
+    const proxyUrl = process.env.PROXY_URL || process.env.NEXT_PUBLIC_PROXY_URL;
     if (!proxyUrl) {
       console.error('PROXY_URL is not configured for dashboard playground forwarding.');
       return NextResponse.json({ message: 'Server configuration error' }, { status: 500 });

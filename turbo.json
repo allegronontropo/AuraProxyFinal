@@ -4,6 +4,7 @@
   "globalEnv": [
     "DATABASE_URL",
     "REDIS_URL",
+    "PROXY_URL",
     "NEXT_PUBLIC_PROXY_URL",
     "NEXT_PUBLIC_DASHBOARD_URL",
     "NEXT_PUBLIC_LANDING_URL",
