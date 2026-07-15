@@ -1,37 +1,54 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { pipeline, FeatureExtractionPipeline } from '@xenova/transformers';
 
 @Injectable()
 export class EmbeddingsService implements OnModuleInit {
   private readonly logger = new Logger(EmbeddingsService.name);
-  private extractor: FeatureExtractionPipeline | null = null;
-  public readonly model = 'Xenova/all-MiniLM-L6-v2';
+  public readonly model = 'nvidia/llama-nemotron-embed-vl-1b-v2';
+  private apiKey: string | undefined;
 
   async onModuleInit() {
-    this.logger.log(`Loading local embedding model: ${this.model}`);
-    try {
-      this.extractor = await pipeline('feature-extraction', this.model, {
-        quantized: true,
-      });
-      this.logger.log('Local embedding model loaded successfully.');
-    } catch (error: any) {
-      this.logger.error(`Failed to load local embedding model: ${error.message}`);
+    this.apiKey = process.env.EMBEDDING_API_KEY;
+    if (!this.apiKey) {
+      this.logger.warn('EMBEDDING_API_KEY is not set. Semantic cache embeddings will fail.');
     }
+    this.logger.log(`Initialized remote embedding service using NVIDIA model: ${this.model}`);
   }
 
   /**
-   * Generates a 384-dimensional embedding vector locally.
+   * Generates a 2048-dimensional embedding vector via NVIDIA API.
    */
   async generate(text: string): Promise<number[]> {
-    if (!this.extractor) {
-      this.logger.warn('Embedding model not loaded. Returning zero vector.');
-      return new Array(384).fill(0);
+    if (!this.apiKey) {
+      this.logger.warn('EMBEDDING_API_KEY not found. Returning zero vector.');
+      return new Array(1536).fill(0);
     }
 
     try {
-      // Generate the embedding. mean pooling and L2 normalization are standard for STS.
-      const output = await this.extractor(text.replace(/\n/g, ' '), { pooling: 'mean', normalize: true });
-      return Array.from(output.data);
+      const response = await fetch('https://integrate.api.nvidia.com/v1/embeddings', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: this.model,
+          input: [text],
+          input_type: 'query',
+          dimensions: 1536
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.text();
+        throw new Error(`NVIDIA API error: ${response.status} ${errData}`);
+      }
+
+      const data = await response.json();
+      if (!data.data || !data.data[0] || !data.data[0].embedding) {
+        throw new Error('Invalid response format from NVIDIA');
+      }
+
+      return data.data[0].embedding;
     } catch (error: any) {
       throw new Error(`[EmbeddingsService] Failed to generate embedding: ${error.message}`);
     }

@@ -101,7 +101,7 @@ model SemanticCache {
   parametersHash String   @map("parameters_hash")
   model          String
   provider       String   @default("openai")
-  embedding      Unsupported("vector(384)")?
+  embedding      Unsupported("vector(1536)")?
   response       Json
   hitCount       Int      @default(0) @map("hit_count")
   createdAt      DateTime @default(now()) @map("created_at")
