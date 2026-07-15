@@ -25,7 +25,9 @@ export class AlertsService {
 
     if (user && pass) {
       this.transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
         auth: { user, pass },
       });
       this.logger.log('Gmail SMTP Transporter initialized successfully.');
