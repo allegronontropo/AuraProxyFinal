@@ -16,6 +16,8 @@ export interface CreateAlertDto {
 export class AlertsService {
   private readonly logger = new Logger(AlertsService.name);
   private readonly transporter: nodemailer.Transporter | null = null;
+  private readonly recentAlerts = new Map<string, number>(); // key -> last created timestamp
+  private readonly DEDUP_WINDOW_MS = 60_000; // 1 minute
 
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {
     const user = process.env.SMTP_USER;
@@ -32,7 +34,27 @@ export class AlertsService {
     }
   }
 
+  private isDuplicate(dto: CreateAlertDto): boolean {
+    const dedupKey = `${dto.projectId}:${dto.title}`;
+    const lastSeen = this.recentAlerts.get(dedupKey);
+    if (lastSeen && Date.now() - lastSeen < this.DEDUP_WINDOW_MS) {
+      return true;
+    }
+    this.recentAlerts.set(dedupKey, Date.now());
+    // Prevent unbounded growth
+    if (this.recentAlerts.size > 2000) {
+      const firstKey = this.recentAlerts.keys().next().value;
+      if (firstKey) this.recentAlerts.delete(firstKey);
+    }
+    return false;
+  }
+
   async createAlert(dto: CreateAlertDto) {
+    if (this.isDuplicate(dto)) {
+      this.logger.debug(`Skipping duplicate alert: ${dto.title} for project ${dto.projectId}`);
+      return;
+    }
+
     try {
       // 1. Save alert to database
       const alert = await this.prisma.client.alert.create({
@@ -45,27 +67,32 @@ export class AlertsService {
           source: dto.source,
           metadata: dto.metadata || {},
         },
-        include: {
-          project: {
-            include: { tenant: true }
-          }
-        }
       });
 
       this.logger.log(`Created [${dto.severity}] alert for project ${dto.projectId}: ${dto.title}`);
 
       // 2. Dispatch email if severity is critical and transporter is available
       if (dto.severity === 'critical' && this.transporter) {
-        const ownerEmail = alert.project.tenant.email;
-        if (ownerEmail) {
-          await this.sendCriticalAlertEmail(ownerEmail, dto, alert.project.name);
-        }
+        this.dispatchCriticalEmail(dto).catch(e => 
+          this.logger.error(`Failed to dispatch critical alert email: ${e.message}`)
+        );
       }
 
       return alert;
     } catch (err: any) {
       this.logger.error(`Failed to create alert: ${err.message}`);
     }
+  }
+
+  private async dispatchCriticalEmail(dto: CreateAlertDto): Promise<void> {
+    const project = await this.prisma.client.project.findUnique({
+      where: { id: dto.projectId },
+      select: { name: true, tenant: { select: { email: true } } },
+    });
+
+    if (!project?.tenant?.email) return;
+
+    await this.sendCriticalAlertEmail(project.tenant.email, dto, project.name);
   }
 
   private async sendCriticalAlertEmail(to: string, dto: CreateAlertDto, projectName: string) {
