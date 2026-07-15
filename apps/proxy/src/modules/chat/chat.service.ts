@@ -108,6 +108,7 @@ export class ChatService {
     let lastError: Error | null = null;
     let primaryError: Error | null = null;
     let fallbackErrors: string[] = [];
+    let isPrimaryAttempt = true;
 
     for (const { providerName, modelName } of chain) {
       let provider: LLMProvider;
@@ -126,17 +127,18 @@ export class ChatService {
           description: `Attempted to route to ${providerName} but no API key is configured.`,
         }).catch(e => this.logger.error(`Failed to create missing key alert: ${e.message}`));
 
-        if (providerName === primaryProvider) {
+        if (isPrimaryAttempt) {
           primaryError = err;
         } else {
-          fallbackErrors.push(`[${providerName}] ${this.simplifyErrorMessage(err.message)}`);
+          fallbackErrors.push(`[${providerName}:${modelName}] ${this.simplifyErrorMessage(err.message)}`);
         }
         lastError = err;
+        isPrimaryAttempt = false;
         continue;
       }
 
       try {
-        const isFallback = providerName !== primaryProvider || modelName !== request.model;
+        const isFallback = !isPrimaryAttempt;
         if (isFallback) {
           this.logger.warn(`Falling back to "${providerName}:${modelName}" after previous model failed`);
           this.alerts.createAlert({
@@ -192,10 +194,10 @@ export class ChatService {
 
         return response;
       } catch (err: any) {
-        if (providerName === primaryProvider) {
+        if (isPrimaryAttempt) {
           primaryError = err;
         } else {
-          fallbackErrors.push(`[${providerName}] ${this.simplifyErrorMessage(err.message)}`);
+          fallbackErrors.push(`[${providerName}:${modelName}] ${this.simplifyErrorMessage(err.message)}`);
         }
         lastError = err;
         this.logger.warn(
@@ -235,6 +237,9 @@ export class ChatService {
         }
         // Otherwise continue to the next provider in the chain
       }
+
+      // Ensure next iteration is treated as a fallback
+      isPrimaryAttempt = false;
     }
 
     // All providers exhausted
