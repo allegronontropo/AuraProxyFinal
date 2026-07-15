@@ -40,7 +40,8 @@ COPY --from=builder /app/apps/proxy/dist ./apps/proxy/dist
 RUN npm install --omit=dev
 
 # Generate prisma client for production
-
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
 EXPOSE 3000
 
