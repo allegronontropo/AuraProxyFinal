@@ -44,5 +44,5 @@ RUN npm install --omit=dev
 
 EXPOSE 3000
 
-# Start the proxy
-CMD ["node", "apps/proxy/dist/src/main.js"]
+# Start the proxy (run migrations first)
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=packages/db/prisma/schema.prisma && node apps/proxy/dist/src/main.js"]

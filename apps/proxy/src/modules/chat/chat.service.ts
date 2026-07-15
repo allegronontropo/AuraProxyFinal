@@ -71,7 +71,7 @@ export class ChatService {
     );
 
     // Route through fallback chain
-    return this.tryWithFallback(request, project, primaryProvider, cacheInput, cacheLatencyMs);
+    return this.tryWithFallback(request, project, primaryProvider, cacheInput, cacheLatencyMs, cacheLookup.queryVector);
   }
 
   /**
@@ -84,6 +84,7 @@ export class ChatService {
     primaryProvider: string,
     cacheInput: Parameters<CacheService['set']>[0],
     cacheLatencyMs: number,
+    queryVector?: number[],
   ): Promise<ChatResponse> {
     
     // Build the execution chain
@@ -164,7 +165,7 @@ export class ChatService {
 
         // Cache the successful response
         this.cache
-          .set(cacheInput, response)
+          .set(cacheInput, response, queryVector)
           .catch((err) => this.logger.error(`Failed to cache response: ${err.message}`));
 
         // Record cost

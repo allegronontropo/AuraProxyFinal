@@ -10,6 +10,7 @@ export interface CacheLookupResult {
   kind: 'exact' | 'semantic' | 'miss';
   similarityScore?: number;
   response?: ChatResponse | null;
+  queryVector?: number[];
 }
 
 export interface CacheLookupInput {
@@ -81,13 +82,15 @@ export class CacheService implements OnModuleInit {
       };
     }
 
+    let queryVector: number[] | undefined;
+
     // 2. AI PATH: Semantic Similarity (Needs embedding generation)
     // Only use semantic cache for shorter prompts to avoid embedding truncation
     // all-MiniLM-L6-v2 truncates at 512 tokens. If a multi-turn chat exceeds this,
     // the new message at the end is ignored, causing 100% false positive matches.
     if (input.prompt.length < 2000) {
       try {
-        const queryVector = await this.embeddings.generate(input.prompt);
+        queryVector = await this.embeddings.generate(input.prompt);
         const vectorString = `[${queryVector.join(',')}]`;
 
         // Semantic search using cosine similarity via pgvector
@@ -155,15 +158,15 @@ export class CacheService implements OnModuleInit {
     }
 
     this.logger.log(`CACHE MISS for model ${input.model} in project ${input.projectId}`);
-    return { hit: false, kind: 'miss' };
+    return { hit: false, kind: 'miss', queryVector };
   }
 
   /**
    * Store a response in the semantic cache with its embedding vector.
    */
-  async set(input: CacheLookupInput, response: ChatResponse, ttlDays = 7): Promise<void> {
+  async set(input: CacheLookupInput, response: ChatResponse, queryVector?: number[], ttlDays = 7): Promise<void> {
     try {
-      const vector = await this.embeddings.generate(input.prompt);
+      const vector = queryVector ?? (await this.embeddings.generate(input.prompt));
       const promptHash = this.hashPrompt(input.prompt);
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + ttlDays);
