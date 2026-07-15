@@ -1,6 +1,6 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { AlertSeverity } from '@aura/shared';
 
 export interface CreateAlertDto {
@@ -15,27 +15,18 @@ export interface CreateAlertDto {
 @Injectable()
 export class AlertsService {
   private readonly logger = new Logger(AlertsService.name);
-  private readonly transporter: nodemailer.Transporter | null = null;
+  private readonly resend: Resend | null = null;
   private readonly recentAlerts = new Map<string, number>(); // key -> last created timestamp
   private readonly DEDUP_WINDOW_MS = 60_000; // 1 minute
 
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {
-    const smtpHost = process.env.SMTP_HOST;
-    const smtpPort = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined;
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPassword = process.env.SMTP_PASSWORD;
+    const resendApiKey = process.env.RESEND_API_KEY;
 
-    if (smtpHost && smtpPort && smtpUser && smtpPassword) {
-      this.transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: smtpPort,
-        secure: smtpPort === 465,
-        tls: { rejectUnauthorized: false },
-        auth: { user: smtpUser, pass: smtpPassword },
-      });
-      this.logger.log('SMTP Transporter initialized successfully.');
+    if (resendApiKey) {
+      this.resend = new Resend(resendApiKey);
+      this.logger.log('Resend API initialized successfully.');
     } else {
-      this.logger.warn('SMTP configuration is incomplete. Please set SMTP_HOST, SMTP_PORT, SMTP_USER and SMTP_PASSWORD. Email notifications are disabled.');
+      this.logger.warn('RESEND_API_KEY not found in .env. Email notifications are disabled.');
     }
   }
 
@@ -76,8 +67,8 @@ export class AlertsService {
 
       this.logger.log(`Created [${dto.severity}] alert for project ${dto.projectId}: ${dto.title}`);
 
-      // 2. Dispatch email if severity is critical and transporter is available
-      if (dto.severity === 'critical' && this.transporter) {
+      // 2. Dispatch email if severity is critical and resend is available
+      if (dto.severity === 'critical' && this.resend) {
         this.dispatchCriticalEmail(dto).catch(e => 
           this.logger.error(`Failed to dispatch critical alert email: ${e.message}`)
         );
@@ -102,10 +93,10 @@ export class AlertsService {
 
   private async sendCriticalAlertEmail(to: string, dto: CreateAlertDto, projectName: string) {
     try {
-      this.logger.log(`Attempting to send critical alert email to ${to}...`);
-      const info = await this.transporter!.sendMail({
-        from: `"Aura Proxy Alerts" <${process.env.SMTP_USER}>`,
-        to,
+      this.logger.log(`Attempting to send critical alert email to ${to} via Resend...`);
+      const { data, error } = await this.resend!.emails.send({
+        from: 'Aura Proxy Alerts <onboarding@resend.dev>',
+        to: [to],
         subject: `[CRITICAL] Aura Proxy Alert: ${projectName}`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
@@ -126,7 +117,12 @@ export class AlertsService {
           </div>
         `,
       });
-      this.logger.log(`Email dispatched successfully to ${to} (Message ID: ${info.messageId})`);
+      
+      if (error) {
+        this.logger.error(`Failed to dispatch critical alert email to ${to}: ${error.message}`);
+        return;
+      }
+      this.logger.log(`Email dispatched successfully to ${to} (Message ID: ${data?.id})`);
     } catch (err: any) {
       this.logger.error(`Failed to dispatch critical alert email to ${to}: ${err.message}`);
     }
