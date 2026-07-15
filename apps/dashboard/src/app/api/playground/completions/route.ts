@@ -46,6 +46,10 @@ export async function POST(req: Request) {
     const proxyEndpoint = `${normalizedProxyUrl}/v1/chat/completions`;
 
     // Forward the request to the Aura Proxy
+    // Timeout after 15s to avoid Vercel's 60s hard timeout causing silent hangs
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     const proxyRes = await fetch(proxyEndpoint, {
       method: "POST",
       headers: {
@@ -54,6 +58,7 @@ export async function POST(req: Request) {
         "x-dashboard-api-key-id": apiKey.id,
         "x-provider": provider || "openai",
       },
+      signal: controller.signal,
       body: JSON.stringify({
         model,
         messages,
@@ -62,6 +67,7 @@ export async function POST(req: Request) {
         stream: false, // Keep streaming false for MVP stability
       }),
     });
+    clearTimeout(timeoutId);
 
     const proxyData = await proxyRes.json();
 
@@ -73,6 +79,9 @@ export async function POST(req: Request) {
 
   } catch (error: unknown) {
     console.error("Playground API Error:", error);
+    if (error instanceof Error && error.name === 'AbortError') {
+      return NextResponse.json({ message: 'Le proxy n\'a pas répondu dans les 15 secondes. Vérifiez que le service Railway est bien actif.' }, { status: 504 });
+    }
     return NextResponse.json({ message: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }
