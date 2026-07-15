@@ -29,6 +29,8 @@ export class AlertsService {
       this.transporter = nodemailer.createTransport({
         host: smtpHost,
         port: smtpPort,
+        secure: smtpPort === 465,
+        tls: { rejectUnauthorized: false },
         auth: { user: smtpUser, pass: smtpPassword },
       });
       this.logger.log('SMTP Transporter initialized successfully.');
@@ -100,6 +102,7 @@ export class AlertsService {
 
   private async sendCriticalAlertEmail(to: string, dto: CreateAlertDto, projectName: string) {
     try {
+      this.logger.log(`Attempting to send critical alert email to ${to}...`);
       const info = await this.transporter!.sendMail({
         from: `"Aura Proxy Alerts" <${process.env.SMTP_USER}>`,
         to,
