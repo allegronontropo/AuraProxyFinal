@@ -4,6 +4,8 @@ import { prisma } from "@aura/db";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { redis } from "@aura/redis";
+import { REDIS_KEYS } from "@aura/shared";
 
 export async function getProjectRouting(projectId: string) {
   const session = await auth();
@@ -33,6 +35,20 @@ export async function saveProjectRouting(projectId: string, fallbackModels: stri
       where: { id: projectId },
       data: { fallbackModels },
     });
+
+    const keys = await prisma.apiKey.findMany({
+      where: { projectId },
+      select: { id: true, keyHash: true },
+    });
+    
+    try {
+      for (const key of keys) {
+        await redis.del(REDIS_KEYS.apiKeyCache(key.keyHash));
+        await redis.del(REDIS_KEYS.apiKeyCache(`id:${key.id}`));
+      }
+    } catch (redisError) {
+      console.error("Failed to invalidate Redis cache:", redisError);
+    }
 
     revalidatePath(`/dashboard/${projectId}/routing`);
     return { success: true };
