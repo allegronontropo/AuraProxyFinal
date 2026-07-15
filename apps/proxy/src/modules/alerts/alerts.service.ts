@@ -83,10 +83,13 @@ export class AlertsService {
   private async dispatchCriticalEmail(dto: CreateAlertDto): Promise<void> {
     const project = await this.prisma.client.project.findUnique({
       where: { id: dto.projectId },
-      select: { name: true, tenant: { select: { email: true } } },
+      select: { name: true, tenant: { select: { email: true, sendAlerts: true } } },
     });
 
-    if (!project?.tenant?.email) return;
+    if (!project?.tenant?.email || project.tenant.sendAlerts === false) {
+      this.logger.debug(`Email alerts are disabled or email missing for project ${project?.name}`);
+      return;
+    }
 
     await this.sendCriticalAlertEmail(project.tenant.email, dto, project.name);
   }
