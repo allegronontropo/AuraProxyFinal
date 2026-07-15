@@ -34,8 +34,9 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true, messageId: info.messageId });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to send internal alert email:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
