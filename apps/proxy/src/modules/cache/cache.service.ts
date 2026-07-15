@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit, Inject, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EmbeddingsService } from './embeddings.service';
 import { ConfigService } from '@nestjs/config';
+import { RedisService } from '../../redis/redis.service';
 import type { ChatResponse } from '@aura/shared';
 import * as crypto from 'crypto';
 
@@ -30,6 +31,7 @@ export class CacheService implements OnModuleInit {
     @Inject(PrismaService) private prisma: PrismaService,
     @Inject(EmbeddingsService) private embeddings: EmbeddingsService,
     @Inject(ConfigService) private configService: ConfigService,
+    @Inject(RedisService) private redis: RedisService,
   ) {}
 
   onModuleInit() {
@@ -59,6 +61,19 @@ export class CacheService implements OnModuleInit {
   async find(input: CacheLookupInput): Promise<CacheLookupResult> {
     const promptHash = this.hashPrompt(input.prompt);
 
+    const redisKey = `aura:cache:exact:${input.projectId}:${input.provider}:${input.model}:${promptHash}:${input.parametersHash}`;
+
+    try {
+      const cached = await this.redis.get(redisKey);
+      if (cached) {
+        const response = JSON.parse(cached);
+        this.logger.log(`CACHE HIT (Redis Exact Match) for model ${input.model} in project ${input.projectId}`);
+        return { hit: true, kind: 'exact', response };
+      }
+    } catch (e: any) {
+      this.logger.warn(`Redis cache get failed: ${e.message}`);
+    }
+
     // 1. FAST PATH: Exact Match (No embedding needed)
     const exactMatch = await this.prisma.client.semanticCache.findUnique({
       where: {
@@ -75,6 +90,7 @@ export class CacheService implements OnModuleInit {
     if (exactMatch && exactMatch.expiresAt > new Date()) {
       this.logger.log(`CACHE HIT (Exact Match) for model ${input.model} in project ${input.projectId}`);
       this.updateHitCount(exactMatch.id);
+      this.redis.set(redisKey, JSON.stringify(exactMatch.response), 604800).catch((e: any) => this.logger.warn(`Redis cache set failed: ${e.message}`));
       return {
         hit: true,
         kind: 'exact',
@@ -91,6 +107,11 @@ export class CacheService implements OnModuleInit {
     if (input.prompt.length < 2000) {
       try {
         queryVector = await this.embeddings.generate(input.prompt);
+        if (queryVector.every(v => v === 0)) {
+          this.logger.warn('Embedding model not ready — skipping semantic cache operation to avoid poisoning cache');
+          this.logger.log(`CACHE MISS for model ${input.model} in project ${input.projectId}`);
+          return { hit: false, kind: 'miss', queryVector };
+        }
         const vectorString = `[${queryVector.join(',')}]`;
 
         // Semantic search using cosine similarity via pgvector
@@ -151,7 +172,7 @@ export class CacheService implements OnModuleInit {
           }
         }
       } catch (err: any) {
-        this.logger.warn(`Semantic cache lookup failed: ${err.message}`);
+        this.logger.error(`Semantic cache lookup failed — falling through to miss: ${err.message}`, err.stack);
       }
     } else {
       this.logger.log(`Skipping Semantic Cache due to prompt length (${input.prompt.length} chars)`);
@@ -167,6 +188,10 @@ export class CacheService implements OnModuleInit {
   async set(input: CacheLookupInput, response: ChatResponse, queryVector?: number[], ttlDays = 7): Promise<void> {
     try {
       const vector = queryVector ?? (await this.embeddings.generate(input.prompt));
+      if (vector.every(v => v === 0)) {
+        this.logger.warn('Embedding model not ready — skipping semantic cache operation to avoid poisoning cache');
+        return;
+      }
       const promptHash = this.hashPrompt(input.prompt);
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + ttlDays);
@@ -195,6 +220,9 @@ export class CacheService implements OnModuleInit {
           expires_at = EXCLUDED.expires_at
       `;
       this.logger.log(`Stored cache entry for prompt hash: ${promptHash}`);
+
+      const redisKey = `aura:cache:exact:${input.projectId}:${input.provider}:${input.model}:${promptHash}:${input.parametersHash}`;
+      this.redis.set(redisKey, JSON.stringify(response), 604800).catch((e: any) => this.logger.warn(`Redis cache set failed: ${e.message}`));
     } catch (err: any) {
       this.logger.error(`Failed to store cache entry: ${err.message}`);
     }
