@@ -28,8 +28,8 @@ ENV NODE_ENV=production
 # Copy root package.json and package-lock.json
 COPY package*.json ./
 
-# Copy packages
-COPY packages/ ./packages/
+# Copy packages from the builder stage (so we get the compiled dist/ folders)
+COPY --from=builder /app/packages/ ./packages/
 
 # Copy the built proxy app
 COPY --from=builder /app/apps/proxy/package.json ./apps/proxy/
