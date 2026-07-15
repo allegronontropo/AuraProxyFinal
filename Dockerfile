@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
@@ -18,9 +18,10 @@ RUN npm run db:generate
 RUN npx turbo run build --filter=@aura/proxy...
 
 # Stage 2: Production
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 
 WORKDIR /app
+
 
 # Set NODE_ENV to production
 ENV NODE_ENV=production
