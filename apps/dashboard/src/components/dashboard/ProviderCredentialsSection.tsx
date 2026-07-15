@@ -45,6 +45,7 @@ export default function ProviderCredentialsSection({
   
   // Sync state when router.refresh() fetches new initialCredentials
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCredentials(initialCredentials);
   }, [initialCredentials]);
 
