@@ -102,6 +102,7 @@ export default function PlaygroundClient({ projectId, projectName, availableKeys
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(1024);
   const [systemPrompt, setSystemPrompt] = useState("You are a helpful AI assistant.");
+  const [enableHistory, setEnableHistory] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -164,7 +165,7 @@ export default function PlaygroundClient({ projectId, projectName, availableKeys
       // Build messages array including system prompt if it exists and is first message
       const apiMessages = [
         ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
-        ...conversation
+        ...(enableHistory ? conversation : [newUserMessage])
       ];
 
       const res = await fetch("/api/playground/completions", {
@@ -412,6 +413,27 @@ export default function PlaygroundClient({ projectId, projectName, availableKeys
               className="w-full bg-[#151518] border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 resize-y"
               rows={4}
             />
+          </div>
+
+          <div className="h-px bg-white/5" />
+
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <label className="text-xs font-medium text-white/80">Conversation History</label>
+              <span className="text-[10px] text-white/40 mt-0.5">Send full chat context to proxy</span>
+            </div>
+            <button
+              onClick={() => setEnableHistory(!enableHistory)}
+              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                enableHistory ? 'bg-purple-500' : 'bg-white/10'
+              }`}
+            >
+              <span
+                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                  enableHistory ? 'translate-x-4' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
 
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition, useMemo } from "react";
+import React, { useState, useTransition, useMemo, useEffect } from "react";
 import { saveProviderCredential, deleteProviderCredential } from "@/actions/credentials";
 import { useRouter } from "next/navigation";
 import CustomSelect from "@/components/ui/CustomSelect";
@@ -42,6 +42,12 @@ export default function ProviderCredentialsSection({
   const [, startTransition] = useTransition();
 
   const [credentials, setCredentials] = useState<Credential[]>(initialCredentials);
+  
+  // Sync state when router.refresh() fetches new initialCredentials
+  useEffect(() => {
+    setCredentials(initialCredentials);
+  }, [initialCredentials]);
+
   const [showForm, setShowForm] = useState(false);
   const [provider, setProvider] = useState("openai");
   const [apiKey, setApiKey] = useState("");
