@@ -14,16 +14,14 @@ const dockerComposeLines = [
   "  redis:",
   "    image: redis:7-alpine",
   "  proxy:",
-  "    image: allegronontropo/aura-proxy:latest",
+  "    build:",
+  "      context: .",
+  "      dockerfile: Dockerfile",
   "    ports:",
   "      - \"4000:4000\"",
   "    environment:",
   "      - DATABASE_URL=postgresql://...",
   "      - REDIS_URL=redis://redis:6379",
-  "  dashboard:",
-  "    image: allegronontropo/aura-dashboard:latest",
-  "    ports:",
-  "      - \"3001:3001\"",
 ];
 
 const dockerComposeText = dockerComposeLines.join("\n");

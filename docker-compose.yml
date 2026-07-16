@@ -36,7 +36,7 @@ services:
   proxy:
     build:
       context: .
-      dockerfile: apps/proxy/Dockerfile
+      dockerfile: Dockerfile
     container_name: aura-proxy
     restart: unless-stopped
     ports:
