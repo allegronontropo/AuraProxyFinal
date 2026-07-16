@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 
 const stats = [
   { value: "91", suffix: "%", label: "Cache Hit Rate" },
-  { value: "7", suffix: "ms", label: "Avg Cache Hit Response Time" },
+  { value: "7", suffix: "ms", label: "Local Cache Hit Latency" },
   { value: "60", suffix: "%", label: "Cost Reduction" },
   { value: "4", suffix: "+", label: "LLM Providers Supported" },
 ];
