@@ -19,7 +19,8 @@
     "db:studio": "npm run prisma --workspace=@aura/db -- studio",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "setup": "docker compose up -d && npm install && npm run db:generate && npm run db:migrate -- --name init"
+    "setup": "docker compose up -d && npm install && npm run db:generate && npm run db:migrate -- --name init",
+    "postinstall": "npm run db:generate"
   },
   "devDependencies": {
     "shadcn": "^4.7.0",
