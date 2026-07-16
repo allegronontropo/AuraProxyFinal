@@ -30,8 +30,8 @@ const archData: ArchNode[] = [
     icon: Database, relatedIds: [1, 4], energy: 95, color: "#7c5cfc",
   },
   {
-    id: 3, title: "Smart Router", subtitle: "Provider Selection",
-    content: "Routes requests to the optimal LLM provider based on cost, latency, and capability. Auto-failover on provider errors.",
+    id: 3, title: "Smart Router", subtitle: "Auto-Failover",
+    content: "Configurable fallback chains to route around provider outages. Auto-failover ensures high availability across OpenAI, Anthropic, and Gemini.",
     icon: Share2, relatedIds: [1, 5], energy: 90, color: "#818cf8",
   },
   {
@@ -50,8 +50,8 @@ const archData: ArchNode[] = [
     icon: LineChart, relatedIds: [5, 7], energy: 72, color: "#34d399",
   },
   {
-    id: 7, title: "Policy Engine", subtitle: "Guardrails · PII · Budgets",
-    content: "Content guardrails, PII detection, rate limiting, and spend caps enforced at the gateway - zero application code changes.",
+    id: 7, title: "Policy Engine", subtitle: "Rate Limits · Budgets",
+    content: "Rate limiting and spend caps enforced at the gateway - zero application code changes.",
     icon: Shield, relatedIds: [6, 1], energy: 65, color: "#f59e0b",
   },
 ];
@@ -61,7 +61,7 @@ const highlights = [
   { color: "#a78bfa", label: "Drop-in compatible", desc: "OpenAI-spec API - zero app code changes" },
   { color: "#7c5cfc", label: "92% cache hit rate", desc: "Semantic similarity via pgvector embeddings" },
   { color: "#34d399", label: "Full observability", desc: "Every request logged, traced, and billed" },
-  { color: "#f59e0b", label: "Policy enforcement", desc: "Guardrails, PII redaction, rate limiting" },
+  { color: "#f59e0b", label: "Policy enforcement", desc: "Granular rate limits and budget caps per key" },
 ];
 
 export default function ArchitectureSection() {
@@ -210,9 +210,10 @@ export default function ArchitectureSection() {
               {/* Core */}
               <div style={{
                 width: "80px", height: "80px", borderRadius: "50%",
-                background: "linear-gradient(135deg, #7c5cfc, #5b3fd8)",
+                background: "#050507",
+                border: "1px solid rgba(124,92,252,0.3)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 0 40px rgba(124,92,252,0.5), 0 0 80px rgba(124,92,252,0.2)",
+                boxShadow: "0 0 40px rgba(124,92,252,0.5), inset 0 0 20px rgba(124,92,252,0.15)",
                 animation: "pulse 3s ease-in-out infinite",
                 overflow: "hidden",
               }}>
@@ -288,12 +289,13 @@ export default function ArchitectureSection() {
                     left: "50%",
                     transform: "translateX(-50%)",
                     whiteSpace: "nowrap",
-                    fontSize: "0.6875rem",
+                    fontSize: "0.75rem",
                     fontWeight: 600,
-                    letterSpacing: "0.03em",
-                    color: isExpanded ? node.color : "rgba(240,240,244,0.5)",
+                    letterSpacing: "0.02em",
+                    color: isExpanded ? node.color : "rgba(255,255,255,0.75)",
                     transition: "color 0.3s",
-                    fontFamily: "var(--font-mono)",
+                    fontFamily: "var(--font-sans)",
+                    textShadow: "0 1px 4px rgba(0,0,0,0.8)",
                     textAlign: "center",
                   }}>
                     {node.title}
