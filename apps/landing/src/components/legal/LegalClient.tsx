@@ -54,7 +54,7 @@ const privacyPolicySections = [
         </div>
         <p>
           By using our Services, you agree to the collection and use of information in accordance with this policy.
-          If you have questions, please <A href="mailto:privacy@auraproxy.dev">contact our privacy team</A>.
+          If you have questions, please <A href="mailto:badriyoussef75@gmail.com">contact our privacy team</A>.
         </p>
       </>
     )
@@ -117,7 +117,7 @@ const privacyPolicySections = [
       <>
         <p>
           We retain personal data for as long as your account is active or as needed to provide Services. API request
-          logs are retained for 90 days by default. You may request earlier deletion by contacting <A href="mailto:privacy@auraproxy.dev">privacy@auraproxy.dev</A>.
+          logs are retained for 90 days by default. You may request earlier deletion by contacting <A href="mailto:badriyoussef75@gmail.com">badriyoussef75@gmail.com</A>.
         </p>
         <p>
           Aggregated, anonymized usage statistics may be retained indefinitely for service improvement purposes. They
@@ -157,7 +157,7 @@ const privacyPolicySections = [
           <li>Opt-out , withdraw consent for non-essential processing at any time.</li>
         </ul>
         <p>
-          To exercise any of these rights, submit a request through your dashboard or email <A href="mailto:privacy@auraproxy.dev">privacy@auraproxy.dev</A>. We will respond within 30 days.
+          To exercise any of these rights, submit a request through your dashboard or email <A href="mailto:badriyoussef75@gmail.com">badriyoussef75@gmail.com</A>. We will respond within 30 days.
         </p>
       </>
     )
@@ -168,7 +168,7 @@ const privacyPolicySections = [
     body: (
       <>
         <p>
-          Aura Proxy, Inc. , 340 Pine Street, Suite 800, San Francisco, CA 94104. For privacy inquiries: <A href="mailto:privacy@auraproxy.dev">privacy@auraproxy.dev</A>.
+          Aura Proxy, Inc. , Fez, Morocco. For privacy inquiries: <A href="mailto:badriyoussef75@gmail.com">badriyoussef75@gmail.com</A>.
         </p>
       </>
     )
@@ -210,7 +210,7 @@ const termsOfServiceSections = [
     body: (
       <p>
         You are responsible for maintaining the confidentiality of your API keys and account credentials. All
-        activity under your account is your responsibility. Notify us immediately at <A href="mailto:security@auraproxy.dev">security@auraproxy.dev</A> if you suspect unauthorized access.
+        activity under your account is your responsibility. Notify us immediately at <A href="mailto:badriyoussef75@gmail.com">badriyoussef75@gmail.com</A> if you suspect unauthorized access.
       </p>
     )
   },
@@ -265,7 +265,7 @@ const termsOfServiceSections = [
     body: (
       <p>
         These Terms are governed by the laws of the State of California, without regard to conflict of law
-        provisions. Disputes shall be resolved exclusively in the state or federal courts located in San Francisco
+        provisions. Disputes shall be resolved exclusively in the state or federal courts located in Fez, Morocco
         County, California.
       </p>
     )
@@ -394,11 +394,7 @@ const cookiePolicySections = [
           using the core Services.
         </p>
 
-        <h3>Payment Cookies</h3>
-        <p>
-          Stripe, our payment processor, sets cookies on checkout pages to detect and prevent fraudulent
-          transactions. These are governed by the <A href="#">Stripe Privacy Policy</A>. We do not have access to or control over these cookies.
-        </p>
+
       </>
     ),
   },
@@ -408,7 +404,7 @@ const cookiePolicySections = [
     body: (
       <>
         <p>
-          With the exception of Stripe on checkout pages, we do not embed third-party advertising networks,
+          We do not embed third-party advertising networks,
           social media widgets, or tracking pixels on our website or dashboard. We will update this section if
           that changes.
         </p>
@@ -440,10 +436,7 @@ const cookiePolicySections = [
           Please note that if you disable strictly necessary cookies, parts of the Services will not function
           correctly , you will not be able to stay logged in or use the API dashboard.
         </p>
-        <p>
-          For more information on managing cookies in your browser, visit{" "}
-          <A href="#">allaboutcookies.org</A> or your browser&apos;s own help documentation.
-        </p>
+
         <h3>Dashboard Privacy Controls</h3>
         <p>
           You can review and adjust functional cookie preferences at any time from your account settings under{" "}
@@ -479,11 +472,10 @@ const cookiePolicySections = [
         </p>
         <ul>
           <li>
-            <strong>Email:</strong> <A href="mailto:privacy@auraproxy.dev">privacy@auraproxy.dev</A>
+            <strong>Email:</strong> <A href="mailto:badriyoussef75@gmail.com">badriyoussef75@gmail.com</A>
           </li>
           <li>
-            <strong>Postal address:</strong> Aura Proxy, Inc. 340 Pine Street, Suite 800, San Francisco,
-            CA 94104, United States
+            <strong>Postal address:</strong> Aura Proxy, Inc. Fez, Morocco
           </li>
         </ul>
       </>

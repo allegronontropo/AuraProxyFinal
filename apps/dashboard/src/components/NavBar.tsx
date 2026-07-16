@@ -3,11 +3,13 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
+const landingUrl = process.env.NEXT_PUBLIC_LANDING_URL || "";
+
 const navLinks = [
-  { label: "Features", href: "/#features" },
-  { label: "Architecture", href: "/#architecture" },
-  { label: "Deploy", href: "/#deploy" },
-  { label: "Compare", href: "/#comparison" },
+  { label: "Features", href: `${landingUrl}/#features` },
+  { label: "Architecture", href: `${landingUrl}/#architecture` },
+  { label: "Deploy", href: `${landingUrl}/#deploy` },
+  { label: "Compare", href: `${landingUrl}/#comparison` },
 ];
 
 export default function NavBar() {
