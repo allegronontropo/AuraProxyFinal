@@ -238,7 +238,7 @@ function CacheCard() {
     { label: "Exact hits",              value: "50",   color: G },
     { label: "Semantic hits",           value: "13",   color: P },
     { label: "Avg semantic similarity", value: "0.98", color: "rgba(255,255,255,0.82)" },
-    { label: "Avg cache latency",       value: "21ms", color: C },
+    { label: "Edge cache latency",      value: "84ms", color: C },
   ];
 
   return (
@@ -328,8 +328,8 @@ function DetailRow({ items, cols }: { items: { k: string; v: string }[]; cols: n
 
 function LogsCard() {
   const logs = [
-    { t: "15m ago", model: "llama-3.1-8b-instant", tokens: "45 / 12",   latency: "7ms",   cache: "HIT",  s: 200 },
-    { t: "15m ago", model: "llama-3.1-8b-instant", tokens: "45 / 12",   latency: "12ms",  cache: "HIT",  s: 200 },
+    { t: "15m ago", model: "llama-3.1-8b-instant", tokens: "45 / 12",   latency: "87ms",   cache: "HIT",  s: 200 },
+    { t: "15m ago", model: "llama-3.1-8b-instant", tokens: "45 / 12",   latency: "112ms",  cache: "HIT",  s: 200 },
     { t: "18m ago", model: "gpt-4o",               tokens: "612 / 180", latency: "842ms", cache: "MISS", s: 200 },
     { t: "22m ago", model: "claude-3-5-sonnet",    tokens: "1452 / 390",latency: "261ms", cache: "MISS", s: 200 },
   ];

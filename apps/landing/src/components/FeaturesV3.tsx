@@ -65,7 +65,7 @@ const features: Feature[] = [
         bgTint: "rgba(91,63,216,0.12)",
         icon: Database,
         label: "Redis Cache",
-        stat: "<1ms latency",
+        stat: "<1ms DB Latency",
         meta: "Exact-match hits",
       },
       {
