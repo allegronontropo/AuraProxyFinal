@@ -1,0 +1,1 @@
+-- AlterTable`nALTER TABLE "semantic_cache" ADD COLUMN "embedding" vector(1536);
