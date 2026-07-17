@@ -8,7 +8,7 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm" WITH SCHEMA "public" VERSION "1.6";
 CREATE EXTENSION IF NOT EXISTS "plpgsql" WITH SCHEMA "pg_catalog" VERSION "1.0";
 
 -- CreateExtension
-CREATE EXTENSION IF NOT EXISTS "vector" WITH SCHEMA "public" VERSION "0.8.2";
+CREATE EXTENSION IF NOT EXISTS "vector" WITH SCHEMA "public";
 
 -- CreateEnum
 CREATE TYPE "public"."Granularity" AS ENUM ('HOURLY', 'DAILY', 'MONTHLY');
