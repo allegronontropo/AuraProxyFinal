@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Users,
@@ -100,7 +101,10 @@ export default function AdminSidebar() {
 
       {/* Footer sign-out hint */}
       <div className="px-4 py-3 border-t border-white/5">
-        <div className="flex items-center gap-2 px-2 py-2 rounded-md bg-white/[0.015] border border-white/[0.05]">
+        <button 
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="w-full flex items-center gap-2 px-2 py-2 rounded-md bg-white/[0.015] border border-white/[0.05] hover:bg-white/[0.04] transition-colors text-left"
+        >
           <div className="w-6 h-6 rounded-md bg-red-500/15 flex items-center justify-center shrink-0">
             <LogOut size={11} className="text-red-400/70" />
           </div>
@@ -109,10 +113,10 @@ export default function AdminSidebar() {
               Admin Session
             </div>
             <div className="text-[9px] text-white/25 uppercase tracking-wider">
-              Full Access
+              Click to Logout
             </div>
           </div>
-        </div>
+        </button>
       </div>
     </div>
   );

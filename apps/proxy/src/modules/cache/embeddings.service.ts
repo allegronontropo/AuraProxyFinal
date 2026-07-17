@@ -7,8 +7,12 @@ export class EmbeddingsService implements OnModuleInit {
   private extractor: FeatureExtractionPipeline | null = null;
   public readonly model = 'Xenova/all-MiniLM-L6-v2';
 
-  async onModuleInit() {
-    this.logger.log(`Loading local embedding model: ${this.model}`);
+  onModuleInit() {
+    this.logger.log(`Loading local embedding model: ${this.model} (in background to avoid blocking startup)`);
+    this.loadModelInBackground();
+  }
+
+  private async loadModelInBackground() {
     try {
       this.extractor = await pipeline('feature-extraction', this.model, {
         quantized: true,

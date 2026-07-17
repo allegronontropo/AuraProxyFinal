@@ -43,6 +43,12 @@ export async function POST(req: Request) {
     while (normalizedProxyUrl.endsWith("/")) {
       normalizedProxyUrl = normalizedProxyUrl.slice(0, -1);
     }
+    
+    // Fix Node 18+ IPv6 localhost resolution issue (ECONNREFUSED) when Fastify binds to 0.0.0.0
+    if (normalizedProxyUrl.includes('localhost')) {
+      normalizedProxyUrl = normalizedProxyUrl.replace('localhost', '127.0.0.1');
+    }
+
     const proxyEndpoint = `${normalizedProxyUrl}/v1/chat/completions`;
 
     // Forward the request to the Aura Proxy

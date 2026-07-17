@@ -33,9 +33,12 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('PORT') ?? configService.get<number>('PROXY_PORT') ?? 3000;
-  await app.listen(port, '0.0.0.0');
-  console.log(`🚀 Aura Proxy running on http://localhost:${port}`);
+  const port = configService.get<number>('PORT') ?? configService.get<number>('PROXY_PORT') ?? 4000;
+  const host = configService.get<string>('PROXY_HOST') ?? '0.0.0.0';
+  
+  // Bind to PROXY_HOST to allow external connections (e.g., from other Docker containers)
+  await app.listen(port, host);
+  console.log(`🚀 Aura Proxy running on http://${host}:${port}`);
   console.log(`📚 Swagger UI: http://localhost:${port}/api/docs`);
 }
 bootstrap();

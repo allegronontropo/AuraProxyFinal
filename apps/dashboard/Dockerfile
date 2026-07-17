@@ -10,7 +10,10 @@ RUN apk add --no-cache libc6-compat
 COPY . .
 
 # Install dependencies
-RUN npm install
+RUN npm config set fetch-retries 5 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm install --maxsockets=3
 
 # Generate prisma client
 RUN npm run db:generate
@@ -37,15 +40,15 @@ COPY package*.json ./
 COPY turbo.json ./
 
 # Copy built artifacts from the dashboard
-COPY --from=builder /app/apps/dashboard/public ./apps/dashboard/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/dashboard/public ./apps/dashboard/public
 
 # Set correct permission for prerender cache
-RUN mkdir -p apps/dashboard/.next
-RUN chown nextjs:nodejs apps/dashboard/.next
+RUN mkdir -p apps/dashboard/.next/cache
+RUN chown -R nextjs:nodejs apps/dashboard/.next
 
 # Copy the standalone output if output: 'standalone' is set, or just use next start
-COPY --from=builder /app/apps/dashboard/.next/standalone ./
-COPY --from=builder /app/apps/dashboard/.next/static ./apps/dashboard/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/dashboard/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/dashboard/.next/static ./apps/dashboard/.next/static
 
 USER nextjs
 

@@ -27,6 +27,11 @@ export class CacheService implements OnModuleInit {
   private readonly logger = new Logger(CacheService.name);
   private threshold!: number;
 
+  // L1 in-process cache: zero network overhead for hot entries
+  private readonly l1Cache = new Map<string, { response: ChatResponse; expiresAt: number }>();
+  private readonly L1_MAX_ENTRIES = 1000;
+  private readonly L1_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
   constructor(
     @Inject(PrismaService) private prisma: PrismaService,
     @Inject(EmbeddingsService) private embeddings: EmbeddingsService,
@@ -36,6 +41,25 @@ export class CacheService implements OnModuleInit {
 
   onModuleInit() {
     this.threshold = this.configService.get<number>('CACHE_SIMILARITY_THRESHOLD', 0.95);
+  }
+
+  private l1Get(key: string): ChatResponse | null {
+    const entry = this.l1Cache.get(key);
+    if (!entry) return null;
+    if (Date.now() > entry.expiresAt) {
+      this.l1Cache.delete(key);
+      return null;
+    }
+    return entry.response;
+  }
+
+  private l1Set(key: string, response: ChatResponse): void {
+    if (this.l1Cache.size >= this.L1_MAX_ENTRIES && !this.l1Cache.has(key)) {
+      // Evict oldest entry (Map preserves insertion order)
+      const firstKey = this.l1Cache.keys().next().value;
+      if (firstKey !== undefined) this.l1Cache.delete(firstKey);
+    }
+    this.l1Cache.set(key, { response, expiresAt: Date.now() + this.L1_TTL_MS });
   }
 
   private hashPrompt(prompt: string): string {
@@ -63,44 +87,29 @@ export class CacheService implements OnModuleInit {
 
     const redisKey = `aura:cache:exact:${input.projectId}:${input.provider}:${input.model}:${promptHash}:${input.parametersHash}`;
 
+    // L1: in-process memory (0ms, no network)
+    const l1Hit = this.l1Get(redisKey);
+    if (l1Hit) {
+      this.logger.debug(`CACHE HIT (L1 In-Process) for model ${input.model}`);
+      return { hit: true, kind: 'exact', response: l1Hit };
+    }
+
+    // L2: Redis exact match (<2ms on same network)
     try {
       const cached = await this.redis.get(redisKey);
       if (cached) {
-        const response = JSON.parse(cached);
-        this.logger.log(`CACHE HIT (Redis Exact Match) for model ${input.model} in project ${input.projectId}`);
+        const response = JSON.parse(cached) as ChatResponse;
+        this.l1Set(redisKey, response); // warm L1 for next request
+        this.logger.log(`CACHE HIT (L2 Redis Exact) for model ${input.model} in project ${input.projectId}`);
         return { hit: true, kind: 'exact', response };
       }
     } catch (e: any) {
       this.logger.warn(`Redis cache get failed: ${e.message}`);
     }
 
-    // 1. FAST PATH: Exact Match (No embedding needed)
-    const exactMatch = await this.prisma.client.semanticCache.findUnique({
-      where: {
-        projectId_model_provider_promptHash_parametersHash: {
-          projectId: input.projectId,
-          model: input.model,
-          provider: input.provider,
-          promptHash,
-          parametersHash: input.parametersHash,
-        }
-      }
-    });
-
-    if (exactMatch && exactMatch.expiresAt > new Date()) {
-      this.logger.log(`CACHE HIT (Exact Match) for model ${input.model} in project ${input.projectId}`);
-      this.updateHitCount(exactMatch.id);
-      this.redis.set(redisKey, JSON.stringify(exactMatch.response), 604800).catch((e: any) => this.logger.warn(`Redis cache set failed: ${e.message}`));
-      return {
-        hit: true,
-        kind: 'exact',
-        response: exactMatch.response as unknown as ChatResponse,
-      };
-    }
-
     let queryVector: number[] | undefined;
 
-    // 2. AI PATH: Semantic Similarity (Needs embedding generation)
+    // L3: Semantic Similarity (Needs embedding generation)
     // Only use semantic cache for shorter prompts to avoid embedding truncation
     // all-MiniLM-L6-v2 truncates at 512 tokens. If a multi-turn chat exceeds this,
     // the new message at the end is ignored, causing 100% false positive matches.
@@ -222,6 +231,7 @@ export class CacheService implements OnModuleInit {
       this.logger.log(`Stored cache entry for prompt hash: ${promptHash}`);
 
       const redisKey = `aura:cache:exact:${input.projectId}:${input.provider}:${input.model}:${promptHash}:${input.parametersHash}`;
+      this.l1Set(redisKey, response); // warm L1 immediately
       this.redis.set(redisKey, JSON.stringify(response), 604800).catch((e: any) => this.logger.warn(`Redis cache set failed: ${e.message}`));
     } catch (err: any) {
       this.logger.error(`Failed to store cache entry: ${err.message}`);

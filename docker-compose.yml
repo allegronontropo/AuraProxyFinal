@@ -41,6 +41,8 @@ services:
     restart: unless-stopped
     ports:
       - "4000:4000"
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgresql://aura:aura_secret@postgres:5432/aura?schema=public
       - REDIS_URL=redis://redis:6379
@@ -60,10 +62,16 @@ services:
     restart: unless-stopped
     ports:
       - "3001:3001"
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgresql://aura:aura_secret@postgres:5432/aura?schema=public
+      - REDIS_URL=redis://redis:6379
+      - PROXY_URL=http://proxy:4000
       - NEXTAUTH_URL=http://localhost:3001
       - NEXTAUTH_SECRET=super_secret_nextauth_key
+      - AUTH_SECRET=super_secret_nextauth_key
+      - AUTH_TRUST_HOST=true
     depends_on:
       postgres:
         condition: service_healthy

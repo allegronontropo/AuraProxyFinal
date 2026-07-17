@@ -15,8 +15,8 @@ async function main() {
 
   // Modifie ces informations avec les vrais emails et mots de passe que tu veux utiliser
   const admins = [
-    { email: 'admin1@tondomaine.com', name: 'Admin 1', password: 'MotDePasseSuperSecret1!' },
-    { email: 'admin2@tondomaine.com', name: 'Admin 2', password: 'MotDePasseSuperSecret2!' }
+    { email: 'badriyoussef75@gmail.com', name: 'Youssef Badri', password: 'cvtic2026' },
+    { email: 'philippe_vignoles@auraproxy.com', name: 'Philippe Vignoles', password: 'cvtic2026!' }
   ];
 
   for (const admin of admins) {

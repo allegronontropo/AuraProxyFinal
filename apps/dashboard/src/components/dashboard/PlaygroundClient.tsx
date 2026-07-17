@@ -295,6 +295,7 @@ export default function PlaygroundClient({ projectId, projectName, availableKeys
               rows={3}
             />
             <button
+              suppressHydrationWarning
               onClick={handleSend}
               disabled={loading || !input.trim()}
               className="absolute right-3 bottom-3 p-2 bg-purple-600 hover:bg-purple-500 disabled:bg-white/10 disabled:text-white/30 text-white rounded-xl transition-colors shadow-lg"
