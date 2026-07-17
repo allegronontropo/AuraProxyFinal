@@ -3,6 +3,7 @@ import {
   UnauthorizedException,
   ForbiddenException,
   Inject,
+  OnModuleInit,
 } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -13,7 +14,7 @@ import type { ApiKeyPayload } from '@aura/shared';
 const CACHE_TTL = 300; // 5 minutes
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
   private readonly localCache = new Map<string, { value: any; expiresAt: number }>();
   private readonly LOCAL_CACHE_MAX = 500;
   private readonly LOCAL_CACHE_TTL_MS = 30_000;
@@ -23,6 +24,16 @@ export class AuthService {
     @Inject(PrismaService) private readonly prisma: PrismaService,
     @Inject(RedisService) private readonly redis: RedisService,
   ) {}
+
+  async onModuleInit() {
+    const subscriber = this.redis.client.duplicate();
+    await subscriber.subscribe('cache:invalidate:apikey');
+    subscriber.on('message', (channel, message) => {
+      if (channel === 'cache:invalidate:apikey') {
+        this.localDelete(message);
+      }
+    });
+  }
 
   private localGet(key: string): any | null {
     const entry = this.localCache.get(key);

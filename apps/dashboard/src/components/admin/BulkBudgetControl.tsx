@@ -11,8 +11,8 @@ export default function BulkBudgetControl() {
 
   const handleApply = () => {
     const num = parseFloat(value);
-    if (isNaN(num) || num <= 0) {
-      setResult({ error: "Enter a valid positive dollar amount." });
+    if (isNaN(num) || num < 0) {
+      setResult({ error: "Enter a valid non-negative dollar amount." });
       return;
     }
     const confirmed = window.confirm(
@@ -49,7 +49,7 @@ export default function BulkBudgetControl() {
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 text-sm">$</span>
           <input
             type="number"
-            min="1"
+            min="0"
             step="1"
             value={value}
             onChange={(e) => { setValue(e.target.value); setResult(null); }}

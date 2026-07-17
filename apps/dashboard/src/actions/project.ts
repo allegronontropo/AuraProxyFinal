@@ -93,8 +93,12 @@ export async function updateProject(
     try {
       const apiKeys = await prisma.apiKey.findMany({ where: { projectId } });
       for (const key of apiKeys) {
-        await redis.del(REDIS_KEYS.apiKeyCache(key.keyHash));
-        await redis.del(REDIS_KEYS.apiKeyCache(`id:${key.id}`));
+        const hashKey = REDIS_KEYS.apiKeyCache(key.keyHash);
+        const idKey = REDIS_KEYS.apiKeyCache(`id:${key.id}`);
+        await redis.del(hashKey);
+        await redis.del(idKey);
+        await redis.publish('cache:invalidate:apikey', hashKey);
+        await redis.publish('cache:invalidate:apikey', idKey);
       }
     } catch (redisError) {
       console.error("Failed to invalidate Redis cache:", redisError);
