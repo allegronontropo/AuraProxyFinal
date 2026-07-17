@@ -83,6 +83,11 @@ export class AuthService {
             fallbackModels: true,
             isActive: true,
             tenantId: true,
+            tenant: {
+              select: {
+                isActive: true,
+              },
+            },
           },
         },
       },
@@ -104,6 +109,10 @@ export class AuthService {
 
     if (!apiKeyRecord.project.isActive) {
       throw new ForbiddenException('Project is inactive.');
+    }
+
+    if (!apiKeyRecord.project.tenant?.isActive) {
+      throw new ForbiddenException('Account has been suspended.');
     }
 
     const apiKeyPayload: ApiKeyPayload = {
@@ -175,6 +184,11 @@ export class AuthService {
             fallbackModels: true,
             isActive: true,
             tenantId: true,
+            tenant: {
+              select: {
+                isActive: true,
+              },
+            },
           },
         },
       },
@@ -196,6 +210,10 @@ export class AuthService {
 
     if (!apiKeyRecord.project.isActive) {
       throw new ForbiddenException('Project is inactive.');
+    }
+
+    if (!apiKeyRecord.project.tenant?.isActive) {
+      throw new ForbiddenException('Account has been suspended.');
     }
 
     const apiKeyPayload: ApiKeyPayload = {

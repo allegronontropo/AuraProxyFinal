@@ -13,6 +13,7 @@ import { REDIS_KEYS } from "@aura/shared";
 export async function createProject(formData: FormData) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+  if (session.user.isActive === false) return { error: "Account suspended." };
 
   const name = formData.get("name") as string;
   const budgetLimit = parseFloat(formData.get("budgetLimit") as string) || 100;
@@ -62,6 +63,7 @@ export async function updateProject(
 ) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+  if (session.user.isActive === false) return { error: "Account suspended." };
 
   // Verify ownership
   const project = await prisma.project.findFirst({
@@ -113,6 +115,7 @@ export async function updateProject(
 export async function deleteProject(projectId: string) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+  if (session.user.isActive === false) return { error: "Account suspended." };
 
   // Verify ownership
   const project = await prisma.project.findFirst({

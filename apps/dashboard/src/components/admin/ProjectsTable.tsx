@@ -93,7 +93,7 @@ export default function ProjectsTable({
   };
   const handleSetBudget = () => {
     const num = parseFloat(budgetInput);
-    if (isNaN(num) || num <= 0) { setFeedback("Enter a valid dollar amount."); return; }
+    if (isNaN(num) || num < 0) { setFeedback("Enter a valid dollar amount."); return; }
     if (!window.confirm(`Set budget to $${num} for ${selected.size} project(s)?`)) return;
     run(() => bulkSetSelectedProjectBudgets(Array.from(selected), num), `Budget set to $${num} for ${selected.size} project(s).`);
   };

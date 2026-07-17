@@ -5,8 +5,8 @@ import { prisma } from "@aura/db";
 export async function POST(req: Request) {
   try {
     const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    if (!session?.user?.id || session.user.isActive === false) {
+      return NextResponse.json({ message: "Unauthorized or Suspended" }, { status: 401 });
     }
 
     const body = await req.json();

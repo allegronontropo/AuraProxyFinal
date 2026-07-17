@@ -13,6 +13,9 @@ export default async function AdminLayout({
   if (!session?.user || session.user.role !== "ADMIN") {
     redirect("/workspace");
   }
+  if (session.user.isActive === false) {
+    redirect("/suspended");
+  }
 
   return (
     <div className="flex h-screen bg-[#0A0A0B] text-[#f9fafb] overflow-hidden"

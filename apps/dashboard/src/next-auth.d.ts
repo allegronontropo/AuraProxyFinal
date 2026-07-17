@@ -4,6 +4,7 @@ declare module "next-auth" {
   interface User {
     role?: string;
     plan?: string;
+    isActive?: boolean;
   }
 
   interface Session {
@@ -11,6 +12,7 @@ declare module "next-auth" {
       id: string;
       role: string;
       plan: string;
+      isActive: boolean;
     } & DefaultSession["user"];
   }
 }
