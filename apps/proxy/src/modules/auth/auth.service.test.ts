@@ -45,6 +45,9 @@ describe('AuthService', () => {
           budgetLimit: 100,
           budgetPeriod: 'MONTHLY',
           isActive: true,
+          tenant: {
+            isActive: true,
+          },
         },
       },
     });
