@@ -70,14 +70,19 @@ export const { handlers, auth } = NextAuth({
     async session({ session, token }) {
       if (token.sub && session.user) {
         session.user.id = token.sub;
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.sub },
-          select: { isActive: true },
-        });
-        if (dbUser) {
-          session.user.isActive = dbUser.isActive;
-        } else {
-          session.user.isActive = false;
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.sub },
+            select: { isActive: true },
+          });
+          if (dbUser) {
+            session.user.isActive = dbUser.isActive;
+          } else {
+            session.user.isActive = false;
+          }
+        } catch (error) {
+          console.error("[NextAuth] Failed to verify user status in DB. Assuming active to prevent random 401s.", error);
+          session.user.isActive = true;
         }
       }
       if (token.role && session.user) {
