@@ -16,7 +16,7 @@ export const { handlers, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: {
-    signIn: "/auth/login",
+    signIn: "/login",
   },
   providers: [
     GitHub({ allowDangerousEmailAccountLinking: true }),

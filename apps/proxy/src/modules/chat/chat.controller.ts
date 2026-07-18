@@ -34,11 +34,11 @@ export class ChatController {
 
   @Post('completions')
   @UseGuards(AuthGuard, BudgetGuard, RateLimiterGuard)
-  @ApiOperation({ summary: 'OpenAI-compatible chat completions proxy' })
-  @ApiResponse({ status: 200, type: () => ChatResponseDto, description: 'Chat completion response' })
+  @ApiOperation({ summary: 'Proxy de complétion de chat compatible avec OpenAI' })
+  @ApiResponse({ status: 200, type: () => ChatResponseDto, description: 'Réponse de la complétion de chat' })
   @ApiHeader({
     name: 'x-provider',
-    description: 'Explicitly specify the LLM provider (optional)',
+    description: 'Spécifier explicitement le fournisseur LLM (optionnel)',
     required: false,
   })
   async completions(
@@ -131,6 +131,7 @@ export class ChatController {
       cached: response.cached,
       provider: response.provider,
       latency_ms: response.latencyMs,
+      ...(response.metadata && { metadata: response.metadata }),
     };
   }
 

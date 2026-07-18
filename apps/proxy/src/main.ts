@@ -22,12 +22,17 @@ async function bootstrap() {
 
   // Swagger
   const config = new DocumentBuilder()
-    .setTitle('Aura Proxy API')
-    .setDescription('AI Proxy Middleware - Multi-provider LLM gateway with semantic cache, budget control, and real-time analytics')
+    .setTitle('API Aura Proxy')
+    .setDescription('Passerelle middleware IA multi-fournisseurs avec cache sémantique, contrôle de budget et analyses en temps réel')
     .setVersion('1.0')
-    .addBearerAuth()
-    .addTag('Health', 'Service health checks')
-    .addTag('Chat', 'LLM proxy endpoints')
+    .addBearerAuth({
+      type: 'http',
+      scheme: 'bearer',
+      bearerFormat: 'JWT',
+      description: 'Entrez votre **Clé API Aura Proxy** (générée depuis le Dashboard). N\'entrez PAS votre clé OpenAI ou Anthropic ici. Le proxy se chargera d\'utiliser les clés des fournisseurs configurées dans votre projet.',
+    })
+    .addTag('Santé', 'Vérifications de l\'état de santé du service')
+    .addTag('Chat', 'Points d\'accès du proxy LLM')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);

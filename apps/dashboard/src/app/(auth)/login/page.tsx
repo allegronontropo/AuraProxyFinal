@@ -378,6 +378,7 @@ function AuthForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isResetSuccess, setIsResetSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const urlError = searchParams.get("error");
 
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({ name: "", email: "", password: "", confirmPassword: "" });
@@ -648,9 +649,9 @@ function AuthForm() {
 
       <div className="relative z-10 w-full lg:w-1/2 flex items-center justify-center p-4 pt-24 pb-12 lg:p-12 lg:pt-24 lg:pb-12 h-screen overflow-y-auto no-scrollbar">
         <Card className="w-full max-w-md border-purple-500/20 bg-zinc-900/60 backdrop-blur-2xl supports-[backdrop-filter]:bg-zinc-900/40 shadow-[0_0_80px_-20px_rgba(168,85,247,0.15)] overflow-hidden">
-          {errors.general && (
+          {(errors.general || urlError) && (
             <div className="bg-red-500/10 border-b border-red-500/20 p-3 flex items-center justify-center gap-2">
-              <span className="text-sm text-red-400 font-medium">{errors.general}</span>
+              <span className="text-sm text-red-400 font-medium">{errors.general || urlError}</span>
             </div>
           )}
           {successMessage && (

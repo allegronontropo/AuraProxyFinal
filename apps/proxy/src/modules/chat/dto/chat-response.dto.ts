@@ -1,19 +1,19 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UsageDto {
-  @ApiProperty({ description: 'Number of prompt tokens', example: 15, type: Number })
+  @ApiProperty({ description: 'Nombre de jetons (tokens) de la requête', example: 15, type: Number })
   prompt_tokens!: number;
 
-  @ApiProperty({ description: 'Number of completion tokens', example: 42, type: Number })
+  @ApiProperty({ description: 'Nombre de jetons (tokens) de la complétion', example: 42, type: Number })
   completion_tokens!: number;
 
-  @ApiProperty({ description: 'Total tokens used', example: 57, type: Number })
+  @ApiProperty({ description: 'Nombre total de jetons utilisés', example: 57, type: Number })
   total_tokens!: number;
 }
 
 export class ChatMessageResponseDto {
   @ApiProperty({
-    description: 'Role of the message sender',
+    description: 'Rôle de l\'expéditeur du message',
     enum: ['system', 'user', 'assistant'],
     example: 'assistant',
     type: String,
@@ -21,7 +21,7 @@ export class ChatMessageResponseDto {
   role!: string;
 
   @ApiProperty({
-    description: 'Content of the message',
+    description: 'Contenu du message',
     example: 'Bonjour !',
     type: String,
   })
@@ -29,17 +29,17 @@ export class ChatMessageResponseDto {
 }
 
 export class ChoiceDto {
-  @ApiProperty({ description: 'Index of the choice', example: 0, type: Number })
+  @ApiProperty({ description: 'Indice du choix', example: 0, type: Number })
   index!: number;
 
   @ApiProperty({
-    description: 'The generated message',
+    description: 'Le message généré',
     type: () => ChatMessageResponseDto,
   })
   message!: ChatMessageResponseDto;
 
   @ApiProperty({
-    description: 'Reason the generation stopped',
+    description: 'Raison de l\'arrêt de la génération',
     example: 'stop',
     type: String,
   })
@@ -50,35 +50,41 @@ export class ChoiceDto {
  * DTO for chat completion response - OpenAI-compatible format.
  */
 export class ChatResponseDto {
-  @ApiProperty({ description: 'Unique completion ID', example: 'chatcmpl-abc123', type: String })
+  @ApiProperty({ description: 'ID unique de la complétion', example: 'chatcmpl-abc123', type: String })
   id!: string;
 
-  @ApiProperty({ description: 'Object type', example: 'chat.completion', type: String })
+  @ApiProperty({ description: 'Type d\'objet', example: 'chat.completion', type: String })
   object!: string;
 
-  @ApiProperty({ description: 'Unix timestamp of creation', example: 1715000000, type: Number })
+  @ApiProperty({ description: 'Horodatage Unix de la création', example: 1715000000, type: Number })
   created!: number;
 
-  @ApiProperty({ description: 'Model used', example: 'gpt-4o-mini', type: String })
+  @ApiProperty({ description: 'Modèle utilisé', example: 'gpt-4o-mini', type: String })
   model!: string;
 
-  @ApiProperty({ description: 'List of choices', type: () => [ChoiceDto] })
+  @ApiProperty({ description: 'Liste des choix', type: () => [ChoiceDto] })
   choices!: ChoiceDto[];
 
-  @ApiPropertyOptional({ description: 'Token usage', type: () => UsageDto })
+  @ApiPropertyOptional({ description: 'Utilisation des jetons (tokens)', type: () => UsageDto })
   usage?: UsageDto;
 
   @ApiPropertyOptional({
-    description: 'Estimated cost in USD',
+    description: 'Coût estimé en USD',
     example: 0.000045,
     type: Number,
   })
   cost_usd?: number;
 
   @ApiPropertyOptional({
-    description: 'Whether response was served from semantic cache',
+    description: 'Indique si la réponse a été servie depuis le cache sémantique',
     example: false,
     type: Boolean,
   })
   cached?: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Métadonnées additionnelles du proxy (ex: informations sur le fallback)',
+    type: Object,
+  })
+  metadata?: Record<string, any>;
 }

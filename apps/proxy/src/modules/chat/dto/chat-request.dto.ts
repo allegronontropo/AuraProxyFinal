@@ -18,7 +18,7 @@ import { Type } from 'class-transformer';
  */
 export class MessageDto {
   @ApiProperty({
-    description: 'Role of the message sender',
+    description: 'Rôle de l\'expéditeur du message',
     enum: ['system', 'user', 'assistant'],
     example: 'user',
   })
@@ -27,7 +27,7 @@ export class MessageDto {
   role!: 'system' | 'user' | 'assistant';
 
   @ApiProperty({
-    description: 'Content of the message',
+    description: 'Contenu du message',
     example: 'Explique-moi le pattern Strategy en NestJS.',
   })
   @IsString()
@@ -40,7 +40,7 @@ export class MessageDto {
  */
 export class ChatRequestDto {
   @ApiProperty({
-    description: 'Model identifier (auto-routes to the correct provider)',
+    description: 'Identifiant du modèle (redirection automatique vers le bon fournisseur)',
     example: 'gpt-4o-mini',
     examples: {
       openai: { value: 'gpt-4o-mini' },
@@ -53,7 +53,7 @@ export class ChatRequestDto {
   model!: string;
 
   @ApiProperty({
-    description: 'List of messages in the conversation',
+    description: 'Liste des messages de la conversation',
     type: [MessageDto],
   })
   @IsArray()
@@ -62,7 +62,7 @@ export class ChatRequestDto {
   messages!: MessageDto[];
 
   @ApiPropertyOptional({
-    description: 'Enable Server-Sent Events streaming',
+    description: 'Activer le streaming via Server-Sent Events',
     default: false,
   })
   @IsOptional()
@@ -70,7 +70,7 @@ export class ChatRequestDto {
   stream?: boolean;
 
   @ApiPropertyOptional({
-    description: 'Sampling temperature (0–2)',
+    description: 'Température d\'échantillonnage (0–2)',
     minimum: 0,
     maximum: 2,
     default: 1,
@@ -82,7 +82,7 @@ export class ChatRequestDto {
   temperature?: number;
 
   @ApiPropertyOptional({
-    description: 'Maximum number of tokens to generate',
+    description: 'Nombre maximum de jetons (tokens) à générer',
     minimum: 1,
     example: 1024,
   })
@@ -92,7 +92,7 @@ export class ChatRequestDto {
   max_tokens?: number;
 
   @ApiPropertyOptional({
-    description: 'Top-p nucleus sampling',
+    description: 'Échantillonnage de noyau Top-p',
     minimum: 0,
     maximum: 1,
   })

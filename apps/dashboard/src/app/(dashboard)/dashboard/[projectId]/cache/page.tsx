@@ -250,7 +250,10 @@ export default async function CacheAnalyticsPage({
 
   const recentEvents = raw.recentEvents as RecentEvent[];
   const avgSemanticSimilarity = raw.avgSemanticSimilarity as number;
-  const avgCacheLatency = raw.avgCacheLatency as number;
+  const avgExactLatency = raw.avgExactLatency as number;
+  const avgSemanticLatency = raw.avgSemanticLatency as number;
+  const avgMissLatency = raw.avgMissLatency as number;
+  const avgMissCost = raw.avgMissCost as number;
   const estimatedBandwidthSaved = formatBytes(raw.estimatedBandwidthSavedBytes);
 
   const hitRateColor =
@@ -385,35 +388,76 @@ export default async function CacheAnalyticsPage({
 
             {/* Right: Cache Efficiency & Bar Chart */}
             <div className="lg:col-span-2 flex flex-col gap-5">
-              {/* Cache Efficiency */}
+              {/* Performance Comparison */}
               <div className="group relative bg-white/[0.015] border border-white/[0.08] rounded-[11px] p-6 flex flex-col gap-4 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.12]">
                 <div
                   className="absolute -bottom-16 -right-16 w-[150px] h-[150px] rounded-full blur-[60px] opacity-[0.08] pointer-events-none transition-opacity duration-500 group-hover:opacity-[0.15]"
                   style={{ background: "#7c5cfc" }}
                 />
-                <div className="relative z-10">
-                  <div className="text-[13px] font-semibold text-gray-100">Cache Efficiency</div>
-                  <div className="text-[11px] text-gray-500 mt-0.5 uppercase tracking-widest font-semibold">Hit type breakdown</div>
+                <div className="relative z-10 flex items-center justify-between">
+                  <div>
+                    <div className="text-[13px] font-semibold text-gray-100">Performance Comparison</div>
+                    <div className="text-[11px] text-gray-500 mt-0.5 uppercase tracking-widest font-semibold">Latency & Cost Breakdown</div>
+                  </div>
+                  <div className="text-[10px] text-gray-400 font-medium bg-white/[0.03] border border-white/[0.05] px-2 py-1 rounded">
+                    Avg Sim: {formatSimilarity(avgSemanticSimilarity)}
+                  </div>
                 </div>
-                <div className="relative z-10 flex flex-col gap-3.5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-400 font-medium">Exact hits</span>
-                    <span className="text-[13px] font-semibold text-emerald-400">{totalExactHits.toLocaleString()}</span>
+
+                <div className="relative z-10 mt-1">
+                  <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr] text-[10px] text-gray-500 uppercase tracking-wider font-semibold border-b border-white/[0.05] pb-2 mb-3">
+                    <div>Type</div>
+                    <div className="text-right">Latency</div>
+                    <div className="text-right">Cost</div>
+                    <div className="text-right">Requests</div>
                   </div>
-                  <div className="h-px bg-white/[0.05]" />
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-400 font-medium">Semantic hits</span>
-                    <span className="text-[13px] font-semibold text-violet-400">{totalSemanticHits.toLocaleString()}</span>
-                  </div>
-                  <div className="h-px bg-white/[0.05]" />
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-400 font-medium">Avg semantic similarity</span>
-                    <span className="text-[13px] font-semibold text-gray-100">{formatSimilarity(avgSemanticSimilarity)}</span>
-                  </div>
-                  <div className="h-px bg-white/[0.05]" />
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-400 font-medium">Avg cache latency</span>
-                    <span className="text-[13px] font-semibold text-sky-400">{avgCacheLatency > 0 ? `${Math.round(avgCacheLatency)}ms` : "—"}</span>
+                  
+                  <div className="flex flex-col gap-3">
+                    {/* Exact Cache */}
+                    <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr] items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        <span className="text-xs text-gray-300 font-medium">Exact</span>
+                      </div>
+                      <div className="text-right flex flex-col">
+                        <span className="text-[12px] font-semibold text-emerald-400">{avgExactLatency > 0 ? `${Math.round(avgExactLatency)}ms` : "—"}</span>
+                        {avgMissLatency > 0 && avgExactLatency > 0 && (
+                          <span className="text-[9.5px] text-emerald-500/70 font-medium mt-0.5">-{(((avgMissLatency - avgExactLatency) / avgMissLatency) * 100).toFixed(1)}%</span>
+                        )}
+                      </div>
+                      <div className="text-right text-[12px] font-semibold text-gray-300">$0.0000</div>
+                      <div className="text-right text-[12px] font-semibold text-gray-300">{totalExactHits.toLocaleString()}</div>
+                    </div>
+                    
+                    {/* Semantic Cache */}
+                    <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr] items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-violet-400"></span>
+                        <span className="text-xs text-gray-300 font-medium">Semantic</span>
+                      </div>
+                      <div className="text-right flex flex-col">
+                        <span className="text-[12px] font-semibold text-violet-400">{avgSemanticLatency > 0 ? `${Math.round(avgSemanticLatency)}ms` : "—"}</span>
+                        {avgMissLatency > 0 && avgSemanticLatency > 0 && (
+                          <span className="text-[9.5px] text-violet-400/70 font-medium mt-0.5">-{(((avgMissLatency - avgSemanticLatency) / avgMissLatency) * 100).toFixed(1)}%</span>
+                        )}
+                      </div>
+                      <div className="text-right text-[12px] font-semibold text-gray-300">$0.0000</div>
+                      <div className="text-right text-[12px] font-semibold text-gray-300">{totalSemanticHits.toLocaleString()}</div>
+                    </div>
+
+                    {/* Cache Miss */}
+                    <div className="grid grid-cols-[1.2fr_1fr_1fr_1fr] items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                        <span className="text-xs text-gray-300 font-medium">Miss</span>
+                      </div>
+                      <div className="text-right flex flex-col">
+                        <span className="text-[12px] font-semibold text-red-400">{avgMissLatency > 0 ? `${Math.round(avgMissLatency)}ms` : "—"}</span>
+                        <span className="text-[9.5px] text-gray-600 font-medium mt-0.5">Base</span>
+                      </div>
+                      <div className="text-right text-[12px] font-semibold text-gray-300">${avgMissCost > 0 ? avgMissCost.toFixed(4) : "0.0000"}</div>
+                      <div className="text-right text-[12px] font-semibold text-gray-300">{totalMisses.toLocaleString()}</div>
+                    </div>
                   </div>
                 </div>
               </div>

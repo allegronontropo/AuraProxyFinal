@@ -197,6 +197,7 @@ export async function getCacheStats(projectId: string) {
         statusCode: true,
         cached: true,
         metadata: true,
+        costUsd: true,
         createdAt: true,
       },
     }),
@@ -221,7 +222,11 @@ export async function getCacheStats(projectId: string) {
   let misses = 0;
   let totalSimilarityScore = 0;
   let semanticSimilarityCount = 0;
-  let totalCacheLatency = 0;
+  
+  let totalExactLatency = 0;
+  let totalSemanticLatency = 0;
+  let totalMissLatency = 0;
+  let totalMissCost = 0;
 
   const recentEvents = requestLogs
     .filter((log) => log.cached)
@@ -260,13 +265,11 @@ export async function getCacheStats(projectId: string) {
 
     if (log.cached) {
       buckets[bucketIndex].cacheHits += 1;
-      if (log.latencyMs != null) {
-        totalCacheLatency += log.latencyMs;
-      }
       const hitType = ((log.metadata as Record<string, unknown> | null)?.cache_hit_type as string | undefined) ?? "exact";
       if (hitType === "semantic") {
         buckets[bucketIndex].semanticHits += 1;
         semanticHits += 1;
+        if (log.latencyMs != null) totalSemanticLatency += log.latencyMs;
         const score = (log.metadata as Record<string, unknown> | null)?.cache_similarity_score;
         if (typeof score === "number") {
           totalSimilarityScore += score;
@@ -275,10 +278,13 @@ export async function getCacheStats(projectId: string) {
       } else {
         buckets[bucketIndex].exactHits += 1;
         exactHits += 1;
+        if (log.latencyMs != null) totalExactLatency += log.latencyMs;
       }
     } else {
       buckets[bucketIndex].cacheMisses += 1;
       misses += 1;
+      if (log.latencyMs != null) totalMissLatency += log.latencyMs;
+      if (log.costUsd != null) totalMissCost += Number(log.costUsd);
     }
   }
 
@@ -287,8 +293,11 @@ export async function getCacheStats(projectId: string) {
   }, 0);
 
   const avgSemanticSimilarity = semanticSimilarityCount > 0 ? totalSimilarityScore / semanticSimilarityCount : 0;
-  const totalCacheHits = exactHits + semanticHits;
-  const avgCacheLatency = totalCacheHits > 0 ? totalCacheLatency / totalCacheHits : 0;
+  
+  const avgExactLatency = exactHits > 0 ? totalExactLatency / exactHits : 0;
+  const avgSemanticLatency = semanticHits > 0 ? totalSemanticLatency / semanticHits : 0;
+  const avgMissLatency = misses > 0 ? totalMissLatency / misses : 0;
+  const avgMissCost = misses > 0 ? totalMissCost / misses : 0;
 
   return {
     timeSeries: buckets,
@@ -296,7 +305,10 @@ export async function getCacheStats(projectId: string) {
     semanticHits,
     misses,
     avgSemanticSimilarity,
-    avgCacheLatency,
+    avgExactLatency,
+    avgSemanticLatency,
+    avgMissLatency,
+    avgMissCost,
     recentEvents,
     estimatedBandwidthSavedBytes,
   };

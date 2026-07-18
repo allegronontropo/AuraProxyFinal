@@ -20,7 +20,7 @@ export class HealthController {
 
   @Get()
   @HealthCheck()
-  @ApiOperation({ summary: 'Check service health' })
+  @ApiOperation({ summary: 'Vérifier l\'état de santé du service' })
   async check(): Promise<HealthCheckResult> {
     const result = await this.health.check([
       () => this.prismaIndicator.pingCheck('database', this.prismaService.client),
@@ -41,13 +41,13 @@ export class HealthController {
   }
 
   @Get('live')
-  @ApiOperation({ summary: 'Simple liveness probe' })
+  @ApiOperation({ summary: 'Sonde de vivacité simple (liveness)' })
   getLiveness() {
     return { status: 'ok' };
   }
 
   @Get('ready')
-  @ApiOperation({ summary: 'Simple readiness probe' })
+  @ApiOperation({ summary: 'Sonde de disponibilité simple (readiness)' })
   async getReadiness() {
     const dbOk = await this.prismaService.client.$queryRaw`SELECT 1`.then(() => true).catch(() => false);
     const redisOk = await this.redisService.client.ping().then((r) => r === 'PONG').catch(() => false);
@@ -59,7 +59,7 @@ export class HealthController {
   }
 
   @Get('metrics')
-  @ApiOperation({ summary: 'Prometheus metrics' })
+  @ApiOperation({ summary: 'Métrique Prometheus' })
   async getMetrics(): Promise<string> {
     const metrics = await this.cacheMetrics.getMetrics();
     const uptimeSeconds = Math.floor((Date.now() - startTime) / 1000);
@@ -90,7 +90,7 @@ export class HealthController {
   }
 
 @Get('stats')
-  @ApiOperation({ summary: 'JSON stats for dashboard' })
+  @ApiOperation({ summary: 'Statistiques JSON pour le tableau de bord' })
   async getStats() {
     const metrics = await this.cacheMetrics.getMetrics();
     const uptimeSeconds = Math.floor((Date.now() - startTime) / 1000);
