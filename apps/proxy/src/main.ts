@@ -20,6 +20,13 @@ async function bootstrap() {
   // CORS
   app.enableCors();
 
+  // Stamp every request with its arrival time before any guard or middleware runs.
+  // This is the only reliable way to measure true server-side latency (auth + cache + LLM).
+  const fastifyInstance = app.getHttpAdapter().getInstance();
+  fastifyInstance.addHook('onRequest', async (request: any) => {
+    request.requestStartHrTime = performance.now();
+  });
+
   // Swagger
   const config = new DocumentBuilder()
     .setTitle('API Aura Proxy')

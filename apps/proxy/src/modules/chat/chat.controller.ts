@@ -59,6 +59,9 @@ export class ChatController {
       provider: this.parseProvider(providerHeader),
       apiKeyId: req.apiKey.keyId,
       authLatencyMs: req.authLatencyMs || 0,
+      // requestStartHrTime is stamped by the Fastify onRequest hook in main.ts,
+      // before any guard runs. Used for true end-to-end server-side latency on cache hits.
+      requestStartHrTime: req.requestStartHrTime,
     };
 
     if (body.stream) {

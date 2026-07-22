@@ -32,6 +32,8 @@ export interface ChatRequest {
   authLatencyMs?: number;
   cacheLatencyMs?: number;
   metadata?: Record<string, any>;
+  /** Stamped by Fastify onRequest hook before any guard. Used for accurate end-to-end proxy latency. */
+  requestStartHrTime?: number;
 }
 
 export interface TokenUsage {

@@ -55,8 +55,13 @@ export class ChatService {
 
       const response = { ...cacheLookup.response, cached: true };
 
-      // latencyMs = auth time + chat() processing time, giving the true proxy-side latency
-      const totalProxyLatencyMs = (request.authLatencyMs ?? 0) + Math.round(performance.now() - start);
+      // Compute true end-to-end server-side latency:
+      // - If requestStartHrTime was stamped by the Fastify onRequest hook (before guards),
+      //   use it for an accurate wall-clock measure that includes auth + routing overhead.
+      // - Fall back to authLatencyMs + chat() duration if the hook isn't available.
+      const totalProxyLatencyMs = request.requestStartHrTime != null
+        ? Math.round(performance.now() - request.requestStartHrTime)
+        : (request.authLatencyMs ?? 0) + Math.round(performance.now() - start);
       this.logCacheHit(request, project, response, cacheLatencyMs, totalProxyLatencyMs, cacheLookup.kind, cacheLookup.similarityScore).catch(err =>
         this.logger.error(`Failed to log cache hit: ${err.message}`)
       );

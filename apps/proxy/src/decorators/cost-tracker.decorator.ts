@@ -30,7 +30,10 @@ export class CostTrackerDecorator extends BaseDecorator {
     const costUsd = this.estimateCost(response.usage);
     const authLatencyMs = request.authLatencyMs ?? 0;
     const cacheLatencyMs = request.cacheLatencyMs ?? 0;
-    const latencyMs = authLatencyMs + cacheLatencyMs + llmLatencyMs;
+    // Use requestStartHrTime (Fastify hook) for true wall-clock proxy latency when available.
+    const latencyMs = request.requestStartHrTime != null
+      ? Math.round(performance.now() - request.requestStartHrTime)
+      : authLatencyMs + cacheLatencyMs + llmLatencyMs;
 
     // Record the request log asynchronously - don't block the response
     this.recordLog({
