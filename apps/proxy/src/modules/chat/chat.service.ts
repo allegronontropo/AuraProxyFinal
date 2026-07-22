@@ -55,7 +55,9 @@ export class ChatService {
 
       const response = { ...cacheLookup.response, cached: true };
 
-      this.logCacheHit(request, project, response, cacheLatencyMs, Math.round(performance.now() - start), cacheLookup.kind, cacheLookup.similarityScore).catch(err =>
+      // latencyMs = auth time + chat() processing time, giving the true proxy-side latency
+      const totalProxyLatencyMs = (request.authLatencyMs ?? 0) + Math.round(performance.now() - start);
+      this.logCacheHit(request, project, response, cacheLatencyMs, totalProxyLatencyMs, cacheLookup.kind, cacheLookup.similarityScore).catch(err =>
         this.logger.error(`Failed to log cache hit: ${err.message}`)
       );
       this.budget.recordCacheEvent(project.id, true).catch(err =>
