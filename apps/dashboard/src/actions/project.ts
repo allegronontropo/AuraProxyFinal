@@ -132,7 +132,7 @@ export async function deleteProject(projectId: string) {
       where: { id: projectId },
     });
     revalidatePath("/workspace");
-    redirect("/workspace");
+    return { success: true };
   } catch (error) {
     console.error("deleteProject error:", error);
     return { error: "Failed to delete workspace." };

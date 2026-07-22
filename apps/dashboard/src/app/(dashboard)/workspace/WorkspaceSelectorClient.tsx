@@ -964,17 +964,17 @@ export function WorkspaceSelectorClient({
   const handleDeleteConfirm = useCallback(() => {
     if (!deleteTarget) return;
     startDeleteTransition(async () => {
-      // deleteProject redirects to /workspace on success (no return value),
-      // and returns { error } on failure. So absence of an error means success.
       const res = await deleteProject(deleteTarget.id);
-      if (!res || !("error" in res)) {
-        // Optimistically remove from local list (server redirect will also reload)
+      if (res && "success" in res && res.success) {
+        // Optimistically remove from local state immediately
         setProjects((prev) => prev.filter((p) => p.id !== deleteTarget.id));
         if (selected === deleteTarget.id) setSelected(null);
+        // Re-fetch server data to stay in sync
+        router.refresh();
       }
       setDeleteTarget(null);
     });
-  }, [deleteTarget, selected]);
+  }, [deleteTarget, selected, router]);
 
   const handleDeleteCancel = useCallback(() => {
     setDeleteTarget(null);
