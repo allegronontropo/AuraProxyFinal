@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState, useTransition, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { createProject } from "@/actions/project";
+import { createProject, deleteProject } from "@/actions/project";
 import { signOut } from "next-auth/react";
 /** Lightweight relative-time formatter - no external dep needed. */
 function formatRelative(date: Date): string {
@@ -170,14 +170,133 @@ function StatusDot({ status }: { status: string }) {
   );
 }
 
+// ─── Delete Confirmation Modal ────────────────────────────────────────────────
+
+function DeleteConfirmModal({
+  wsName,
+  onConfirm,
+  onCancel,
+  isPending,
+}: {
+  wsName: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  isPending: boolean;
+}) {
+  return (
+    <div
+      onClick={onCancel}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.65)",
+        backdropFilter: "blur(4px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 999,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#111113",
+          border: "1px solid rgba(239,68,68,0.3)",
+          borderRadius: 14,
+          padding: 24,
+          maxWidth: 360,
+          width: "90%",
+          boxShadow: "0 24px 64px rgba(0,0,0,0.7)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 8,
+              background: "rgba(239,68,68,0.12)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <span style={{ fontSize: 16 }}>🗑</span>
+          </div>
+          <div>
+            <div style={{ color: "#f9fafb", fontWeight: 600, fontSize: 15 }}>Delete workspace?</div>
+            <div style={{ color: "#6b7280", fontSize: 12, marginTop: 2 }}>This action cannot be undone.</div>
+          </div>
+        </div>
+        <div
+          style={{
+            background: "rgba(239,68,68,0.06)",
+            border: "1px solid rgba(239,68,68,0.15)",
+            borderRadius: 8,
+            padding: "10px 12px",
+            marginBottom: 18,
+            color: "#9ca3af",
+            fontSize: 13,
+          }}
+        >
+          You are about to permanently delete{" "}
+          <span style={{ color: "#f9fafb", fontWeight: 500 }}>«{wsName}»</span>.
+          All API keys and logs will be lost.
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            onClick={onCancel}
+            disabled={isPending}
+            style={{
+              flex: 1,
+              padding: "9px 0",
+              borderRadius: 8,
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "#9ca3af",
+              fontSize: 13,
+              cursor: "pointer",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isPending}
+            style={{
+              flex: 1,
+              padding: "9px 0",
+              borderRadius: 8,
+              background: isPending ? "rgba(239,68,68,0.3)" : "#dc2626",
+              border: "none",
+              color: "#fff",
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: isPending ? "not-allowed" : "pointer",
+              transition: "all 0.15s",
+            }}
+          >
+            {isPending ? "Deleting…" : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Workspace Row ────────────────────────────────────────────────────────────
+
 function WorkspaceRow({
   ws,
   selected,
   onClick,
+  onDelete,
 }: {
   ws: Workspace;
   selected: string | null;
   onClick: (id: string) => void;
+  onDelete: (id: string, name: string) => void;
 }) {
   const isSelected = selected === ws.id;
   return (
@@ -193,6 +312,7 @@ function WorkspaceRow({
         cursor: "pointer",
         transition: "all 0.15s",
         marginBottom: 8,
+        position: "relative",
       }}
     >
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
@@ -220,7 +340,44 @@ function WorkspaceRow({
             <div style={{ color: "#6b7280", fontSize: 12, marginTop: 2 }}>{ws.desc}</div>
           </div>
         </div>
-        <RoleBadge role={ws.role} />
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <RoleBadge role={ws.role} />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(ws.id, ws.name);
+            }}
+            title="Delete workspace"
+            style={{
+              background: "none",
+              border: "1px solid rgba(239,68,68,0.0)",
+              borderRadius: 6,
+              width: 28,
+              height: 28,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#4b5563",
+              fontSize: 14,
+              transition: "all 0.15s",
+              padding: 0,
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color = "#ef4444";
+              (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.1)";
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(239,68,68,0.25)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color = "#4b5563";
+              (e.currentTarget as HTMLButtonElement).style.background = "none";
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(239,68,68,0.0)";
+            }}
+          >
+            🗑
+          </button>
+        </div>
       </div>
       <div
         style={{
@@ -744,20 +901,26 @@ function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
 
 // ─── Main Client Component ────────────────────────────────────────────────────
 
+const PAGE_SIZE = 2;
+
 export function WorkspaceSelectorClient({
-  projects,
+  projects: initialProjects,
   user,
 }: {
   projects: RawProject[];
   user: UserInfo;
 }) {
   const router = useRouter();
+  const [projects, setProjects] = useState<RawProject[]>(initialProjects);
   const [selected, setSelected] = useState<string | null>(
-    projects.length > 0 ? projects[0].id : null
+    initialProjects.length > 0 ? initialProjects[0].id : null
   );
   const [search, setSearch] = useState("");
   const [view, setView] = useState<View>("select");
   const [createdResult, setCreatedResult] = useState<CreatedResult | null>(null);
+  const [page, setPage] = useState(0);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [isDeleting, startDeleteTransition] = useTransition();
 
   const workspaces = projects.map(mapProject);
 
@@ -766,6 +929,11 @@ export function WorkspaceSelectorClient({
       ws.name.toLowerCase().includes(search.toLowerCase()) ||
       ws.env.toLowerCase().includes(search.toLowerCase())
   );
+
+  const listToShow = search ? filtered : workspaces;
+  const totalPages = Math.ceil(listToShow.length / PAGE_SIZE);
+  const safePage = Math.min(page, Math.max(0, totalPages - 1));
+  const pageSlice = listToShow.slice(safePage * PAGE_SIZE, safePage * PAGE_SIZE + PAGE_SIZE);
 
   const handleCreated = useCallback((result: CreatedResult) => {
     setCreatedResult(result);
@@ -787,6 +955,29 @@ export function WorkspaceSelectorClient({
 
   const handleSignOut = useCallback(() => {
     signOut({ callbackUrl: "/login" });
+  }, []);
+
+  const handleDeleteRequest = useCallback((id: string, name: string) => {
+    setDeleteTarget({ id, name });
+  }, []);
+
+  const handleDeleteConfirm = useCallback(() => {
+    if (!deleteTarget) return;
+    startDeleteTransition(async () => {
+      // deleteProject redirects to /workspace on success (no return value),
+      // and returns { error } on failure. So absence of an error means success.
+      const res = await deleteProject(deleteTarget.id);
+      if (!res || !("error" in res)) {
+        // Optimistically remove from local list (server redirect will also reload)
+        setProjects((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+        if (selected === deleteTarget.id) setSelected(null);
+      }
+      setDeleteTarget(null);
+    });
+  }, [deleteTarget, selected]);
+
+  const handleDeleteCancel = useCallback(() => {
+    setDeleteTarget(null);
   }, []);
 
   const DOT_GRID: React.CSSProperties = {
@@ -978,7 +1169,7 @@ export function WorkspaceSelectorClient({
               {/* Workspace list */}
               {workspaces.length === 0 ? (
                 <EmptyState onCreateClick={() => setView("create")} />
-              ) : filtered.length === 0 ? (
+              ) : listToShow.length === 0 ? (
                 <div
                   style={{
                     textAlign: "center",
@@ -991,54 +1182,124 @@ export function WorkspaceSelectorClient({
                 </div>
               ) : (
                 <div>
-                  {search ? (
-                    <div>
-                      <div
+                  {/* Section label */}
+                  <div
+                    style={{
+                      color: "#4b5563",
+                      fontSize: 10,
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      marginBottom: 8,
+                    }}
+                  >
+                    {search ? "Results" : "All workspaces"}
+                  </div>
+
+                  {/* Workspace cards for current page */}
+                  {pageSlice.map((ws) => (
+                    <WorkspaceRow
+                      key={ws.id}
+                      ws={ws}
+                      selected={selected}
+                      onClick={setSelected}
+                      onDelete={handleDeleteRequest}
+                    />
+                  ))}
+
+                  {/* Pagination controls */}
+                  {totalPages > 1 && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 10,
+                        marginTop: 6,
+                        marginBottom: 4,
+                      }}
+                    >
+                      <button
+                        onClick={() => setPage((p) => Math.max(0, p - 1))}
+                        disabled={safePage === 0}
+                        title="Previous"
                         style={{
-                          color: "#4b5563",
-                          fontSize: 10,
-                          letterSpacing: "0.1em",
-                          textTransform: "uppercase",
-                          marginBottom: 8,
+                          width: 30,
+                          height: 30,
+                          borderRadius: 7,
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          background: safePage === 0 ? "rgba(255,255,255,0.02)" : "rgba(124,58,237,0.1)",
+                          color: safePage === 0 ? "#374151" : "#a78bfa",
+                          fontSize: 14,
+                          cursor: safePage === 0 ? "not-allowed" : "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "all 0.15s",
+                          padding: 0,
+                          lineHeight: 1,
                         }}
                       >
-                        Results
+                        ‹
+                      </button>
+
+                      {/* Dot indicators */}
+                      <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+                        {Array.from({ length: totalPages }).map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setPage(i)}
+                            style={{
+                              width: i === safePage ? 18 : 6,
+                              height: 6,
+                              borderRadius: 3,
+                              border: "none",
+                              background: i === safePage ? "#7c3aed" : "rgba(255,255,255,0.15)",
+                              cursor: "pointer",
+                              padding: 0,
+                              transition: "all 0.2s",
+                            }}
+                          />
+                        ))}
                       </div>
-                      {filtered.map((ws) => (
-                        <WorkspaceRow
-                          key={ws.id}
-                          ws={ws}
-                          selected={selected}
-                          onClick={setSelected}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div>
-                      <div
+
+                      <button
+                        onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                        disabled={safePage >= totalPages - 1}
+                        title="Next"
                         style={{
-                          color: "#4b5563",
-                          fontSize: 10,
-                          letterSpacing: "0.1em",
-                          textTransform: "uppercase",
-                          marginBottom: 8,
+                          width: 30,
+                          height: 30,
+                          borderRadius: 7,
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          background: safePage >= totalPages - 1 ? "rgba(255,255,255,0.02)" : "rgba(124,58,237,0.1)",
+                          color: safePage >= totalPages - 1 ? "#374151" : "#a78bfa",
+                          fontSize: 14,
+                          cursor: safePage >= totalPages - 1 ? "not-allowed" : "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          transition: "all 0.15s",
+                          padding: 0,
+                          lineHeight: 1,
                         }}
                       >
-                        All workspaces
-                      </div>
-                      {workspaces.map((ws) => (
-                        <WorkspaceRow
-                          key={ws.id}
-                          ws={ws}
-                          selected={selected}
-                          onClick={setSelected}
-                        />
-                      ))}
+                        ›
+                      </button>
                     </div>
                   )}
                 </div>
               )}
             </div>
+
+            {/* Delete confirmation modal */}
+            {deleteTarget && (
+              <DeleteConfirmModal
+                wsName={deleteTarget.name}
+                onConfirm={handleDeleteConfirm}
+                onCancel={handleDeleteCancel}
+                isPending={isDeleting}
+              />
+            )}
 
             {/* Footer actions - only show continue button if there are workspaces */}
             <div
