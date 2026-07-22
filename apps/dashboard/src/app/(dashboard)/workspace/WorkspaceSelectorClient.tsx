@@ -1053,12 +1053,15 @@ export function WorkspaceSelectorClient({
           width: "100%",
           maxWidth: 500,
           overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          maxHeight: "calc(100vh - 200px)",
         }}
       >
         {/* ── SELECT VIEW ── */}
         {view === "select" && (
           <>
-            <div style={{ padding: "20px 20px 0" }}>
+            <div style={{ padding: "20px 20px 0", flex: 1, overflowY: "auto", minHeight: 0 }}>
               {/* User header */}
               <div
                 style={{
